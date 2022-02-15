@@ -16,7 +16,7 @@ gem "puma", "~> 5.0"
 # gem "jbuilder"
 
 # Use Redis adapter to run Action Cable in production
-# gem "redis", "~> 4.0"
+gem "redis", "~> 4.0"
 
 # Use Kredis to get higher-level data types in Redis [https://github.com/rails/kredis]
 # gem "kredis"
@@ -38,10 +38,15 @@ gem "rack-cors"
 
 # Added by me
 
+gem 'aasm'                       # state machine behavior
+gem 'amazing_print'              # human-friendly printing of things on the console
 gem 'blueprinter'                # JSON serialization, but not JSON:API style
 gem 'devise', '~> 4.7'           # Authentication
 # gem 'devise-async'               # Background delivery of password-reset emails
 gem 'devise-jwt'                 # for JWT-based login
+gem 'newrelic_rpm'               # For New Relic app monitoring
+gem 'sendgrid-ruby'              # For sending emails using SendGrid
+gem 'sidekiq'                    # The queueing system to use with ActiveJob
 gem 'slugify'                    # Sluggification support
 
 group :development, :test do

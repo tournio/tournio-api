@@ -1,6 +1,8 @@
- GEM
+GEM
   remote: https://rubygems.org/
   specs:
+    aasm (5.2.0)
+      concurrent-ruby (~> 1.0)
     actioncable (7.0.2.2)
       actionpack (= 7.0.2.2)
       activesupport (= 7.0.2.2)
@@ -66,6 +68,7 @@
       i18n (>= 1.6, < 2)
       minitest (>= 5.1)
       tzinfo (~> 2.0)
+    amazing_print (1.4.0)
     annotate (3.2.0)
       activerecord (>= 3.2, < 8.0)
       rake (>= 10.4, < 14.0)
@@ -75,6 +78,7 @@
       msgpack (~> 1.2)
     builder (3.2.4)
     concurrent-ruby (1.1.9)
+    connection_pool (2.2.5)
     crass (1.0.6)
     database_cleaner (2.0.1)
       database_cleaner-active_record (~> 2.0.0)
@@ -146,6 +150,7 @@
       digest
       net-protocol
       timeout
+    newrelic_rpm (8.4.0)
     nio4r (2.5.8)
     nokogiri (1.13.1-arm64-darwin)
       racc (~> 1.4)
@@ -186,6 +191,7 @@
       thor (~> 1.0)
       zeitwerk (~> 2.5)
     rake (13.0.6)
+    redis (4.6.0)
     reline (0.3.1)
       io-console (~> 0.5)
     responders (3.0.1)
@@ -208,8 +214,15 @@
       rspec-mocks (~> 3.10)
       rspec-support (~> 3.10)
     rspec-support (3.11.0)
+    ruby_http_client (3.5.4)
+    sendgrid-ruby (6.6.1)
+      ruby_http_client (~> 3.4)
     shoulda-matchers (5.1.0)
       activesupport (>= 5.2.0)
+    sidekiq (6.4.1)
+      connection_pool (>= 2.2.2)
+      rack (~> 2.0)
+      redis (>= 4.2.0)
     slugify (1.0.7)
     strscan (3.0.1)
     thor (1.2.1)
@@ -232,6 +245,8 @@ PLATFORMS
   arm64-darwin-21
 
 DEPENDENCIES
+  aasm
+  amazing_print
   annotate
   blueprinter
   bootsnap
@@ -240,12 +255,16 @@ DEPENDENCIES
   devise (~> 4.7)
   devise-jwt
   factory_bot_rails
+  newrelic_rpm
   pg (~> 1.1)
   puma (~> 5.0)
   rack-cors
   rails (~> 7.0.2, >= 7.0.2.2)
+  redis (~> 4.0)
   rspec-rails
+  sendgrid-ruby
   shoulda-matchers
+  sidekiq
   slugify
   tzinfo-data
 

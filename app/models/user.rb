@@ -1,10 +1,7 @@
 class User < ApplicationRecord
   include Devise::JWT::RevocationStrategies::Allowlist
 
-  # Include default devise modules. Others available are:
-  # :confirmable, :lockable, :timeoutable, :trackable and :omniauthable
   devise :database_authenticatable,
-         # :registerable,
          :recoverable,
          :rememberable,
          :validatable,
@@ -14,7 +11,16 @@ class User < ApplicationRecord
 
   enum role: %i[unpermitted director superuser]
 
+  has_and_belongs_to_many :tournaments
+
   before_create :generate_identifier
+
+  def jwt_payload
+    {
+      'role' => role.to_s,
+      'tournaments' => tournaments.pluck(:identifier)
+    }
+  end
 
   private
 
