@@ -45,6 +45,7 @@ gem 'devise', '~> 4.7'           # Authentication
 # gem 'devise-async'               # Background delivery of password-reset emails
 gem 'devise-jwt'                 # for JWT-based login
 gem 'newrelic_rpm'               # For New Relic app monitoring
+gem 'pundit'                     # Authorization
 gem 'sendgrid-ruby'              # For sending emails using SendGrid
 gem 'sidekiq'                    # The queueing system to use with ActiveJob
 gem 'slugify'                    # Sluggification support

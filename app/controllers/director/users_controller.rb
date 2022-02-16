@@ -1,7 +1,9 @@
 module Director
   class UsersController < BaseController
+
     def show
       find_user
+      authorize @user
       render json: UserBlueprint.render(@user), status: :ok
     end
 
