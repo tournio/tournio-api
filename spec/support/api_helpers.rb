@@ -5,11 +5,11 @@ module ApiHelpers
 
   def login_with_api(user)
     post '/login', params: {
-      user: {
-        email: user.email,
-        password: user.password,
-      }
-    }
+                     user: {
+                       email: user.email,
+                       password: user.password,
+                     }
+                   },
+                   as: :json
   end
 end
-

@@ -3,13 +3,7 @@ require 'devise/jwt/test_helpers'
 
 describe Director::UsersController, type: :request do
   let(:user) { create(:user) }
-  let(:headers) do
-    {
-      'Accept': 'application/json',
-      'Content-Type': 'application/json',
-    }
-  end
-  let(:auth_headers) { Devise::JWT::TestHelpers.auth_headers(headers, user) }
+  let(:auth_headers) { Devise::JWT::TestHelpers.auth_headers({}, user) }
 
   describe '#show' do
     let(:desired_user_identifier) { user.identifier }
@@ -17,7 +11,7 @@ describe Director::UsersController, type: :request do
     subject { get "/director/users/#{desired_user_identifier}", headers: auth_headers }
 
     context 'When the Authorization header is missing' do
-      let(:auth_headers) { headers }
+      let(:auth_headers) { {} } # no authorization header
 
       it 'returns a 401 Unauthorized' do
         subject
@@ -45,7 +39,7 @@ describe Director::UsersController, type: :request do
 
     context "When they want to fetch someone else's details" do
       let(:requesting_user) { create(:user, :director) }
-      let(:auth_headers) { Devise::JWT::TestHelpers.auth_headers(headers, requesting_user) }
+      let(:auth_headers) { Devise::JWT::TestHelpers.auth_headers({}, requesting_user) }
 
       it 'returns a 404 not found, even for a director' do
         subject
@@ -98,14 +92,63 @@ describe Director::UsersController, type: :request do
 
       it 'returns a 404 not found' do
         subject
-        expect(response).to have_http_status(:not_found)
+        expect(response).to have_http_status(:unauthorized)
       end
     end
 
     context "As an unpermitted user" do
       it 'returns a 404 not found' do
         subject
-        expect(response).to have_http_status(:not_found)
+        expect(response).to have_http_status(:unauthorized)
+      end
+    end
+  end
+
+  describe '#create' do
+    subject { post '/director/users', params: params, headers: auth_headers, as: :json }
+
+    let(:email) { 'a_new_user@tournament.org' }
+    let(:role) { 'director' }
+    let(:tournament) { create(:tournament) }
+    let(:params) do
+      {
+        user: {
+          email: email,
+          role: role,
+          tournament_ids: [tournament.id],
+        }
+      }
+    end
+
+    context 'As a non-superuser' do
+      it 'shall not pass' do
+        subject
+        expect(response).to have_http_status(:unauthorized)
+      end
+
+      context 'As a director, though?' do
+        let(:user) { create(:user, :director) }
+
+        it 'shall not pass' do
+          subject
+          expect(response).to have_http_status(:unauthorized)
+        end
+      end
+    end
+
+    context 'As a superuser' do
+      let(:user) { create(:user, :superuser) }
+
+      it 'shall pass' do
+        subject
+        expect(response).to have_http_status(:created)
+      end
+
+      it 'includes the new user in the response' do
+        subject
+        expect(json).to have_key('identifier')
+        expect(json['email']).to eq(email)
+        expect(json['role']).to eq(role)
       end
     end
   end

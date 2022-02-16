@@ -1,7 +1,7 @@
 require 'rails_helper'
 require 'devise/jwt/test_helpers'
 
-describe Users::SessionsController, type: :request do
+describe Users::SessionsController do
   let(:user) { create(:user) }
   let(:login_url) { '/login' }
   let(:logout_url) { '/logout' }
@@ -89,7 +89,8 @@ describe Users::SessionsController, type: :request do
         user: {
           email: user.email,
           password: nil,
-        }
+        },
+        as: :json
       }
     end
 
@@ -99,13 +100,7 @@ describe Users::SessionsController, type: :request do
   end
 
   context 'when logging out' do
-    let(:headers) do
-      {
-        'Accept': 'application/json',
-        'Content-Type': 'application/json',
-      }
-    end
-    let (:auth_headers) { Devise::JWT::TestHelpers.auth_headers(headers, user) }
+    let (:auth_headers) { Devise::JWT::TestHelpers.auth_headers({}, user) }
 
     subject { delete "/logout", headers: auth_headers }
 

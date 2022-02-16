@@ -10,10 +10,13 @@ module Director
     after_action :verify_policy_scoped, only: :index
 
     rescue_from ActiveRecord::RecordNotFound, with: :not_found
-    rescue_from Pundit::NotAuthorizedError, with: :not_found
 
     def not_found
       render json: nil, status: :not_found
+    end
+
+    def unauthorized
+      render json: nil, status: :unauthorized
     end
   end
 end
