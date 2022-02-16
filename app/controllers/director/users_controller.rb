@@ -1,5 +1,6 @@
 module Director
   class UsersController < BaseController
+    rescue_from Pundit::NotAuthorizedError, with: :unauthorized
     NEW_ACCOUNT_PASSWORD = Rails.env.development? ? 'password' : 'bowling is great'
     NEW_USER_PARAMS = [
       :email,
@@ -17,16 +18,12 @@ module Director
       @users = policy_scope(User)
       authorize(User)
       render json: UserBlueprint.render(@users), status: :ok
-    rescue Pundit::NotAuthorizedError
-      unauthorized
     end
 
     def show
       find_user
       authorize @user
       render json: UserBlueprint.render(@user), status: :ok
-    rescue Pundit::NotAuthorizedError
-      unauthorized
     end
 
     def create
@@ -37,8 +34,6 @@ module Director
       else
         render json: user.errors.full_messages, status: :unprocessable_entity
       end
-    rescue Pundit::NotAuthorizedError
-      unauthorized
     end
 
     def update
@@ -48,15 +43,24 @@ module Director
 
       # Prevent someone from updating their own role or list of associated tournaments
       if @user.identifier == current_user.identifier
-        render json: {}, status: :unprocessable_entity and return if updates.has_key?(:tournament_ids) || updates.has_key?(:role)
+        render json: nil, status: :unprocessable_entity and return if updates.has_key?(:tournament_ids) || updates.has_key?(:role)
       end
       if (@user.update(updates))
         render json: UserBlueprint.render(@user.reload), status: :ok
       else
         render json: @user.errors.full_messages, status: :unprocessable_entity
       end
-    rescue Pundit::NotAuthorizedError
-      unauthorized
+    end
+
+    def destroy
+      find_user
+      authorize @user
+      # Prevent someone from destroying their own account
+      if @user.identifier == current_user.identifier
+        render json: nil, status: :method_not_allowed and return
+      end
+      @user.destroy
+      render json: nil, status: :no_content
     end
 
     private

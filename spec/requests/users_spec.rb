@@ -179,6 +179,25 @@ describe Director::UsersController, type: :request do
         expect(response).to have_http_status(:not_found)
       end
     end
+  end
 
+  describe '#destroy' do
+    subject { delete "/director/users/#{desired_user_identifier}", headers: auth_headers, as: :json }
+
+    let(:requesting_user) { create(:user, :superuser) }
+    let(:requested_user) { create(:user) }
+    let(:desired_user_identifier) { requested_user.identifier }
+
+    include_examples 'an authorized action'
+    include_examples 'for superusers only', :no_content
+
+    context 'attempting to delete self' do
+      let(:desired_user_identifier) { requesting_user.identifier }
+
+      it 'rejects the request' do
+        subject
+        expect(response).to have_http_status(:method_not_allowed)
+      end
+    end
   end
 end
