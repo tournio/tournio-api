@@ -81,4 +81,104 @@ describe Director::UsersController, type: :request do
       expect(json['role']).to eq(role)
     end
   end
+
+  describe '#update' do
+    subject { patch "/director/users/#{desired_user_identifier}", params: params, headers: auth_headers, as: :json }
+
+    let(:requesting_user) { create(:user) }
+    let(:new_email) { 'a_new_address@tournament.org' }
+    let(:params) do
+      {
+        user: {
+          email: new_email,
+          password: 'new password',
+        }
+      }
+    end
+
+    context "When a user wants to update their own details" do
+      let(:desired_user_identifier) { requesting_user.identifier }
+
+      include_examples 'an authorized action'
+
+      it 'returns a 200 OK' do
+        subject
+        expect(response).to have_http_status(:ok)
+      end
+
+      it 'returns a JSON representation of the user' do
+        subject
+        expect(json).to have_key('identifier')
+        expect(json).to have_key('email')
+      end
+
+      it 'returns the intended user' do
+        subject
+        expect(json['identifier']).to eq(requesting_user.identifier)
+      end
+
+      it 'reflects the updated details' do
+        subject
+        expect(json['email']).to eq(new_email)
+      end
+
+      context 'attempting to update something other than email/password' do
+        let(:params) do
+          {
+            user: {
+              role: 'superuser',
+            }
+          }
+        end
+
+        it 'rejects the request' do
+          subject
+          expect(response).to have_http_status(:unprocessable_entity)
+        end
+      end
+    end
+
+    context "When they want to update someone else's details" do
+      let(:requesting_user) { create(:user, :superuser) }
+      let(:requested_user) { create(:user) }
+      let(:desired_user_identifier) { requested_user.identifier }
+      let(:tournament) { create :tournament }
+
+      include_examples 'for superusers only', :ok
+
+      context 'attempting to update something other than email/password' do
+        let(:params) do
+          {
+            user: {
+              role: 'director',
+              tournament_ids: [tournament.id],
+            }
+          }
+        end
+
+        it 'allows the update to proceed' do
+          subject
+          expect(response).to have_http_status(:ok)
+        end
+
+        it 'reflects the updated details' do
+          subject
+          expect(json['email']).to eq(requested_user.email)
+          expect(json['role']).to eq('director')
+          expect(json['tournaments']).to be_instance_of(Array)
+          expect(json['tournaments'][0]['identifier']).to eq(tournament.identifier)
+        end
+      end
+    end
+
+    context 'When the requested user does not exist' do
+      let(:desired_user_identifier) { 'missing-user-identifier' }
+
+      it 'returns a 404' do
+        subject
+        expect(response).to have_http_status(:not_found)
+      end
+    end
+
+  end
 end
