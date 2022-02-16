@@ -20,7 +20,7 @@ module Director
       authorize @user
       render json: UserBlueprint.render(@user), status: :ok
     rescue Pundit::NotAuthorizedError
-      not_found
+      unauthorized
     end
 
     def create
