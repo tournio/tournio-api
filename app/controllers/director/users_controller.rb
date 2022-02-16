@@ -1,5 +1,10 @@
 module Director
   class UsersController < BaseController
+    def index
+      authorize(User)
+      @users = policy_scope(User)
+      render json: UserBlueprint.render(@users), status: :ok
+    end
 
     def show
       find_user

@@ -16,6 +16,6 @@ Rails.application.routes.draw do
   # root "articles#index"
 
   namespace :director do
-    resources :users, only: %w(show), param: :identifier
+    resources :users, only: %w(show index), param: :identifier
   end
 end
