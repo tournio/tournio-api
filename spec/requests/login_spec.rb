@@ -19,31 +19,66 @@ describe Users::SessionsController, type: :request do
       expect(response).to have_http_status(:ok)
     end
 
-    it "includes a role attribute in the token's payload" do
-      header = response.headers['Authorization']
-      token_part = header.split(' ').last
-      hashed_token = JsonWebToken.decode(token_part)
+    it "includes the user's identifier in the payload" do
+      token = HttpAuth.jwt_from_auth_header(response.headers['Authorization'])
 
-      expect(hashed_token).to have_key(:role)
+      expect(token).to have_key(:identifier)
+    end
+
+    it "includes a role attribute in the token's payload" do
+      token = HttpAuth.jwt_from_auth_header(response.headers['Authorization'])
+
+      expect(token).to have_key(:role)
     end
 
     it 'has a role of "unpermitted"' do
-      header = response.headers['Authorization']
-      token_part = header.split(' ').last
-      hashed_token = JsonWebToken.decode(token_part)
+      token = HttpAuth.jwt_from_auth_header(response.headers['Authorization'])
 
-      expect(hashed_token[:role]).to eq('unpermitted')
+      expect(token[:role]).to eq('unpermitted')
+    end
+
+    it 'includes a tournaments attribute in the token payload' do
+      token = HttpAuth.jwt_from_auth_header(response.headers['Authorization'])
+
+      expect(token).to have_key(:tournaments)
+    end
+
+    it 'has an empty array for the tournaments attribute' do
+      token = HttpAuth.jwt_from_auth_header(response.headers['Authorization'])
+
+      expect(token[:tournaments]).to eq([])
     end
 
     context 'and the user is a superuser' do
       let(:user) { create(:user, :superuser) }
 
       it 'includes the superuser role in the returned token' do
-        header = response.headers['Authorization']
-        token_part = header.split(' ').last
-        hashed_token = JsonWebToken.decode(token_part)
+        token = HttpAuth.jwt_from_auth_header(response.headers['Authorization'])
 
-        expect(hashed_token[:role]).to eq('superuser')
+        expect(token[:role]).to eq('superuser')
+      end
+    end
+
+    context 'and the user is a director of a tournament' do
+      let(:tournament) { create(:tournament) }
+      let(:user) { create(:user, :director, tournaments: [tournament]) }
+
+      it 'includes the director role in the returned token' do
+        token = HttpAuth.jwt_from_auth_header(response.headers['Authorization'])
+
+        expect(token[:role]).to eq('director')
+      end
+
+      it 'includes a non-empty tournaments array' do
+        token = HttpAuth.jwt_from_auth_header(response.headers['Authorization'])
+
+        expect(token[:tournaments].length).to eq(1)
+      end
+
+      it 'includes the correct tournament identifier in the array' do
+        token = HttpAuth.jwt_from_auth_header(response.headers['Authorization'])
+
+        expect(token[:tournaments][0]).to eq(tournament.identifier)
       end
     end
   end
@@ -64,16 +99,18 @@ describe Users::SessionsController, type: :request do
   end
 
   context 'when logging out' do
-    before do
-      headers = {
+    let(:headers) do
+      {
         'Accept': 'application/json',
         'Content-Type': 'application/json',
       }
-      auth_headers = Devise::JWT::TestHelpers.auth_headers(headers, user)
-      delete "/logout", headers: auth_headers
     end
+    let (:auth_headers) { Devise::JWT::TestHelpers.auth_headers(headers, user) }
+
+    subject { delete "/logout", headers: auth_headers }
 
     it 'returns a 204' do
+      subject
       expect(response).to have_http_status(:no_content)
     end
   end

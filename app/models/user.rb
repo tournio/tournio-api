@@ -17,6 +17,7 @@ class User < ApplicationRecord
 
   def jwt_payload
     {
+      'identifier' => identifier,
       'role' => role.to_s,
       'tournaments' => tournaments.pluck(:identifier)
     }

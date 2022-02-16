@@ -24,6 +24,10 @@ describe Director::UsersController, type: :request do
     end
   end
 
+  context "When they want to fetch someone else's details" do
+
+  end
+
   context 'When the requested user does not exist' do
     before do
       login_with_api(user)
