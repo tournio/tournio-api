@@ -1,6 +1,7 @@
 module Director
   class UsersController < BaseController
     rescue_from Pundit::NotAuthorizedError, with: :unauthorized
+
     NEW_ACCOUNT_PASSWORD = Rails.env.development? ? 'password' : 'bowling is great'
     NEW_USER_PARAMS = [
       :email,

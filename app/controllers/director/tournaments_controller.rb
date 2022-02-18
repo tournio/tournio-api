@@ -2,10 +2,17 @@
 
 module Director
   class TournamentsController < BaseController
+    rescue_from Pundit::NotAuthorizedError, with: :unauthorized
+
     before_action :load_tournament, except: [:index]
 
     def index
-      tournaments = Tournament.includes(:config_items).order(name: :asc)
+      tournaments = if params[:upcoming]
+                      policy_scope(Tournament).includes(:config_items).upcoming.order(name: :asc)
+                    else
+                      policy_scope(Tournament).includes(:config_items).order(name: :asc)
+                    end
+      authorize(Tournament)
       render json: TournamentBlueprint.render(tournaments, view: :director_list)
     end
 

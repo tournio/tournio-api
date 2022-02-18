@@ -7,7 +7,7 @@ Rails.application.routes.draw do
              },
              controllers: {
                sessions: 'users/sessions',
-               registrations: 'users/registrations',
+               # registrations: 'users/registrations',
              }
 
   # Define your application routes per the DSL in https://guides.rubyonrails.org/routing.html
@@ -17,5 +17,6 @@ Rails.application.routes.draw do
 
   namespace :director do
     resources :users, only: %w(show index create update destroy), param: :identifier
+    resources :tournaments, only: %w(index), param: :identifier
   end
 end

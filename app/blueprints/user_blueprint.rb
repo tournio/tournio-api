@@ -3,7 +3,7 @@
 class UserBlueprint < Blueprinter::Base
   identifier :identifier
 
-  fields :email, :role, :last_sign_in_at
+  fields :email, :role
 
   association :tournaments, blueprint: TournamentBlueprint
 end

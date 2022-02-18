@@ -12,11 +12,7 @@ class Users::SessionsController < Devise::SessionsController
   end
 
   def respond_to_on_destroy
-    if current_user
-      render json: nil, status: :no_content
-    else
-      render json: nil, status: :unauthorized
-    end
+    render json: nil, status: :no_content
   end
 
   # before_action :configure_sign_in_params, only: [:create]
@@ -30,6 +26,7 @@ class Users::SessionsController < Devise::SessionsController
   # def create
   #   super
   # end
+
 
   # DELETE /resource/sign_out
   # def destroy

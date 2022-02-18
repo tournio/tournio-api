@@ -3,7 +3,7 @@
 class UserPolicy < DirectorPolicy
   class Scope < ScopeBase
     def resolve
-      user.superuser? ? scope.all : []
+      user.superuser? ? scope.all.order(:email) : []
     end
   end
 

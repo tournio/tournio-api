@@ -1,7 +1,7 @@
 require 'rails_helper'
 require 'devise/jwt/test_helpers'
 
-describe Users::SessionsController do
+describe Users::SessionsController, type: :request do
   let(:user) { create(:user) }
   let(:login_url) { '/login' }
   let(:logout_url) { '/logout' }
