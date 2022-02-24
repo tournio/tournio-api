@@ -28,6 +28,6 @@ Rails.application.routes.draw do
   end
 
   resources :tournaments, only: %i(index show), param: :identifier do
-    resources :teams, only: %i(show), param: :identifier
+    resources :teams, only: %i(create), param: :identifier
   end
 end

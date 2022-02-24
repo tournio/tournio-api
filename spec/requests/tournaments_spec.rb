@@ -1,5 +1,4 @@
 require 'rails_helper'
-require 'devise/jwt/test_helpers'
 
 describe TournamentsController, type: :request do
   let(:headers) do

@@ -56,6 +56,14 @@ FactoryBot.define do
     end
   end
 
+  trait :with_entry_fee do
+    after(:create) do |t, _|
+      create(:purchasable_item,
+             :entry_fee,
+             tournament: t)
+    end
+  end
+
   trait :with_scratch_competition_divisions do
     after(:create) do |t, _|
       create(:purchasable_item,

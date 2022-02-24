@@ -125,7 +125,7 @@ module TournamentRegistration
 
   def self.link_doubles_partners(bowlers)
     bowlers.each do |bowler|
-      partner_num = bowler.doubles_partner_num
+      partner_num = bowler.doubles_partner_num.to_i
       next unless partner_num.present? && partner_num.positive?
 
       target_index = bowlers.index { |b| b.position == partner_num }
@@ -168,9 +168,9 @@ module TournamentRegistration
     recipients = if notify_bowler?(tournament)
                    [bowler.email]
                  else
-                   Rails.env.production? ? notification_recipients(tournament) : [MailerWorkerSendgrid::FROM]
+                   Rails.env.production? ? notification_recipients(tournament) : [MailerWorker::FROM]
                  end
-    recipients.each { |r| RegistrationConfirmationNotifierSendgridWorker.perform_async(bowler.id, r) }
+    recipients.each { |r| RegistrationConfirmationNotifierWorker.perform_async(bowler.id, r) }
   end
 
   def self.send_registration_notification_email(bowler)
@@ -178,9 +178,9 @@ module TournamentRegistration
     recipients = if Rails.env.production?
                    notification_recipients(tournament)
                  else
-                   [MailerWorkerSendgrid::FROM]
+                   [MailerWorker::FROM]
                  end
-    recipients.each { |r| NewRegistrationNotifierSendgridWorker.perform_async(bowler.id, r) }
+    recipients.each { |r| NewRegistrationNotifierWorker.perform_async(bowler.id, r) }
   end
 
   def self.notification_recipients(tournament)

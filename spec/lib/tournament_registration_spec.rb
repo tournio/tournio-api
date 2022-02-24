@@ -719,7 +719,7 @@ RSpec.describe TournamentRegistration do
     let(:bowler) { create(:bowler, person: create(:person, email: recipient_email), tournament: tournament) }
 
     before do
-      allow(RegistrationConfirmationNotifierSendgridWorker).to receive(:perform_async)
+      allow(RegistrationConfirmationNotifierWorker).to receive(:perform_async)
     end
 
     context 'in development' do
@@ -728,14 +728,14 @@ RSpec.describe TournamentRegistration do
       end
 
       it 'sends to the development address' do
-        expect(RegistrationConfirmationNotifierSendgridWorker).to receive(:perform_async).with(bowler.id, MailerWorkerSendgrid::FROM)
+        expect(RegistrationConfirmationNotifierWorker).to receive(:perform_async).with(bowler.id, MailerWorker::FROM)
         subject
       end
     end
 
     context 'in test' do
       it 'sends to the development address' do
-        expect(RegistrationConfirmationNotifierSendgridWorker).to receive(:perform_async).with(bowler.id, MailerWorkerSendgrid::FROM)
+        expect(RegistrationConfirmationNotifierWorker).to receive(:perform_async).with(bowler.id, MailerWorker::FROM)
         subject
       end
     end
@@ -754,12 +754,12 @@ RSpec.describe TournamentRegistration do
         end
 
         it 'does not send to the bowler' do
-          expect(RegistrationConfirmationNotifierSendgridWorker).not_to receive(:perform_async).with(bowler.id, recipient_email)
+          expect(RegistrationConfirmationNotifierWorker).not_to receive(:perform_async).with(bowler.id, recipient_email)
           subject
         end
 
         it "sends to the tournament's configured test-mode addresses" do
-          expect(RegistrationConfirmationNotifierSendgridWorker).to receive(:perform_async).exactly(3).times
+          expect(RegistrationConfirmationNotifierWorker).to receive(:perform_async).exactly(3).times
           subject
         end
       end
@@ -770,12 +770,12 @@ RSpec.describe TournamentRegistration do
         end
 
         it "sends to the bowler's address" do
-          expect(RegistrationConfirmationNotifierSendgridWorker).to receive(:perform_async).with(bowler.id, recipient_email)
+          expect(RegistrationConfirmationNotifierWorker).to receive(:perform_async).with(bowler.id, recipient_email)
           subject
         end
 
         it "does not send to the tournament's configured test-mode addresses" do
-          expect(RegistrationConfirmationNotifierSendgridWorker).not_to receive(:perform_async).with(bowler.id, 'foo@foo.foo')
+          expect(RegistrationConfirmationNotifierWorker).not_to receive(:perform_async).with(bowler.id, 'foo@foo.foo')
           subject
         end
       end
@@ -789,7 +789,7 @@ RSpec.describe TournamentRegistration do
     let(:bowler) { create(:bowler, person: create(:person), tournament: tournament) }
 
     before do
-      allow(NewRegistrationNotifierSendgridWorker).to receive(:perform_async)
+      allow(NewRegistrationNotifierWorker).to receive(:perform_async)
     end
 
     context 'in development' do
@@ -798,14 +798,14 @@ RSpec.describe TournamentRegistration do
       end
 
       it 'sends to the development address' do
-        expect(NewRegistrationNotifierSendgridWorker).to receive(:perform_async).with(bowler.id, MailerWorkerSendgrid::FROM)
+        expect(NewRegistrationNotifierWorker).to receive(:perform_async).with(bowler.id, MailerWorker::FROM)
         subject
       end
     end
 
     context 'in test' do
       it 'sends to the development address' do
-        expect(NewRegistrationNotifierSendgridWorker).to receive(:perform_async).with(bowler.id, MailerWorkerSendgrid::FROM)
+        expect(NewRegistrationNotifierWorker).to receive(:perform_async).with(bowler.id, MailerWorker::FROM)
         subject
       end
     end
@@ -824,9 +824,9 @@ RSpec.describe TournamentRegistration do
         end
 
         it "sends to the notifiable addresses" do
-          expect(NewRegistrationNotifierSendgridWorker).to receive(:perform_async).with(bowler.id, 'foo@foo.foo')
-          expect(NewRegistrationNotifierSendgridWorker).to receive(:perform_async).with(bowler.id, 'foo@foo.org')
-          expect(NewRegistrationNotifierSendgridWorker).to receive(:perform_async).with(bowler.id, 'foo@foo.net')
+          expect(NewRegistrationNotifierWorker).to receive(:perform_async).with(bowler.id, 'foo@foo.foo')
+          expect(NewRegistrationNotifierWorker).to receive(:perform_async).with(bowler.id, 'foo@foo.org')
+          expect(NewRegistrationNotifierWorker).to receive(:perform_async).with(bowler.id, 'foo@foo.net')
           subject
         end
       end
@@ -837,7 +837,7 @@ RSpec.describe TournamentRegistration do
         end
 
         it "sends to the notifiable address" do
-          expect(NewRegistrationNotifierSendgridWorker).to receive(:perform_async).with(bowler.id, 'foo@foo.foo')
+          expect(NewRegistrationNotifierWorker).to receive(:perform_async).with(bowler.id, 'foo@foo.foo')
           subject
         end
       end
