@@ -12,32 +12,36 @@ class TournamentPolicy < DirectorPolicy
   end
 
   def show?
-    sufficient_role?
+    sufficient_access?
   end
 
   def state_change?
-    sufficient_role?
+    sufficient_access?
   end
 
   def clear_test_data?
-    sufficient_role?
+    sufficient_access?
   end
 
   def igbots_download?
-    sufficient_role?
+    sufficient_access?
   end
 
   def csv_download?
-    sufficient_role?
+    sufficient_access?
   end
 
   def update_testing_environment?
-    sufficient_role?
+    sufficient_access?
   end
 
   private
 
   def sufficient_role?
     user.superuser? || user.director?
+  end
+
+  def sufficient_access?
+    user.superuser? || user.director? && user.tournaments.include?(record)
   end
 end

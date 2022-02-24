@@ -80,6 +80,13 @@ describe Director::UsersController, type: :request do
       expect(json['email']).to eq(email)
       expect(json['role']).to eq(role)
     end
+
+    it 'associates the new user with the desired tournaments' do
+      subject
+      expect(json).to have_key('tournaments')
+      expect(json['tournaments'].length).to eq(1)
+      expect(json['tournaments'].first['id']).to eq(tournament.id)
+    end
   end
 
   describe '#update' do

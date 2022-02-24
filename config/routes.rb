@@ -16,7 +16,18 @@ Rails.application.routes.draw do
   # root "articles#index"
 
   namespace :director do
-    resources :users, only: %w(show index create update destroy), param: :identifier
-    resources :tournaments, only: %w(index), param: :identifier
+    resources :users, only: %i(show index create update destroy), param: :identifier
+    resources :tournaments, only: %i(index show), param: :identifier do
+      member do
+        post 'clear_test_data'
+      end
+      member do
+        post 'state_change'
+      end
+    end
+  end
+
+  resources :tournaments, only: %i(index show), param: :identifier do
+    resources :teams, only: %i(show), param: :identifier
   end
 end

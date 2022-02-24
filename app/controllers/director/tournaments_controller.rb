@@ -21,12 +21,18 @@ module Director
         render json: nil, status: 404
         return
       end
+      authorize @tournament
       render json: TournamentBlueprint.render(@tournament, view: :director_detail)
     end
 
     def clear_test_data
       unless @tournament.present?
         render json: nil, status: 404
+        return
+      end
+      authorize @tournament
+      unless @tournament.testing?
+        render json: nil, status: 403
         return
       end
       DirectorUtilities.clear_test_data(tournament: @tournament)
@@ -49,6 +55,13 @@ module Director
     def state_change
       unless @tournament.present?
         render json: nil, status: 404
+        return
+      end
+
+      authorize @tournament
+
+      if @tournament.closed?
+        render json: nil, status: 403
         return
       end
 

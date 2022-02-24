@@ -1,79 +1,55 @@
 require 'rails_helper'
 require 'devise/jwt/test_helpers'
 
-describe Director::TournamentsController, type: :request do
-  let(:requesting_user) { create(:user, :superuser) }
-  let(:auth_headers) { Devise::JWT::TestHelpers.auth_headers({}, requesting_user) }
+describe TournamentsController, type: :request do
+  let(:headers) do
+    {
+      'Accept': 'application/json',
+      'Content-Type': 'application/json',
+    }
+  end
 
   describe '#index' do
-    subject { get uri, headers: auth_headers }
+    subject { get uri, headers: headers }
 
-    let(:uri) { '/director/tournaments' }
+    let(:uri) { '/tournaments' }
+
+    let(:expected_keys) { %w(identifier name state status start_date location) }
 
     let!(:setup_tournament) { create :tournament }
     let!(:testing_tournament) { create :tournament, :testing }
     let!(:active_tournament) { create :tournament, :active }
     let!(:closed_tournament) { create :tournament, :closed }
-
-    include_examples 'an authorized action'
+    let!(:future_closed_tournament) { create :tournament, :future_closed }
 
     it 'returns an array' do
       subject
       expect(json).to be_instance_of(Array);
     end
 
-    it 'includes all tournaments in the response' do
+    it 'limits the response to future tournaments that are either open or closed' do
       subject
-      expect(json.length).to eq(4);
+      expect(json.length).to eq(2);
     end
 
-    context 'When all I need is upcoming tournaments' do
-      let(:uri) { '/director/tournaments?upcoming=true' }
-
-      it 'excludes past tournaments' do
-        subject
-        expect(json.length).to eq(3);
-      end
+    it 'has the required keys in each element' do
+      subject
+      expect(json[0].keys.intersection(expected_keys)).to match_array(expected_keys)
     end
-
-    context 'When I am a tournament director' do
-      let(:requesting_user) { create(:user, :director, tournaments: my_tournaments) }
-      let(:my_tournaments) { [testing_tournament, active_tournament] }
-
-      it 'includes just my tournaments in the response' do
-        subject
-        expect(json.length).to eq(2);
-      end
-
-      context 'with no active tournaments' do
-        let(:my_tournaments) { [] }
-
-        it 'returns an empty array' do
-          subject
-          expect(json).to be_empty
-        end
-      end
-    end
-
   end
 
   describe '#show' do
+    subject { get uri, headers: headers }
 
-  end
+    let(:uri) { "/tournaments/#{tournament.identifier}" }
 
-  describe '#clear_test_data' do
+    let(:expected_keys) { %w(identifier name state status start_date location registration_deadline website year) }
 
-  end
+    let(:tournament) { create :tournament, :active }
 
-  describe '#state_change' do
-
-  end
-
-  describe '#csv_download' do
-
-  end
-
-  describe '#igbots_download' do
-
+    it 'returns a tournament object' do
+      subject
+      expect(json.keys.intersection(expected_keys)).to match_array(expected_keys)
+    end
   end
 end

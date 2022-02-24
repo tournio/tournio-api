@@ -1,24 +1,24 @@
 # frozen_string_literal: true
 
 class TournamentBlueprint < Blueprinter::Base
-  identifier :identifier
+  identifier :id
 
-  field :name
-  field :year
+  fields :name, :year, :identifier
 
   view :list do
+    field :aasm_state, name: :state
     field :start_date, datetime_format: '%B %-d, %Y'
     field :location do |t, options|
       t.config[:location]
+    end
+    field :status do |t, _|
+      TournamentRegistration.display_status(t)
     end
     field :late_fee_applies_at do |t, _|
       datetime_with_timezone(t.late_fee_applies_at, t)
     end
     field :entry_deadline do |t, _|
       datetime_with_timezone(t.entry_deadline, t)
-    end
-    field :link_path do |t, _|
-      Rails.application.routes.url_helpers.tournament_path(t)
     end
   end
 
@@ -31,7 +31,6 @@ class TournamentBlueprint < Blueprinter::Base
       t.additional_questions.order(:order).each_with_object({}) { |aq, obj| obj[aq.name] = AdditionalQuestionBlueprint.render_as_hash(aq) }
     end
 
-    field :aasm_state, name: :state
     association :testing_environment, blueprint: TestingEnvironmentBlueprint, if: ->(_field_name, tournament, options) { tournament.testing? }
     field :registration_deadline do |t, _|
       datetime_with_timezone(t.config['entry_deadline'], t)
@@ -49,7 +48,6 @@ class TournamentBlueprint < Blueprinter::Base
   end
 
   view :director_list do
-    fields :name, :year, :identifier
     field :aasm_state, name: :state
     field :start_date, datetime_format: '%B %-d, %Y'
     field :status do |t, _|

@@ -24,6 +24,10 @@ FactoryBot.define do
     name { 'An IGBO Tournament' }
     start_date { Date.today + 90.days }
     year { (Date.today + 90.days).year }
+
+    after(:create) do |t, _|
+      create(:config_item, :entry_deadline, tournament: t, value: Date.today + 80.days)
+    end
   end
 
   trait :testing do
@@ -38,6 +42,12 @@ FactoryBot.define do
     aasm_state { :closed }
     start_date { Date.today - 30.days }
     year { (Date.today - 30.days).year }
+  end
+
+  trait :future_closed do
+    aasm_state { :closed }
+    start_date { Date.today + 10.days }
+    year { (Date.today + 10.days).year }
   end
 
   trait :accepting_payments do
