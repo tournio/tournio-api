@@ -2,8 +2,8 @@
 
 bigd = Tournament.create!(
   name: 'Big D Classic',
-  year: 2021,
-  start_date: '2021-08-13',
+  year: 2022,
+  start_date: '2022-08-13',
 )
 
 bigd.config_items += [
@@ -33,7 +33,7 @@ bigd.config_items += [
   ),
   ConfigItem.new(
     key: 'entry_deadline',
-    value: '2021-08-04T23:59:59-05:00',
+    value: '2022-08-04T23:59:59-05:00',
   ),
   ConfigItem.new(
     key: 'time_zone',

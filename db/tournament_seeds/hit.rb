@@ -2,8 +2,8 @@
 
 hit = Tournament.create!(
   name: 'Houston Invitational Tournament',
-  year: 2021,
-  start_date: '2021-07-03',
+  year: 2022,
+  start_date: '2022-07-02',
 )
 
 hit.config_items += [
@@ -37,7 +37,7 @@ hit.config_items += [
   ),
   ConfigItem.new(
     key: 'entry_deadline',
-    value: '2021-06-29T23:59:59-05:00',
+    value: '2022-06-28T23:59:59-05:00',
   ),
   ConfigItem.new(
     key: 'time_zone',
@@ -78,7 +78,7 @@ hit.purchasable_items += [
     user_selectable: false,
     value: 15,
     configuration: {
-      applies_at: '2021-06-24T04:00:00-05:00',
+      applies_at: '2022-06-23T04:00:00-05:00',
     },
   ),
   # PurchasableItem.new(

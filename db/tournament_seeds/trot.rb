@@ -2,8 +2,8 @@
 
 trot = Tournament.create!(
   name: 'Texas Roll Off Tournament',
-  year: 2022,
-  start_date: '2022-02-18',
+  year: 2023,
+  start_date: '2023-02-18',
 )
 
 trot.config_items += [
@@ -29,7 +29,7 @@ trot.config_items += [
   ),
   ConfigItem.new(
     key: 'entry_deadline',
-    value: '2021-02-06T23:59:59-06:00',
+    value: '2023-02-06T23:59:59-06:00',
   ),
   ConfigItem.new(
     key: 'time_zone',
@@ -92,7 +92,7 @@ trot.purchasable_items += [
     user_selectable: false,
     value: -10,
     configuration: {
-      valid_until: '2022-01-24T00:00:00-06:00',
+      valid_until: '2023-01-24T00:00:00-06:00',
     },
   ),
   PurchasableItem.new(

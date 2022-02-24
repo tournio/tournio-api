@@ -13,7 +13,7 @@ playground.config_items += [
   ),
   ConfigItem.new(
     key: 'entry_deadline',
-    value: '2022-02-11T23:59:59-08:00',
+    value: '2023-02-11T23:59:59-08:00',
   ),
   ConfigItem.new(
     key: 'time_zone',
@@ -68,7 +68,7 @@ playground.purchasable_items += [
     user_selectable: false,
     value: -10,
     configuration: {
-      valid_until: '2022-01-03T00:00:00-08:00',
+      valid_until: '2023-01-03T00:00:00-08:00',
     },
   ),
   PurchasableItem.new(
@@ -78,7 +78,7 @@ playground.purchasable_items += [
     user_selectable: false,
     value: 10,
     configuration: {
-      applies_at: '2022-02-01T00:00:00-08:00',
+      applies_at: '2023-02-01T00:00:00-08:00',
     },
   ),
   PurchasableItem.new(
