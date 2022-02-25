@@ -57,6 +57,25 @@ class TeamsController < ApplicationController
     render json: TeamBlueprint.render(team.reload, view: :detail), status: :created
   end
 
+  def index
+    unless tournament.present?
+      render json: nil, status: 404
+      return
+    end
+    teams = params[:incomplete] ? tournament.available_to_join : tournament.teams.order('LOWER(name)')
+    render json: TeamBlueprint.render(teams, view: :list)
+  end
+
+  def show
+    load_team
+    unless team.present?
+      render json: nil, status: 404
+      return
+    end
+    team.bowlers.includes(:person, :ledger_entries).order(:position)
+    render json: TeamBlueprint.render(team, view: :detail)
+  end
+
   private
 
   attr_reader :tournament, :team
@@ -65,6 +84,11 @@ class TeamsController < ApplicationController
     params.require(:tournament_identifier)
     id = params[:tournament_identifier]
     @tournament = Tournament.find_by_identifier(id)
+  end
+
+  def load_team
+    identifier = params.require(:identifier)
+    @team = Team.includes(:bowlers).find_by_identifier(identifier)
   end
 
   #######################

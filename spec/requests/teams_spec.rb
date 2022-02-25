@@ -81,4 +81,74 @@ describe TeamsController, type: :request do
       end
     end
   end
+
+  describe '#index' do
+    subject { get uri, headers: headers, as: :json }
+
+    let(:uri) { "/tournaments/#{tournament.identifier}/teams" }
+    let(:tournament) { create :tournament, :active }
+    let(:expected_keys) { %w(identifier name size) }
+
+    before do
+      create :team, :standard_one_bowler, tournament: tournament
+      create :team, :standard_one_bowler, tournament: tournament
+      create :team, :standard_two_bowlers, tournament: tournament
+      create :team, :standard_two_bowlers, tournament: tournament
+      create :team, :standard_three_bowlers, tournament: tournament
+      create :team, :standard_three_bowlers, tournament: tournament
+      create :team, :standard_three_bowlers, tournament: tournament
+      create :team, :standard_full_team, tournament: tournament
+      create :team, :standard_full_team, tournament: tournament
+      create :team, :standard_full_team, tournament: tournament
+    end
+
+    it 'returns an array' do
+      subject
+      expect(json).to be_instance_of(Array);
+    end
+
+    it 'includes all teams' do
+      subject
+      expect(json.count).to eq(10)
+    end
+
+    context 'Requesting incomplete teams only' do
+      let(:uri) { "/tournaments/#{tournament.identifier}/teams?incomplete=true" }
+
+      it 'includes incomplete teams only' do
+        subject
+        expect(json.count).to eq(7)
+      end
+    end
+  end
+
+  describe '#show' do
+    subject { get uri, headers: headers, as: :json }
+
+    let(:uri) { "/teams/#{team.identifier}" }
+    let(:tournament) { create :tournament, :active }
+    let!(:team) { create :team, :standard_full_team, tournament: tournament }
+    let(:expected_keys) { %w(identifier name size bowlers) }
+
+    it 'succeeds' do
+      subject
+      expect(response).to have_http_status(:ok)
+    end
+
+    it 'reteurns the expected team in the body' do
+      subject
+      expect(json['identifier']).to eq(team.identifier)
+      expect(json['name']).to eq(team.name)
+      expect(json['bowlers'].count).to eq(team.bowlers.count)
+    end
+
+    context 'a team that does not exist' do
+      let (:uri) { '/teams/some-other-identifier'}
+
+      it 'fails with a 404' do
+        subject
+        expect(response).to have_http_status(:not_found)
+      end
+    end
+  end
 end
