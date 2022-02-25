@@ -135,7 +135,7 @@ describe TeamsController, type: :request do
       expect(response).to have_http_status(:ok)
     end
 
-    it 'reteurns the expected team in the body' do
+    it 'returns the expected team in the body' do
       subject
       expect(json['identifier']).to eq(team.identifier)
       expect(json['name']).to eq(team.name)

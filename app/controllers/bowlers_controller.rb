@@ -33,7 +33,7 @@ class BowlersController < ApplicationController
     load_team
 
     if team.bowlers.count == tournament.team_size
-      render json: nil, status: :bad_request
+      render json: { message: 'This team is full.' }, status: :bad_request
       return
     end
 
