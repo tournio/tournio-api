@@ -5,12 +5,12 @@ module ApiHelpers
 
   def login_with_api(user)
     post '/login', params: {
-                     user: {
-                       email: user.email,
-                       password: user.password,
-                     }
-                   },
-                   as: :json
+      user: {
+        email: user.email,
+        password: user.password,
+      }
+    },
+         as: :json
   end
 
   def full_team_test_data
@@ -287,6 +287,70 @@ module ApiHelpers
               'response' => 'I like pizza!',
             },
           ],
+        },
+      ],
+    }
+  end
+
+  def joining_bowler_test_data
+    {
+      'person_attributes' => {
+        'first_name' => 'Giacomo',
+        'last_name' => 'Hale',
+        'usbc_id' => '6621-43399',
+        'igbo_id' => 'YW-5457',
+        'birth_month' => '6',
+        'birth_day' => '16',
+        'nickname' => 'Gio',
+        'phone' => '814-499-4750',
+        'email' => 'lite@yahoo.com',
+        'address1' => '9 Artisan Rd',
+        'address2' => '',
+        'city' => 'Toronto',
+        'state' => 'Arkansas',
+        'country' => 'CA',
+        'postal_code' => '37236',
+      },
+      'additional_question_responses' => [
+        {
+          'name' => 'pronouns',
+          'response' => 'something else',
+        },
+        {
+          'name' => 'comment',
+          'response' => 'I like pizza!',
+        },
+      ],
+    }
+  end
+
+  def invalid_joining_bowler_test_data
+    {
+      'person_attributes' => {
+        'first_name' => 'Giacomo',
+        'last_name' => 'Hale',
+        'usbc_id' => '6621-43399',
+        'igbo_id' => 'YW-5457',
+        'birth_month' => '6',
+        'birth_day' => '16',
+        'nickname' => 'Gio',
+        'phone' => '814-499-4750',
+        # 'email' => 'lite@yahoo.com',
+        'address1' => '9 Artisan Rd',
+        'address2' => '',
+        'city' => 'Toronto',
+        'state' => 'Arkansas',
+        'country' => 'CA',
+        'postal_code' => '37236',
+      },
+      'additional_question_responses' => [
+        {
+          'name' => 'pronouns',
+          'response' => 'something else',
+        },
+        {
+          'name' => 'comment',
+          'response' => 'I like pizza!',
         },
       ],
     }
