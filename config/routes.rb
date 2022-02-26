@@ -29,7 +29,7 @@ Rails.application.routes.draw do
 
   resources :tournaments, only: %i(index show), param: :identifier do
     resources :teams, only: %i(create index show), param: :identifier, shallow: true do
-      resources :bowlers, only: %i(create), param: :identifier, shallow: true
+      resources :bowlers, only: %i(create show), param: :identifier, shallow: true
     end
   end
 end

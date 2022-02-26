@@ -52,9 +52,33 @@ class BowlersController < ApplicationController
     render json: { identifier: bowler.identifier }, status: :created
   end
 
+  def show
+    load_bowler
+
+    unless @bowler.present?
+      render json: nil, status: :not_found
+      return
+    end
+
+    result = {
+      bowler: BowlerBlueprint.render_as_hash(bowler, view: :detail),
+      available_items: rendered_purchasable_items_by_identifier,
+    }
+    render json: result, status: :ok
+  end
+
   private
 
   attr_reader :tournament, :team, :bowler
+
+  def load_bowler
+    identifier = params.require(:identifier)
+    @bowler = Bowler.includes(:tournament, :person, :ledger_entries, :team, { purchases: [:purchasable_item] })
+                    .where(identifier: identifier)
+                    .first
+    @tournament = bowler&.tournament
+    @team = bowler&.team
+  end
 
   def load_team
     identifier = params.require(:team_identifier)
@@ -64,6 +88,12 @@ class BowlersController < ApplicationController
       return
     end
     @tournament = team.tournament
+  end
+
+  def rendered_purchasable_items_by_identifier
+    excluded_item_names = bowler.purchases.single_use.collect { |p| p.purchasable_item.name }
+    items = tournament.purchasable_items.user_selectable.where.not(name: excluded_item_names)
+    items.each_with_object({}) { |i, result| result[i.identifier] = PurchasableItemBlueprint.render_as_hash(i) }
   end
 
   def clean_up_bowler_data(permitted_params)

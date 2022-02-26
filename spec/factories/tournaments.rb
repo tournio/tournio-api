@@ -93,4 +93,23 @@ FactoryBot.define do
       )
     end
   end
+
+  trait :with_an_optional_event do
+    after(:create) do |t, _|
+      create(:purchasable_item,
+             :optional_event,
+             tournament: t,
+             configuration: { order: 1 }
+             )
+    end
+  end
+
+  trait :with_a_banquet do
+    after(:create) do |t, _|
+      create(:purchasable_item,
+             :banquet_entry,
+             tournament: t,
+      )
+    end
+  end
 end
