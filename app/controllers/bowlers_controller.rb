@@ -67,6 +67,112 @@ class BowlersController < ApplicationController
     render json: result, status: :ok
   end
 
+  def purchase_details
+    # receive:
+    # - bowler ID via params
+    # - purchasable item IDs via request body
+    # - unpaid purchase IDs via request body (return error if we think they're paid)
+    # - expected total via request body (so we can proactively prevent purchase if we reach a different total,
+    #  e.g., if they got the early discount upon registration but the date passed before they paid)
+    #  ---- is that a thing we should enforce? survey directors to see what they think, add it later if they want it
+    #
+    # identifier: ... (bowler identifier)
+    # purchase_identifiers: [],
+    # purchasable_items: [
+    #   {
+    #     identifier: ...,
+    #     quantity: X,
+    #   },
+    #   ...
+    # ],
+    # expected_total:
+    #
+    # return:
+    #   - client ID (paypal identifier for tournament)
+    #   - total to charge
+
+    load_bowler
+    unless bowler.present?
+      render json: { error: 'Bowler not found' }, status: :not_found
+      return
+    end
+
+    # permit and parse params (quantities come in as strings)
+    params.permit!
+    details = params.to_h
+    details[:expected_total] = details[:expected_total].to_i
+    details[:purchasable_items]&.each_index do |index|
+      details[:purchasable_items][index][:quantity] = details[:purchasable_items][index][:quantity].to_i
+    end
+
+    # validate required ledger items (entry fee, early discount, late fee)
+    purchase_identifiers = details[:purchase_identifiers] || []
+    matching_purchases = bowler.purchases.unpaid.where(identifier: purchase_identifiers)
+    unless purchase_identifiers.count == matching_purchases.count
+      render json: { error: 'Mismatched unpaid purchases count' }, status: :precondition_failed
+      return
+    end
+    purchases_total = matching_purchases.sum(&:amount)
+
+    # gather purchasable items
+    items = details[:purchasable_items] || []
+    identifiers = items.collect { |i| i[:identifier] }
+    purchasable_items = tournament.purchasable_items.where(identifier: identifiers).index_by(&:identifier)
+
+    # does the number of items found match the number of identifiers passed in?
+    unless identifiers.count == purchasable_items.count
+      render json: { error: 'Mismatched number of purchasable item identifiers' }, status: :not_found
+      return
+    end
+
+    # are we purchasing any single-use items that have been purchased previously?
+    matching_previous_single_item_purchases = PurchasableItem.single_use.joins(:purchases)
+                                                             .where(identifier: identifiers)
+                                                             .where(purchases: { bowler_id: bowler.id })
+                                                             .where.not(purchases: { paid_at: nil })
+    unless matching_previous_single_item_purchases.empty?
+      render json: { error: 'Attempting to purchase previously-purchased single-use item(s)' }, status: :precondition_failed
+      return
+    end
+
+    # are we purchasing more than one of anything?
+    multiples = items.filter { |i| i[:quantity] > 1 }
+    # make sure they're all multi-use
+    multiples.filter! do |i|
+      identifier = i[:identifier]
+      item = purchasable_items[identifier]
+      !item.multi_use?
+    end
+    unless multiples.empty?
+      render json: { error: 'Cannot purchase multiple instances of single-use items.'}, status: :unprocessable_entity
+      return
+    end
+
+    # items_total = purchasable_items.sum(&:value)
+    items_total = items.map do |item|
+      identifier = item[:identifier]
+      quantity = item[:quantity]
+      purchasable_items[identifier].value * quantity
+    end.sum
+
+    # sum up the total of unpaid purchases and indicated purchasable items
+    total_to_charge = purchases_total + items_total
+
+    # Disallow a purchase if there's nothing owed
+    if (total_to_charge == 0)
+      render json: { error: 'Total to charge is zero' }, status: :precondition_failed
+      return
+    end
+
+    # build response with client ID and total to charge
+    output = {
+      total: total_to_charge,
+      paypal_client_id: tournament.paypal_client_id,
+    }
+
+    render json: output, status: :ok
+  end
+
   private
 
   attr_reader :tournament, :team, :bowler
