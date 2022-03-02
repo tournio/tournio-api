@@ -25,6 +25,10 @@ class BowlerBlueprint < Blueprinter::Base
       b.free_entry&.unique_code.present?
     end
 
+    field :free_entry_code do |b, _|
+      b.free_entry&.unique_code.present? && b.free_entry&.confirmed ? b.free_entry&.unique_code : nil
+    end
+
     association :unpaid_purchases, blueprint: PurchaseBlueprint do |bowler, _|
       bowler.purchases.includes(:purchasable_item).unpaid.order(amount: :desc)
     end

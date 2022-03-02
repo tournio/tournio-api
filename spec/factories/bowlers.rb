@@ -28,7 +28,5 @@ FactoryBot.define do
     position { 1 }
 
     association :person, strategy: :create
-    # association :tournament
-    # association :team
   end
 end
