@@ -2,6 +2,8 @@
 
 module Director
   class BowlersController < BaseController
+    rescue_from Pundit::NotAuthorizedError, with: :unauthorized
+
     PERSON_ATTRS = %i[
         first_name
         last_name
@@ -22,55 +24,58 @@ module Director
 
     def index
       load_tournament
-      unless @tournament.present?
-        render json: nil, status: 404
+      unless tournament.present?
+        skip_policy_scope
+        render json: nil, status: :not_found
         return
       end
-      bowlers = @tournament.bowlers.includes(:person, :free_entry, :team).order('people.last_name')
-      render json: BowlerBlueprint.render(bowlers, view: :director_list)
+      authorize tournament, :show?
+      bowlers = policy_scope(tournament.bowlers).includes(:person, :free_entry, :team).order('people.last_name')
+      render json: BowlerBlueprint.render(bowlers, view: :director_list), status: :ok
     end
 
-    def show
-      load_bowler_and_tournament
-      unless @bowler.present?
-        render json: nil, status: 404
-        return
-      end
-
-      render json: BowlerBlueprint.render(@bowler, view: :director_detail)
-    end
-
-    def update
-      load_bowler_and_tournament
-      unless @bowler.present?
-        render json: nil, status: 404
-        return
-      end
-
-      try_updating_details
-      try_reassigning
-      # try_linking_free_entry
-
-      render json: BowlerBlueprint.render(@bowler.reload, view: :director_detail)
-    end
-
-    def destroy
-      load_bowler_and_tournament
-      unless @bowler.present?
-        render json: nil, status: 404
-        return
-      end
-
-      @bowler.destroy
-      render json: nil, status: 204
-    end
+    # def show
+    #   load_bowler_and_tournament
+    #   unless @bowler.present?
+    #     render json: nil, status: 404
+    #     return
+    #   end
+    #
+    #   render json: BowlerBlueprint.render(@bowler, view: :director_detail)
+    # end
+    #
+    # def update
+    #   load_bowler_and_tournament
+    #   unless @bowler.present?
+    #     render json: nil, status: 404
+    #     return
+    #   end
+    #
+    #   try_updating_details
+    #   try_reassigning
+    #   # try_linking_free_entry
+    #
+    #   render json: BowlerBlueprint.render(@bowler.reload, view: :director_detail)
+    # end
+    #
+    # def destroy
+    #   load_bowler_and_tournament
+    #   unless @bowler.present?
+    #     render json: nil, status: 404
+    #     return
+    #   end
+    #
+    #   @bowler.destroy
+    #   render json: nil, status: 204
+    # end
 
     private
+
+    attr_accessor :tournament, :bowler
 
     def load_tournament
       id = params.require(:tournament_identifier)
       @tournament = Tournament.find_by_identifier(id)
-      render json: nil, status: 404 unless @tournament.present?
     end
 
     def load_bowler_and_tournament

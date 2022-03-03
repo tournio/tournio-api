@@ -11,4 +11,8 @@ FactoryBot.define do
   trait :director do
     role { :director }
   end
+
+  trait :unpermitted do
+    role { :unpermitted }
+  end
 end
