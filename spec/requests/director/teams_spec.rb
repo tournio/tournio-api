@@ -76,6 +76,76 @@ describe Director::TeamsController, type: :request do
     end
   end
 
+  describe '#create' do
+    subject { post uri, headers: auth_headers, params: params, as: :json }
+
+    let(:uri) { "/director/tournaments/#{tournament_identifier}/teams" }
+
+    let(:tournament_identifier) { tournament.identifier }
+    let(:tournament) { create :tournament, :active }
+
+    let(:params) do
+      {
+        team: {
+          name: 'High Rollers',
+        }
+      }
+    end
+
+    include_examples 'an authorized action'
+
+    it 'succeeds with a 201 Created' do
+      subject
+      expect(response).to have_http_status(:created)
+    end
+
+    it 'includes the new team in the response' do
+      subject
+      ap json
+      expect(json).to have_key('name')
+      expect(json).to have_key('identifier')
+      expect(json['name']).to eq('High Rollers');
+    end
+
+    context 'as an unpermitted user' do
+      let(:requesting_user) { create(:user, :unpermitted) }
+
+      it 'shall not pass' do
+        subject
+        expect(response).to have_http_status(:unauthorized)
+      end
+    end
+
+    context 'as a director' do
+      let(:requesting_user) { create(:user, :director) }
+
+      it 'shall not pass' do
+        subject
+        expect(response).to have_http_status(:unauthorized)
+      end
+
+      context 'associated with this tournament' do
+        let(:requesting_user) { create :user, :director, tournaments: [tournament] }
+
+        it 'shall pass' do
+          subject
+          expect(response).to have_http_status(:created)
+        end
+      end
+    end
+
+    context 'error scenarios' do
+      context 'an unrecognized tournament identifier' do
+        let(:tournament_identifier) { 'say-what-now' }
+
+        it 'yields a 404 Not Found' do
+          subject
+          expect(response).to have_http_status(:not_found)
+        end
+      end
+    end
+  end
+
   # describe '#show' do
   #   subject { get uri, headers: auth_headers }
   #

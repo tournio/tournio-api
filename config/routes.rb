@@ -25,7 +25,7 @@ Rails.application.routes.draw do
         post 'state_change'
       end
       resources :bowlers, only: %i(index), param: :identifier, shallow: true
-      resources :teams, only: %i(index), param: :identifier, shallow: true
+      resources :teams, only: %i(index create), param: :identifier, shallow: true
     end
   end
 

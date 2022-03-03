@@ -15,6 +15,10 @@ class TournamentPolicy < DirectorPolicy
     sufficient_access?
   end
 
+  def update?
+    sufficient_access?
+  end
+
   def state_change?
     sufficient_access?
   end

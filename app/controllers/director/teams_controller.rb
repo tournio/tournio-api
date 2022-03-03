@@ -29,24 +29,27 @@ module Director
     #   render json: TeamBlueprint.render(@team, view: :director_detail)
     # end
     #
-    # def create
-    #   load_tournament
-    #   unless @tournament.present?
-    #     render json: nil, status: 404
-    #     return
-    #   end
-    #
-    #   new_team_params = { tournament: @tournament }.merge(team_params)
-    #   team = Team.new(new_team_params)
-    #   unless team.valid?
-    #     render json: nil, status: 400
-    #     return
-    #   end
-    #
-    #   # authorize team
-    #   team.save
-    #   render json: TeamBlueprint.render(team, view: :director_list), status: 201
-    # end
+    def create
+      load_tournament
+      unless tournament.present?
+        skip_authorization
+        render json: nil, status: :not_found
+        return
+      end
+
+      authorize tournament, :update?
+
+      new_team_params = { tournament: tournament }.merge(team_params)
+      team = Team.new(new_team_params)
+      unless team.valid?
+        render json: nil, status: :bad_request
+        return
+      end
+
+      # authorize team
+      team.save
+      render json: TeamBlueprint.render(team, view: :director_list), status: :created
+    end
     #
     # def update
     #   load_team_and_tournament
