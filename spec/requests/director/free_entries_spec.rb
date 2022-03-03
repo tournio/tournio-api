@@ -1,7 +1,7 @@
 require 'rails_helper'
 require 'devise/jwt/test_helpers'
 
-describe Director::TeamsController, type: :request do
+describe Director::FreeEntriesController, type: :request do
   let(:requesting_user) { create(:user, :superuser) }
   let(:headers) do
     {
@@ -14,14 +14,14 @@ describe Director::TeamsController, type: :request do
   describe '#index' do
     subject { get uri, headers: auth_headers }
 
-    let(:uri) { "/director/tournaments/#{tournament_identifier}/teams" }
+    let(:uri) { "/director/tournaments/#{tournament_identifier}/free_entries" }
 
     let(:tournament_identifier) { tournament.identifier }
     let(:tournament) { create :tournament, :active }
 
     before do
       10.times do
-        create :team, tournament: tournament
+        create :free_entry, tournament: tournament
       end
     end
 
@@ -32,7 +32,7 @@ describe Director::TeamsController, type: :request do
       expect(json).to be_instance_of(Array);
     end
 
-    it 'includes all registered teams in the response' do
+    it 'includes all free entries in the response' do
       subject
       expect(json.length).to eq(10);
     end
@@ -79,15 +79,15 @@ describe Director::TeamsController, type: :request do
   describe '#create' do
     subject { post uri, headers: auth_headers, params: params, as: :json }
 
-    let(:uri) { "/director/tournaments/#{tournament_identifier}/teams" }
+    let(:uri) { "/director/tournaments/#{tournament_identifier}/free_entries" }
 
     let(:tournament_identifier) { tournament.identifier }
     let(:tournament) { create :tournament, :active }
 
     let(:params) do
       {
-        team: {
-          name: 'High Rollers',
+        free_entry: {
+          unique_code: 'I-BOWL-4-FREE',
         }
       }
     end
@@ -99,11 +99,10 @@ describe Director::TeamsController, type: :request do
       expect(response).to have_http_status(:created)
     end
 
-    it 'includes the new team in the response' do
+    it 'includes the new free entry in the response' do
       subject
-      expect(json).to have_key('name')
-      expect(json).to have_key('identifier')
-      expect(json['name']).to eq('High Rollers');
+      expect(json).to have_key('unique_code')
+      expect(json['unique_code']).to eq('I-BOWL-4-FREE');
     end
 
     context 'as an unpermitted user' do
@@ -194,3 +193,4 @@ describe Director::TeamsController, type: :request do
   # end
 
 end
+

@@ -1,6 +1,12 @@
 # frozen_string_literal: true
 
 class FreeEntryPolicy < DirectorPolicy
+  class Scope < ScopeBase
+    def resolve
+      user.superuser? ? scope.all : scope.where(tournament_id: user.tournament_ids)
+    end
+  end
+
   def create?
     sufficient_role?
   end

@@ -20,6 +20,6 @@
 
 FactoryBot.define do
   factory :free_entry do
-    unique_code { 'ABC-123' }
+    sequence(:unique_code) { |n| "FE-#{n}" }
   end
 end

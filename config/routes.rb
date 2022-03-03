@@ -26,6 +26,7 @@ Rails.application.routes.draw do
       end
       resources :bowlers, only: %i(index), param: :identifier, shallow: true
       resources :teams, only: %i(index create), param: :identifier, shallow: true
+      resources :free_entries, only: %i(index create), shallow: true
     end
   end
 

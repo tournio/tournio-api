@@ -28,7 +28,7 @@ class FreeEntry < ApplicationRecord
   belongs_to :tournament
 
   validates :unique_code, uniqueness: { scope: :tournament_id, message: 'already exists on this tournament' }
-  validates :bowler_id, uniqueness: { message: 'already has a free entry linked' }
+  validates :bowler_id, uniqueness: { message: 'already has a free entry linked', allow_nil: true }
 
   accepts_nested_attributes_for :bowler
 
