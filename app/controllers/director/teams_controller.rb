@@ -20,15 +20,17 @@ module Director
       render json: TeamBlueprint.render(teams, view: :director_list), status: :ok
     end
 
-    # def show
-    #   load_team_and_tournament
-    #   unless @team.present? && @tournament.present?
-    #     render json: nil, status: 404
-    #     return
-    #   end
-    #   render json: TeamBlueprint.render(@team, view: :director_detail)
-    # end
-    #
+    def show
+      load_team_and_tournament
+      unless team.present? && tournament.present?
+        skip_authorization
+        render json: nil, status: :not_found
+        return
+      end
+      authorize tournament, :show?
+      render json: TeamBlueprint.render(team, view: :director_detail)
+    end
+
     def create
       load_tournament
       unless tournament.present?
@@ -46,42 +48,50 @@ module Director
         return
       end
 
-      # authorize team
       team.save
       render json: TeamBlueprint.render(team, view: :director_list), status: :created
     end
-    #
-    # def update
-    #   load_team_and_tournament
-    #   unless @team.present? && @tournament.present?
-    #     render json: nil, status: 404
-    #     return
-    #   end
-    #
-    #   # authorize team
-    #   unless @team.update(edit_team_params)
-    #     render json: nil, status: 400
-    #     return
-    #   end
-    #
-    #   render json: TeamBlueprint.render(@team, view: :director_detail), status: 200
-    # end
-    #
-    # def destroy
-    #   load_team_and_tournament
-    #   unless @team.present? && @tournament.present?
-    #     render json: nil, status: 404
-    #     return
-    #   end
-    #
-    #   # authorize team
-    #   unless @team.destroy
-    #     render json: nil, status: 400
-    #     return
-    #   end
-    #
-    #   render json: nil, status: 204
-    # end
+
+    def update
+      load_team_and_tournament
+      unless team.present? && tournament.present?
+        skip_authorization
+        render json: nil, status: :not_found
+        return
+      end
+
+      authorize tournament
+      new_values = edit_team_params
+
+      unless positions_valid?(new_values)
+        render json: { errors: ['Positions must be unique across the team'] }, status: :bad_request
+        return
+      end
+
+      unless team.update(new_values)
+        render json: { errors: team.errors.full_messages }, status: :bad_request
+        return
+      end
+
+      render json: TeamBlueprint.render(team, view: :director_detail), status: :ok
+    end
+
+    def destroy
+      load_team_and_tournament
+      unless team.present? && tournament.present?
+        skip_authorization
+        render json: nil, status: :not_found
+        return
+      end
+
+      authorize tournament, :update?
+      unless team.destroy
+        render json: nil, status: :bad_request
+        return
+      end
+
+      render json: nil, status: :no_content
+    end
 
     private
 
@@ -95,7 +105,7 @@ module Director
     def load_team_and_tournament
       id = params.require(:identifier)
       @team = Team.includes(:tournament, bowlers: [:person, :free_entry]).find_by(identifier: id)
-      @tournament = @team.tournament if @team.present?
+      @tournament = team.tournament if team.present?
     end
 
     def team_params
@@ -107,6 +117,11 @@ module Director
         :name,
         bowlers_attributes: %i[id position doubles_partner_id]
       ).to_h.with_indifferent_access
+    end
+
+    def positions_valid?(proposed_values)
+      positions = proposed_values[:bowlers_attributes].collect { |attrs| attrs[:position] }
+      positions.count == positions.uniq.count
     end
   end
 end
