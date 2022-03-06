@@ -26,7 +26,11 @@ Rails.application.routes.draw do
       end
       resources :bowlers, only: %i(index show destroy update), param: :identifier, shallow: true
       resources :teams, only: %i(index create show update destroy), param: :identifier, shallow: true
-      resources :free_entries, only: %i(index create), shallow: true
+      resources :free_entries, only: %i(index create destroy), shallow: true do
+        member do
+          post 'confirm'
+        end
+      end
     end
   end
 

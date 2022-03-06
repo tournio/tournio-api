@@ -40,24 +40,39 @@ module Director
       render json: FreeEntryBlueprint.render(free_entry, view: :director_list), status: :created
     end
 
-    # def destroy
-    #   # TODO: ensure that the person deleting this free entry can do things on the associated tournament
-    #   FreeEntry.find(params[:id]).destroy
-    #   render json: nil, status: 204
-    # rescue ActiveRecord::RecordNotFound
-    #   render json: nil, status: 404
-    #   return
-    # end
-    #
-    # # TODO: ensure that the person updating this free entry can do things on the associated tournament
-    # def confirm
-    #   free_entry = FreeEntry.find(params[:id])
-    #   TournamentRegistration.confirm_free_entry(free_entry, current_user&.email)
-    #   render json: FreeEntryBlueprint.render(free_entry.reload, view: :director_list), status: 200
-    # rescue ActiveRecord::RecordNotFound
-    #   render json: nil, status: 404
-    #   return
-    # end
+    def destroy
+      fe = FreeEntry.find(params[:id])
+
+      authorize fe.tournament, :update?
+
+      if fe.confirmed
+        render json: { error: 'Cannot delete a confirmed free entry' }, status: :conflict
+        return
+      end
+
+      fe.destroy
+      render json: nil, status: :no_content
+    rescue ActiveRecord::RecordNotFound
+      skip_authorization
+      render json: nil, status: :not_found
+      return
+    end
+
+    def confirm
+      free_entry = FreeEntry.find(params[:id])
+
+      authorize free_entry.tournament, :update?
+
+      TournamentRegistration.confirm_free_entry(free_entry, current_user&.email)
+      render json: FreeEntryBlueprint.render(free_entry.reload, view: :director_list), status: 200
+    rescue ActiveRecord::RecordNotFound
+      skip_authorization
+      render json: nil, status: :not_found
+    rescue TournamentRegistration::IncompleteFreeEntry
+      render json: { error: 'Cannot confirm a free entry that is not linked with a bowler'}, status: :conflict
+    rescue TournamentRegistration::FreeEntryAlreadyConfirmed
+      render json: { error: 'That free entry is already confirmed' }, status: :conflict
+    end
 
     private
 

@@ -144,53 +144,141 @@ describe Director::FreeEntriesController, type: :request do
     end
   end
 
-  # describe '#show' do
-  #   subject { get uri, headers: auth_headers }
-  #
-  #   let(:uri) { "/director/tournaments/#{tournament.identifier}" }
-  #
-  #   let(:tournament) { create :tournament }
-  #
-  #   include_examples 'an authorized action'
-  #
-  #   it 'returns a JSON representation of the tournament' do
-  #     subject
-  #     expect(json['identifier']).to eq(tournament.identifier);
-  #   end
-  #
-  #   context 'When I am an unpermitted user' do
-  #     let(:requesting_user) { create(:user, :unpermitted) }
-  #
-  #     it 'yields a 401 Unauthorized' do
-  #       subject
-  #       expect(response).to have_http_status(:unauthorized)
-  #     end
-  #   end
-  #
-  #   context 'When I am a tournament director' do
-  #     let(:requesting_user) { create(:user, :director, tournaments: my_tournaments) }
-  #     let(:my_tournaments) { [] }
-  #
-  #     it 'yields a 401 Unauthorized' do
-  #       subject
-  #       expect(response).to have_http_status(:unauthorized)
-  #     end
-  #
-  #     context 'for this tournament' do
-  #       let(:my_tournaments) { [tournament] }
-  #
-  #       it 'yields a 200 OK' do
-  #         subject
-  #         expect(response).to have_http_status(:ok)
-  #       end
-  #
-  #       it 'returns a JSON representation of the tournament' do
-  #         subject
-  #         expect(json['identifier']).to eq(tournament.identifier);
-  #       end
-  #     end
-  #   end
-  # end
+  describe '#confirm' do
+    subject { post uri, headers: auth_headers, as: :json }
 
+    let(:uri) { "/director/free_entries/#{free_entry_id}/confirm" }
+
+    let(:tournament) { create :tournament, :active }
+    let(:free_entry) { create :free_entry, tournament: tournament, bowler: (create :bowler, tournament: tournament) }
+    let(:free_entry_id) { free_entry.id }
+
+    include_examples 'an authorized action'
+
+    it 'succeeds with a 200 OK' do
+      subject
+      expect(response).to have_http_status(:ok)
+    end
+
+    context 'as an unpermitted user' do
+      let(:requesting_user) { create(:user, :unpermitted) }
+
+      it 'shall not pass' do
+        subject
+        expect(response).to have_http_status(:unauthorized)
+      end
+    end
+
+    context 'as a director' do
+      let(:requesting_user) { create(:user, :director) }
+
+      it 'shall not pass' do
+        subject
+        expect(response).to have_http_status(:unauthorized)
+      end
+
+      context 'associated with this tournament' do
+        let(:requesting_user) { create :user, :director, tournaments: [tournament] }
+
+        it 'shall pass' do
+          subject
+          expect(response).to have_http_status(:ok)
+        end
+      end
+    end
+
+    context 'error scenarios' do
+      context 'an unrecognized id' do
+        let(:free_entry_id) { 99999 }
+
+        it 'yields a 404 Not Found' do
+          subject
+          expect(response).to have_http_status(:not_found)
+        end
+      end
+
+      context 'an already-confirmed free entry' do
+        let(:free_entry) { create :free_entry, tournament: tournament, confirmed: true }
+
+        it 'yields a 409 Conflict' do
+          subject
+          expect(response).to have_http_status(:conflict)
+        end
+      end
+
+      context 'a free entry without a bowler associated' do
+        let(:free_entry) { create :free_entry, tournament: tournament }
+
+        it 'yields a 409 Conflict' do
+          subject
+          expect(response).to have_http_status(:conflict)
+        end
+      end
+    end
+  end
+
+  describe '#destroy' do
+    subject { delete uri, headers: auth_headers, as: :json }
+
+    let(:uri) { "/director/free_entries/#{free_entry_id}" }
+
+    let(:tournament) { create :tournament, :active }
+    let(:free_entry) { create :free_entry, tournament: tournament }
+    let(:free_entry_id) { free_entry.id }
+
+    include_examples 'an authorized action'
+
+    it 'succeeds with a 204 No Content' do
+      subject
+      expect(response).to have_http_status(:no_content)
+    end
+
+    context 'as an unpermitted user' do
+      let(:requesting_user) { create(:user, :unpermitted) }
+
+      it 'shall not pass' do
+        subject
+        expect(response).to have_http_status(:unauthorized)
+      end
+    end
+
+    context 'as a director' do
+      let(:requesting_user) { create(:user, :director) }
+
+      it 'shall not pass' do
+        subject
+        expect(response).to have_http_status(:unauthorized)
+      end
+
+      context 'associated with this tournament' do
+        let(:requesting_user) { create :user, :director, tournaments: [tournament] }
+
+        it 'shall pass' do
+          subject
+          expect(response).to have_http_status(:no_content)
+        end
+      end
+    end
+
+    context 'error scenarios' do
+      context 'an unrecognized id' do
+        let(:free_entry_id) { 99999 }
+
+        it 'yields a 404 Not Found' do
+          subject
+          expect(response).to have_http_status(:not_found)
+        end
+      end
+
+      context 'a confirmed free entry' do
+        let(:free_entry) { create :free_entry, tournament: tournament, confirmed: true }
+
+        it 'yields a 409 Conflict' do
+          subject
+          expect(response).to have_http_status(:conflict)
+        end
+      end
+    end
+  end
 end
 
