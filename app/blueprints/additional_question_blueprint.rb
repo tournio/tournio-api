@@ -4,7 +4,7 @@ class AdditionalQuestionBlueprint < Blueprinter::Base
   # fields :name, :label, :html_element_type, :html_element_config, :helper_text, :helper_url, :validation_rules
   identifier :id
 
-  fields :label, :order
+  fields :label, :order, :name
 
   # These ones require no transformation, just a rename
   field :html_element_type, name: :elementType

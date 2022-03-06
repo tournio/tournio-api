@@ -58,10 +58,11 @@ module Director
       authorize tournament, :update?
 
       try_updating_details
+      try_updating_additional_question_responses
       try_reassigning
       # try_linking_free_entry
 
-      if (error.present?)
+      if error.present?
         render json: {error: error}, status: :bad_request
         return
       end
@@ -107,7 +108,9 @@ module Director
 
     def bowler_params
       params.require(:bowler).permit(team: %i(identifier),
-                                     person_attributes: PERSON_ATTRS)
+                                     person_attributes: PERSON_ATTRS,
+                                     additional_question_responses: %i(name response),
+      )
             .to_h.with_indifferent_access
     end
 
@@ -131,10 +134,31 @@ module Director
 
     def try_updating_details
       bowler_data = bowler_params
-      return false if bowler_data.empty?
+      return false unless bowler_data[:person_attributes].present?
 
       unless bowler.person.update(bowler_data[:person_attributes])
         self.error = bowler.person.errors.full_messages
+      end
+    end
+
+    def try_updating_additional_question_responses
+      bowler_data = bowler_params
+      return false unless bowler_data[:additional_question_responses].present?
+
+      bowler_data[:additional_question_responses].each do |aqr_data|
+        next unless aqr_data[:response].present?
+
+        aqr = bowler.additional_question_responses.joins(:extended_form_field).where(extended_form_field: {name: aqr_data[:name]}).first
+
+        unless aqr.present?
+          self.error = "Unrecognized additional question: #{aqr_data[:name]}"
+          return
+        end
+
+        unless aqr.update(response: aqr_data[:response])
+          self.error = bowler.person.errors.full_messages
+          return
+        end
       end
     end
   end

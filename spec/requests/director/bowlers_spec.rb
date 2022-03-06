@@ -197,11 +197,13 @@ describe Director::BowlersController, type: :request do
     let(:bowler_identifier) { bowler.identifier }
     let(:person_attributes) { { nickname: 'Freddy' } }
     let(:team_params) { {} }
+    let(:additional_question_response_params) { {} }
     let(:params) do
       {
         bowler: {
           person_attributes: person_attributes,
           team: team_params,
+          additional_question_responses: additional_question_response_params,
         },
       }
     end
@@ -270,6 +272,65 @@ describe Director::BowlersController, type: :request do
         subject
         expect(json['team']['name']).to eq('Dudes Who Dance')
       end
+
+      context 'without supplying person_attributes' do
+        let(:params) do
+          {
+            bowler: {
+              team: team_params,
+            },
+          }
+        end
+
+        it 'succeeds with a 200 OK' do
+          subject
+          expect(response).to have_http_status(:ok)
+        end
+
+        it 'reflects the new team' do
+          subject
+          expect(json['team']['name']).to eq('Dudes Who Dance')
+        end
+      end
+    end
+
+    context 'updating an additional question response' do
+      let(:aq) do
+        create(:additional_question,
+               extended_form_field: create(:extended_form_field, :standings_link),
+               tournament: tournament)
+      end
+      let(:additional_question_response_params) do
+        [
+          {
+            name: aq.name,
+            response: 'my updated response',
+          }
+        ]
+      end
+
+      before do
+        create :additional_question_response,
+               response: 'my response',
+               extended_form_field: aq.extended_form_field,
+               bowler: bowler
+      end
+
+      it 'succeeds with a 200 OK' do
+        subject
+        expect(response).to have_http_status(:ok)
+      end
+
+      it 'includes the updated bowler in the response' do
+        subject
+        expect(json).to have_key('identifier')
+      end
+
+      it 'reflects the response' do
+        subject
+        expect(json).to have_key('additional_question_responses')
+        expect(json['additional_question_responses'][aq.name]['response']).to eq('my updated response')
+      end
     end
 
     context 'error scenarios' do
@@ -279,6 +340,27 @@ describe Director::BowlersController, type: :request do
         it 'yields a 404 Not Found' do
           subject
           expect(response).to have_http_status(:not_found)
+        end
+      end
+
+      context 'an unknown additional question' do
+        let(:additional_question_response_params) do
+          [
+            {
+              name: 'unknown-form-field',
+              response: 'my detailed response to it',
+            }
+          ]
+        end
+
+        it 'yields a 400 Bad Request' do
+          subject
+          expect(response).to have_http_status(:bad_request)
+        end
+
+        it 'puts the validation errors into the response' do
+          subject
+          expect(json).to have_key('error')
         end
       end
 
