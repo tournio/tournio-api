@@ -52,6 +52,10 @@ class BowlerBlueprint < Blueprinter::Base
       TournamentRegistration.team_display_name(b.team)
     end
 
+    field :team_identifier do |b, _|
+      b.team.identifier
+    end
+
     field :created_at, name: :date_registered, datetime_format: "%F"
   end
 

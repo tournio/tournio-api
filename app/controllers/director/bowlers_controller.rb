@@ -34,44 +34,57 @@ module Director
       render json: BowlerBlueprint.render(bowlers, view: :director_list), status: :ok
     end
 
-    # def show
-    #   load_bowler_and_tournament
-    #   unless @bowler.present?
-    #     render json: nil, status: 404
-    #     return
-    #   end
-    #
-    #   render json: BowlerBlueprint.render(@bowler, view: :director_detail)
-    # end
-    #
-    # def update
-    #   load_bowler_and_tournament
-    #   unless @bowler.present?
-    #     render json: nil, status: 404
-    #     return
-    #   end
-    #
-    #   try_updating_details
-    #   try_reassigning
-    #   # try_linking_free_entry
-    #
-    #   render json: BowlerBlueprint.render(@bowler.reload, view: :director_detail)
-    # end
-    #
-    # def destroy
-    #   load_bowler_and_tournament
-    #   unless @bowler.present?
-    #     render json: nil, status: 404
-    #     return
-    #   end
-    #
-    #   @bowler.destroy
-    #   render json: nil, status: 204
-    # end
+    def show
+      load_bowler_and_tournament
+      unless bowler.present?
+        skip_authorization
+        render json: nil, status: :not_found
+        return
+      end
+
+      authorize tournament, :show?
+
+      render json: BowlerBlueprint.render(bowler, view: :director_detail)
+    end
+
+    def update
+      load_bowler_and_tournament
+      unless bowler.present?
+        skip_authorization
+        render json: nil, status: :not_found
+        return
+      end
+
+      authorize tournament, :update?
+
+      try_updating_details
+      try_reassigning
+      # try_linking_free_entry
+
+      if (error.present?)
+        render json: {error: error}, status: :bad_request
+        return
+      end
+
+      render json: BowlerBlueprint.render(bowler.reload, view: :director_detail)
+    end
+
+    def destroy
+      load_bowler_and_tournament
+      unless bowler.present?
+        skip_authorization
+        render json: nil, status: :not_found
+        return
+      end
+
+      authorize tournament, :update?
+      bowler.destroy
+      render json: nil, status: :no_content
+    end
 
     private
 
-    attr_accessor :tournament, :bowler
+    attr_accessor :tournament, :bowler, :error
 
     def load_tournament
       id = params.require(:tournament_identifier)
@@ -93,26 +106,36 @@ module Director
     end
 
     def bowler_params
-      params.require(:bowler).permit(team: :identifier,
+      params.require(:bowler).permit(team: %i(identifier),
                                      person_attributes: PERSON_ATTRS)
             .to_h.with_indifferent_access
     end
 
-    # def new_team_params
     def try_reassigning
-      new_team = bowler_params
-      return false if new_team.empty?
+      bowler_data = bowler_params
+      return unless bowler_data[:team].present?
 
-      new_team = @tournament.teams.find_by(identifier: new_team[:identifier])
-      return false unless new_team.present?
+      new_team = tournament.teams.find_by(identifier: bowler_data[:team][:identifier])
+      unless new_team.present?
+        self.error = 'Could not find the specified team.'
+        return
+      end
 
-      DirectorUtilities.reassign_bowler(bowler: @bowler, to_team: new_team)
+      unless new_team.bowlers.count < tournament.team_size
+        self.error = 'The specified team is full.'
+        return
+      end
+
+      DirectorUtilities.reassign_bowler(bowler: bowler, to_team: new_team)
     end
 
     def try_updating_details
       bowler_data = bowler_params
-      return if bowler_data.empty?
-      @bowler.person.update(bowler_data[:person_attributes])
+      return false if bowler_data.empty?
+
+      unless bowler.person.update(bowler_data[:person_attributes])
+        self.error = bowler.person.errors.full_messages
+      end
     end
   end
 end

@@ -21,7 +21,19 @@ describe Director::TeamsController, type: :request do
 
     before do
       10.times do
-        create :team, tournament: tournament
+        create :team, :standard_full_team, tournament: tournament
+      end
+
+      2.times do
+        create :team, :standard_one_bowler, tournament: tournament
+      end
+
+      2.times do
+        create :team, :standard_two_bowlers, tournament: tournament
+      end
+
+      1.times do
+        create :team, :standard_three_bowlers, tournament: tournament
       end
     end
 
@@ -34,7 +46,7 @@ describe Director::TeamsController, type: :request do
 
     it 'includes all registered teams in the response' do
       subject
-      expect(json.length).to eq(10);
+      expect(json.length).to eq(15);
     end
 
     context 'as an unpermitted user' do
@@ -43,6 +55,15 @@ describe Director::TeamsController, type: :request do
       it 'shall not pass' do
         subject
         expect(response).to have_http_status(:unauthorized)
+      end
+    end
+
+    context 'retrieving only partial teams' do
+      let(:uri) { "/director/tournaments/#{tournament_identifier}/teams?partial=true" }
+
+      it 'includes all registered teams in the response' do
+        subject
+        expect(json.length).to eq(5);
       end
     end
 
@@ -233,7 +254,7 @@ describe Director::TeamsController, type: :request do
       subject
       expect(json).to have_key('name')
       expect(json).to have_key('identifier')
-      expect(json['name']).to eq(new_name);
+      expect(json['name']).to eq(new_name)
     end
 
     context 'as an unpermitted user' do
