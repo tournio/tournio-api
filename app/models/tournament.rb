@@ -34,6 +34,7 @@ class Tournament < ApplicationRecord
   has_one :testing_environment, dependent: :destroy
 
   before_create :generate_identifier, if: -> { identifier.blank? }
+  after_create :initiate_testing_environment
 
   scope :upcoming, ->(right_now = Time.zone.now) { where('start_date > ?', right_now) }
   scope :available, -> { upcoming.where(aasm_state: %w[active closed]) }
@@ -46,9 +47,6 @@ class Tournament < ApplicationRecord
 
     event :test do
       transitions from: :setup, to: :testing
-      after do
-        initiate_testing_environment
-      end
     end
 
     event :open do

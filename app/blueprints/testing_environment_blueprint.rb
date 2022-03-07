@@ -2,9 +2,9 @@
 
 class TestingEnvironmentBlueprint < Blueprinter::Base
   field :settings do |te, options|
-    output = []
+    output = {}
     te.conditions.each_pair do |condition, setting|
-      output << {
+      output[condition] = {
         name: condition,
         display_name: condition.to_s.humanize,
         display_value: setting.to_s.humanize,

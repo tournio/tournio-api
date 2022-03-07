@@ -31,6 +31,7 @@ Rails.application.routes.draw do
           post 'confirm'
         end
       end
+      resource :testing_environment, only: %i(update)
     end
   end
 
