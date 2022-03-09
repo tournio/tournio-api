@@ -3,6 +3,8 @@
 class TeamBlueprint < Blueprinter::Base
   identifier :identifier
 
+  association :tournament, blueprint: TournamentBlueprint
+
   view :list do
     field :name do |t, _|
       t.name.length.positive? ? t.name : TournamentRegistration.team_display_name(t)

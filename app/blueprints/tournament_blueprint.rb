@@ -1,9 +1,9 @@
 # frozen_string_literal: true
 
 class TournamentBlueprint < Blueprinter::Base
-  identifier :id
+  identifier :identifier
 
-  fields :name, :year, :identifier
+  fields :name, :year
 
   view :list do
     field :aasm_state, name: :state

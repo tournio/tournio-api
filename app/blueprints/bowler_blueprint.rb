@@ -5,6 +5,8 @@ class BowlerBlueprint < Blueprinter::Base
   fields :first_name, :last_name, :position
   field :nickname, name: :preferred_name
 
+  association :tournament, blueprint: TournamentBlueprint
+
   field :amount_due do |b, _|
     due = TournamentRegistration.amount_due(b).to_i
     ActionController::Base.helpers.number_to_currency(due, precision: 0)
@@ -97,7 +99,6 @@ class BowlerBlueprint < Blueprinter::Base
     end
     field :created_at, name: :date_registered, datetime_format: "%F"
 
-    association :tournament, blueprint: TournamentBlueprint
     association :team, blueprint: TeamBlueprint, view: :director_list
     association :free_entry, blueprint: FreeEntryBlueprint
     association :purchases, blueprint: PurchaseBlueprint
