@@ -1,7 +1,6 @@
 # frozen_string_literal: true
 
 class PaymentReceiptNotifierWorker < TemplateMailerWorker
-  include Rails.application.routes.url_helpers
   include ActionView::Helpers::NumberHelper
 
   attr_accessor :recipient, :paypal_order, :bowler, :tournament, :purchases
@@ -91,19 +90,11 @@ class PaymentReceiptNotifierWorker < TemplateMailerWorker
     end
   end
 
-  def url_options
-    options = {}
-    if Rails.env.production?
-      options[:protocol] = 'https'
-      options[:host] = 'www.igbo-reg.com'
-    else
-      options[:host] = 'localhost'
-      options[:port] = '5000'
-    end
-    options
-  end
-
   def tournament_page
-    tournament_team_url(tournament, bowler.team, url_options)
+    if Rails.env.production?
+      "https://www.igbo-reg.com/teams/#{bowler.team.identifier}"
+    else
+      "http://localhost:3000/teams/#{bowler.team.identifier}"
+    end
   end
 end

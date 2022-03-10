@@ -1,7 +1,7 @@
 # frozen_string_literal: true
 
 class MailerWorker
-  include Sidekiq::Worker
+  include Sidekiq::Job
   include SendGrid
 
   sidekiq_options retry: false, queue: 'mailers'
