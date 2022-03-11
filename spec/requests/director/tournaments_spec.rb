@@ -33,6 +33,11 @@ describe Director::TournamentsController, type: :request do
       expect(json.length).to eq(4);
     end
 
+    it 'includes the tournament id in each one' do
+      subject
+      expect(json[0]).to have_key('id')
+    end
+
     context 'When all I need is upcoming tournaments' do
       let(:uri) { '/director/tournaments?upcoming=true' }
 

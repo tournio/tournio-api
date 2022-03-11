@@ -3,7 +3,7 @@
 class TournamentBlueprint < Blueprinter::Base
   identifier :identifier
 
-  fields :name, :year
+  fields :name, :year, :id
 
   view :list do
     field :aasm_state, name: :state
