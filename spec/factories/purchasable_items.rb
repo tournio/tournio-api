@@ -89,5 +89,18 @@ FactoryBot.define do
       determination { :multi_use }
       name { 'Banquet entry for a non-bowler' }
     end
+
+    trait :raffle_bundle do
+      category { :product }
+      determination { :multi_use }
+      refinement { :denomination }
+      name { 'Raffle ticket bundle' }
+      configuration do
+        {
+          denomination: '100 tickets',
+          order: 1,
+        }
+      end
+    end
   end
 end

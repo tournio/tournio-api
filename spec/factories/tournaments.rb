@@ -112,4 +112,11 @@ FactoryBot.define do
       )
     end
   end
+
+  trait :with_extra_stuff do
+    after(:create) do |t, _|
+      create(:purchasable_item, :banquet_entry, tournament: t)
+      create(:purchasable_item, :raffle_bundle, tournament: t)
+    end
+  end
 end

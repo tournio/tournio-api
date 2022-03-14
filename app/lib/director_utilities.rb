@@ -235,6 +235,14 @@ module DirectorUtilities
       output[key] = purchased_item_identifiers.include?(item.identifier) ? 'X' : ''
     end
 
+    # Add multi-use items, with the number of each
+    multiuse_items = t.purchasable_items.multi_use
+    multiuse_items.each do |item|
+      key = item.name
+      quantity = purchased_item_identifiers.count(item.identifier)
+      output[key] = quantity > 0 ? quantity : ''
+    end
+
     # et voila!
     output
   end

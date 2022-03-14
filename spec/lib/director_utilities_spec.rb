@@ -402,8 +402,23 @@ RSpec.describe DirectorUtilities do
     end
 
     # When the tournament offers multi-use items like banquet entries
-    # Later, when we need to support this
+    context 'with some multi-use items like banquet entries or raffle ticket bundles' do
+      let(:tournament) { create :tournament, :with_extra_stuff }
+      let(:items) do
+        [
+          tournament.purchasable_items.banquet.first,
+          tournament.purchasable_items.product.first,
+        ]
+      end
 
+      before do
+        items.each { |i| create :purchase, :paid, amount: i.value, bowler: bowler, purchasable_item: i }
+      end
+
+      it 'has a column for each item offered' do
+        expect(subject.count).to eq(items.count)
+      end
+    end
   end
 
   describe '#doubles_partner_info' do
