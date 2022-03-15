@@ -5,7 +5,8 @@
   "environments": {
     "test": {
       "addons": [
-        "heroku-postgresql:in-dyno"
+        "heroku-postgresql:in-dyno",
+        "heroku-redis:in-dyno"
       ],
       "scripts": {
         "test": "bundle exec rspec"
