@@ -1,7 +1,7 @@
 # frozen_string_literal: true
 
 require 'rails_helper'
-require 'team_spec_helper'
+# require 'team_spec_helper'
 
 RSpec.describe TournamentRegistration do
   let(:subject_class) { described_class }
@@ -79,6 +79,12 @@ RSpec.describe TournamentRegistration do
 
   describe '#register_team' do
     subject { subject_class.register_team(team) }
+
+    before do
+      create :extended_form_field, :comment
+      create :extended_form_field, :standings_link
+      create :extended_form_field, :pronouns
+    end
 
     # cleaned_up_form_data is defined in api_team_spec_helper.rb
     let(:form_data) { full_team_cleaned_up_form_data }

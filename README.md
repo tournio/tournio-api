@@ -1,24 +1,37 @@
-# README
+# igbo-registration-api
 
-This README would normally document whatever steps are necessary to get the
-application up and running.
+This is the code for the API backend of my registration system for IGBO bowling tournaments. The repository for the frontend is at `igbo-registration-client`.
 
-Things you may want to cover:
+This was built using a fresh instance of a Rails API-only application.
 
-* Ruby version
+## Ruby version
 
-* System dependencies
+3.1.1.
 
-* Configuration
+I endeavor to be on the latest versions of the language and framework. As such, you can expect to see frequent updates for Ruby, Rails, and gem version updates.
 
-* Database creation
+## Dependencies
 
-* Database initialization
+The main libraries used in this system are:
+- Rails
+- Devise (user authentication)
+- Devise-JWT (authentication using JWT, helpful for using Devise in an API context)
+- Sidekiq (background job processing)
+- Pundit (authorization)
+- Blueprinter (object serialization)
+- SendGrid (emails)
+- RSpec-Rails (test suite)
 
-* How to run the test suite
+## Getting going
 
-* Services (job queues, cache servers, search engines, etc.)
+There's nothing special about the database; you'd get it going like you would in any standard Rails application.
 
-* Deployment instructions
+There are two seed files, neither of which is strictly necessary for getting things going.
 
-* ...
+## Testing
+
+Tests are all RSpec files.
+
+## More to come
+
+As I flesh this out...

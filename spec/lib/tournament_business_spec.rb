@@ -121,13 +121,7 @@ RSpec.describe TournamentBusiness do
   describe '#entry_deadline' do
     subject { dummy_obj.entry_deadline }
 
-    before do
-      tournament.config_items << ConfigItem.new(key: 'entry_deadline', value: '1976-12-28T18:37:00T-07:00')
-    end
-
     it { is_expected.to be_instance_of DateTime }
-
-    it { is_expected.to eq(DateTime.new(1976, 12, 28, 18, 37, 0, '-7')) }
   end
 
   describe '#late_fee_applies_at' do
