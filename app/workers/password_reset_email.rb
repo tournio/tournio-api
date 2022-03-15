@@ -1,19 +1,16 @@
 # frozen_string_literal: true
 
 class PasswordResetEmail < TemplateMailerWorker
-  attr_accessor :recipient
+  attr_accessor :recipient, :token
 
-  def perform(user_id)
+  def perform(user_id, token)
     user = User.find(user_id)
     unless user.present?
       logger.warn "Trying to send a password-reset email to a user that doesn't exist."
       return
     end
-    unless user.reset_password_token.present?
-      logger.warn "There is no reset password token on the requested user."
-      return
-    end
 
+    self.token = token
     self.recipient = user.email
 
     send
@@ -43,9 +40,9 @@ class PasswordResetEmail < TemplateMailerWorker
 
   def reset_url
     if Rails.env.production?
-      "https://www.igbo-reg.com/#{bowler.team.identifier}"
+      "https://www.igbo-reg.com/director/password-reset?token=#{token}"
     else
-      "http://localhost:3000/#{bowler.team.identifier}"
+      "http://localhost:3000/director/password-reset?token=#{token}"
     end
   end
 end
