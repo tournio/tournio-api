@@ -80,5 +80,5 @@ group :test do
   # Gems added by me
   #############################
 
-  gem 'database_cleaner' # Wipe the DB before each test
+  gem 'database_cleaner-active_record' # Wipe the DB before each test
 end

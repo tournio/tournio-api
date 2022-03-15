@@ -80,8 +80,6 @@ GEM
     concurrent-ruby (1.1.9)
     connection_pool (2.2.5)
     crass (1.0.6)
-    database_cleaner (2.0.1)
-      database_cleaner-active_record (~> 2.0.0)
     database_cleaner-active_record (2.0.1)
       activerecord (>= 5.a)
       database_cleaner-core (~> 2.0.0)
@@ -252,7 +250,7 @@ DEPENDENCIES
   annotate
   blueprinter
   bootsnap
-  database_cleaner
+  database_cleaner-active_record
   debug
   devise (~> 4.7)
   devise-jwt
