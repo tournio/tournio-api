@@ -20,16 +20,8 @@ hit.config_items += [
     value: '4',
   ),
   ConfigItem.new(
-    key: 'can_choose_bowling_events',
-    value: 'false',
-  ),
-  ConfigItem.new(
     key: 'website',
     value: 'http://www.houstoninvite.com',
-  ),
-  ConfigItem.new(
-    key: 'entry_fee',
-    value: 90,
   ),
   ConfigItem.new(
     key: 'location',
@@ -37,7 +29,7 @@ hit.config_items += [
   ),
   ConfigItem.new(
     key: 'entry_deadline',
-    value: '2022-06-28T23:59:59-05:00',
+    value: '2022-06-29T23:59:59-05:00',
   ),
   ConfigItem.new(
     key: 'time_zone',
@@ -51,15 +43,9 @@ hit.config_items += [
 
 hit.contacts += [
   Contact.new(
-    name: 'Ron Conners Elhert',
+    name: 'Ron Connors-Elhert',
     email: 'sailingduck55@gmail.com',
-    notes: 'Co-Director',
-    notify: true,
-  ),
-  Contact.new(
-    name: 'Lindsey Calahan',
-    email: 'lindsey_calahan@hotmail.com',
-    notes: 'Co-Director',
+    role: :director,
   ),
 ]
 
@@ -69,16 +55,16 @@ hit.purchasable_items += [
     determination: :entry_fee,
     name: 'Tournament entry fee',
     user_selectable: false,
-    value: 90,
+    value: 100,
   ),
   PurchasableItem.new(
     category: :ledger,
     determination: :late_fee,
     name: 'Late registration fee',
     user_selectable: false,
-    value: 15,
+    value: 20,
     configuration: {
-      applies_at: '2022-06-23T04:00:00-05:00',
+      applies_at: '2022-06-20T04:00:00-05:00',
     },
   ),
   # PurchasableItem.new(
@@ -151,26 +137,36 @@ hit.purchasable_items += [
   #     order: 7,
   #   }
   # ),
-  # PurchasableItem.new(
-  #   category: :bowling,
-  #   determination: :single_use,
-  #   name: 'Best 3 Across 9',
-  #   user_selectable: true,
-  #   value: 20,
-  #   configuration: {
-  #     order: 8,
-  #   }
-  # ),
+  # ###############################################
+  PurchasableItem.new(
+    category: :bowling,
+    determination: :single_use,
+    name: 'Best 3 of 6',
+    value: 20,
+    configuration: {
+      order: 1,
+      note: '(Singles / Doubles)',
+    }
+  ),
+  PurchasableItem.new(
+    category: :bowling,
+    determination: :single_use,
+    name: 'Best 3 of 9',
+    value: 20,
+    configuration: {
+      order: 2,
+    }
+  ),
+  ##################################################
   PurchasableItem.new(
     category: :bowling,
     determination: :single_use,
     refinement: :division,
     name: 'Scratch Masters',
-    user_selectable: true,
     value: 40,
     configuration: {
       division: 'A',
-      note: '201+',
+      note: '210+',
     },
   ),
   PurchasableItem.new(
@@ -178,11 +174,10 @@ hit.purchasable_items += [
     determination: :single_use,
     refinement: :division,
     name: 'Scratch Masters',
-    user_selectable: true,
     value: 40,
     configuration: {
       division: 'B',
-      note: '186-200',
+      note: '190-209',
     },
   ),
   PurchasableItem.new(
@@ -194,7 +189,7 @@ hit.purchasable_items += [
     value: 40,
     configuration: {
       division: 'C',
-      note: '171-185',
+      note: '170-189',
     },
   ),
   PurchasableItem.new(
@@ -206,7 +201,7 @@ hit.purchasable_items += [
     value: 40,
     configuration: {
       division: 'D',
-      note: '156-170',
+      note: '150-169',
     },
   ),
   PurchasableItem.new(
@@ -218,9 +213,12 @@ hit.purchasable_items += [
     value: 40,
     configuration: {
       division: 'E',
-      note: '0-155',
+      note: '0-149',
     },
   ),
+  # #################################################
+  # Houston's Optional Scratch is also division-based
+  # #################################################
   PurchasableItem.new(
     category: :bowling,
     determination: :single_use,
@@ -230,7 +228,7 @@ hit.purchasable_items += [
     value: 25,
     configuration: {
       division: 'A',
-      note: '201+',
+      note: '210+',
     },
   ),
   PurchasableItem.new(
@@ -242,7 +240,7 @@ hit.purchasable_items += [
     value: 25,
     configuration: {
       division: 'B',
-      note: '186-200',
+      note: '190-209',
     },
   ),
   PurchasableItem.new(
@@ -254,7 +252,7 @@ hit.purchasable_items += [
     value: 25,
     configuration: {
       division: 'C',
-      note: '171-185',
+      note: '170-189',
     },
   ),
   PurchasableItem.new(
@@ -266,7 +264,7 @@ hit.purchasable_items += [
     value: 25,
     configuration: {
       division: 'D',
-      note: '156-170',
+      note: '150-169',
     },
   ),
   PurchasableItem.new(
@@ -278,7 +276,7 @@ hit.purchasable_items += [
     value: 25,
     configuration: {
       division: 'E',
-      note: '0-155',
+      note: '0-149',
     },
   ),
 # PurchasableItem.new(
