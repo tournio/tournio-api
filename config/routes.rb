@@ -21,9 +21,9 @@ Rails.application.routes.draw do
     resources :tournaments, only: %i(index show), param: :identifier do
       member do
         post 'clear_test_data'
-      end
-      member do
         post 'state_change'
+        get 'csv_download'
+        get 'igbots_download'
       end
       resources :bowlers, only: %i(index show destroy update), param: :identifier, shallow: true
       resources :teams, only: %i(index create show update destroy), param: :identifier, shallow: true

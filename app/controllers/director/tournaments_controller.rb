@@ -40,12 +40,14 @@ module Director
     end
 
     def csv_download
+      authorize tournament
       export_data = DirectorUtilities.csv_hash(tournament: tournament)
 
       send_data export_data, filename: 'tournament_bowlers.csv', type: 'text/plain', disposition: 'attachment'
     end
 
     def igbots_download
+      authorize tournament
       export_data = DirectorUtilities.igbots_hash(tournament: tournament)
       xml_data = export_data.to_xml(root: 'igbots', dasherize: false, skip_types: true).gsub(/\w+>/, &:upcase)
 
