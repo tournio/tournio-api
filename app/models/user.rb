@@ -26,7 +26,7 @@ class User < ApplicationRecord
   # notification is a symbol; trigger the reset-email if it's :reset_password_instructions
   # args[0] is the token if we're sending a password-reset email
   def send_devise_notification(notification, *args)
-    PasswordResetEmail.perform_async(self.id, args[0]) if notification == :reset_password_instructions
+    PasswordResetEmailJob.perform_async(self.id, args[0]) if notification == :reset_password_instructions
   end
 
   private

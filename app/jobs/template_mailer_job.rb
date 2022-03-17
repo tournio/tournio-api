@@ -1,6 +1,6 @@
 # frozen_string_literal: true
 
-class TemplateMailerWorker < MailerWorker
+class TemplateMailerJob < MailerJob
   def sendgrid_template_id
     raise NotImplementedError
   end

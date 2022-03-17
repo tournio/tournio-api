@@ -168,9 +168,9 @@ module TournamentRegistration
     recipients = if notify_bowler?(tournament)
                    [bowler.email]
                  else
-                   Rails.env.production? ? notification_recipients(tournament) : [MailerWorker::FROM]
+                   Rails.env.production? ? notification_recipients(tournament) : [MailerJob::FROM]
                  end
-    recipients.each { |r| RegistrationConfirmationNotifierWorker.perform_async(bowler.id, r) }
+    recipients.each { |r| RegistrationConfirmationNotifierJob.perform_async(bowler.id, r) }
   end
 
   def self.send_registration_notification_email(bowler)
@@ -178,9 +178,9 @@ module TournamentRegistration
     recipients = if Rails.env.production?
                    notification_recipients(tournament)
                  else
-                   [MailerWorker::FROM]
+                   [MailerJob::FROM]
                  end
-    recipients.each { |r| NewRegistrationNotifierWorker.perform_async(bowler.id, r) }
+    recipients.each { |r| NewRegistrationNotifierJob.perform_async(bowler.id, r) }
   end
 
   def self.notification_recipients(tournament)

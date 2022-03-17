@@ -1,6 +1,6 @@
 # frozen_string_literal: true
 
-class PasswordResetEmail < TemplateMailerWorker
+class PasswordResetEmailJob < TemplateMailerJob
   attr_accessor :recipient, :token
 
   def perform(user_id, token)
