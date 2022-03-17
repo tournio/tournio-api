@@ -1,3 +1,21 @@
+# == Schema Information
+#
+# Table name: testing_environments
+#
+#  id            :bigint           not null, primary key
+#  conditions    :jsonb
+#  created_at    :datetime         not null
+#  updated_at    :datetime         not null
+#  tournament_id :bigint           not null
+#
+# Indexes
+#
+#  index_testing_environments_on_tournament_id  (tournament_id)
+#
+# Foreign Keys
+#
+#  fk_rails_...  (tournament_id => tournaments.id)
+#
 require 'rails_helper'
 
 RSpec.describe TestingEnvironment, type: :model do
