@@ -173,20 +173,6 @@ module TournamentRegistration
     recipients.each { |r| RegistrationConfirmationNotifierJob.perform_async(bowler.id, r) }
   end
 
-  def self.send_registration_notification_email(bowler)
-    tournament = bowler.tournament
-    recipients = if Rails.env.production?
-                   notification_recipients(tournament)
-                 else
-                   [MailerJob::FROM]
-                 end
-    recipients.each { |r| NewRegistrationNotifierJob.perform_async(bowler.id, r) }
-  end
-
-  def self.notification_recipients(tournament)
-    tournament.contacts.registration_notifiable.pluck(:email).uniq
-  end
-
   # Private methods
 
   def self.notify_bowler?(tournament)

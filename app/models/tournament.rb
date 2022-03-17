@@ -32,6 +32,7 @@ class Tournament < ApplicationRecord
   has_many :additional_questions, dependent: :destroy
   has_many :extended_form_fields, through: :additional_questions
   has_one :testing_environment, dependent: :destroy
+  has_one :registration_summary_send
 
   before_create :generate_identifier, if: -> { identifier.blank? }
   after_create :initiate_testing_environment
