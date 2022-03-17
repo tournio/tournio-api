@@ -14,7 +14,12 @@ module Director
 
       authorize tournament, :show?
 
-      free_entries = policy_scope(tournament.free_entries).includes(bowler: :person).order(:unique_code)
+      free_entries = if params[:unassigned]
+                       policy_scope(tournament.free_entries.unassigned).includes(bowler: :person).order(:unique_code)
+                     else
+                       policy_scope(tournament.free_entries).includes(bowler: :person).order(:unique_code)
+                     end
+
       render json: FreeEntryBlueprint.render(free_entries, view: :director_list), status: :ok
     end
 
@@ -69,9 +74,36 @@ module Director
       skip_authorization
       render json: nil, status: :not_found
     rescue TournamentRegistration::IncompleteFreeEntry
-      render json: { error: 'Cannot confirm a free entry that is not linked with a bowler'}, status: :conflict
+      render json: { error: 'Cannot confirm a free entry that is not linked with a bowler' }, status: :conflict
     rescue TournamentRegistration::FreeEntryAlreadyConfirmed
       render json: { error: 'That free entry is already confirmed' }, status: :conflict
+    end
+
+    def update
+      free_entry = FreeEntry.includes(:tournament).find(params[:id])
+      tournament = free_entry.tournament
+      authorize free_entry.tournament, :update?
+
+      if free_entry.bowler_id.present?
+        render json: nil, status: :conflict
+        return
+      end
+
+      bowler = tournament.bowlers.find_by(identifier: params[:bowler_identifier])
+      unless bowler.present?
+        render json: nil, status: :not_found
+        return
+      end
+
+      free_entry.update(bowler_id: bowler.id)
+      if params[:confirm].present?
+        TournamentRegistration.confirm_free_entry(free_entry, current_user&.email)
+      end
+
+      render json: FreeEntryBlueprint.render(free_entry), status: :ok
+    rescue ActiveRecord::RecordNotFound
+      skip_authorization
+      render json: nil, status: :not_found
     end
 
     private
