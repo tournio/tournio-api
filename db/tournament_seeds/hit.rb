@@ -142,7 +142,7 @@ hit.purchasable_items += [
     category: :bowling,
     determination: :single_use,
     name: 'Best 3 of 6',
-    value: 20,
+    value: 10,
     configuration: {
       order: 1,
       note: '(Singles / Doubles)',
@@ -152,7 +152,7 @@ hit.purchasable_items += [
     category: :bowling,
     determination: :single_use,
     name: 'Best 3 of 9',
-    value: 20,
+    value: 10,
     configuration: {
       order: 2,
     }
