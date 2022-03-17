@@ -1,6 +1,6 @@
 # frozen_string_literal: true
 
-class RegistrationConfirmationNotifierWorker < TemplateMailerWorker
+class RegistrationConfirmationNotifierJob < TemplateMailerJob
   include ActionView::Helpers::NumberHelper
 
   attr_accessor :recipient, :bowler, :tournament

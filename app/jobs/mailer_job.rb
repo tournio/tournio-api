@@ -1,6 +1,6 @@
 # frozen_string_literal: true
 
-class MailerWorker
+class MailerJob
   include Sidekiq::Job
   include SendGrid
 

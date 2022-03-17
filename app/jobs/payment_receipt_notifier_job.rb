@@ -1,6 +1,6 @@
 # frozen_string_literal: true
 
-class PaymentReceiptNotifierWorker < TemplateMailerWorker
+class PaymentReceiptNotifierJob < TemplateMailerJob
   include ActionView::Helpers::NumberHelper
 
   attr_accessor :recipient, :paypal_order, :bowler, :tournament, :purchases

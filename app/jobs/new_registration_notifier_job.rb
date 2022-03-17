@@ -1,6 +1,6 @@
 # frozen_string_literal: true
 
-class NewRegistrationNotifierWorker < MailerWorker
+class NewRegistrationNotifierJob < MailerJob
   attr_accessor :recipient, :bowler, :tournament
 
   def perform(bowler_id, recipient_email)

@@ -1,6 +1,6 @@
 # frozen_string_literal: true
 
-class NewPaymentNotifierWorker < MailerWorker
+class NewPaymentNotifierJob < MailerJob
   include ActionView::Helpers::NumberHelper
 
   attr_accessor :recipient, :bowler, :tournament, :payment_identifier, :amount, :received_at

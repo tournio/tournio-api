@@ -89,9 +89,9 @@ class PurchasesController < ApplicationController
     recipients = if Rails.env.production?
                    payment_notification_recipients
                  else
-                   [MailerWorker::FROM]
+                   [MailerJob::FROM]
                  end
-    recipients.each { |r| NewPaymentNotifierWorker.perform_async(bowler_id, payment_identifier, amount, received_at, r) }
+    recipients.each { |r| NewPaymentNotifierJob.perform_async(bowler_id, payment_identifier, amount, received_at, r) }
   end
 
   def payment_notification_recipients
@@ -102,8 +102,8 @@ class PurchasesController < ApplicationController
     recipient = if Rails.env.production?
                   tournament.active? ? bowler.email : tournament.contacts.treasurer.first
                 else
-                  MailerWorker::FROM
+                  MailerJob::FROM
                 end
-    PaymentReceiptNotifierWorker.perform_async(paypal_order_identifier, recipient)
+    PaymentReceiptNotifierJob.perform_async(paypal_order_identifier, recipient)
   end
 end
