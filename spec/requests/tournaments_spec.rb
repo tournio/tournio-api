@@ -42,9 +42,9 @@ describe TournamentsController, type: :request do
 
     let(:uri) { "/tournaments/#{tournament.identifier}" }
 
-    let(:expected_keys) { %w(identifier name state status start_date location registration_deadline website year) }
+    let(:expected_keys) { %w(identifier name state status start_date location registration_deadline website year registration_fee) }
 
-    let(:tournament) { create :tournament, :active }
+    let(:tournament) { create :tournament, :active, :with_entry_fee }
 
     it 'returns a tournament object' do
       subject

@@ -45,6 +45,15 @@ class TournamentBlueprint < Blueprinter::Base
       t.config[:website]
     end
     field :max_bowlers_per_entry, name: :max_bowlers
+    field :registration_fee do |t, _|
+      t.purchasable_items.entry_fee.take.value
+    end
+    field :late_registration_fee do |t, _|
+      t.purchasable_items.late_fee.take&.value
+    end
+    field :early_registration_discount do |t, _|
+      t.purchasable_items.early_discount.take&.value
+    end
   end
 
   view :director_list do
