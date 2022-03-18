@@ -1,12 +1,12 @@
 # frozen_string_literal: true
 
-playground = Tournament.create!(
+tournament = Tournament.create!(
   name: 'Sample Tournament',
   year: 2022,
   start_date: '2022-10-03',
 )
 
-playground.config_items += [
+tournament.config_items += [
   ConfigItem.new(
     key: 'location',
     value: 'Atlanta, GA',
@@ -41,23 +41,23 @@ playground.config_items += [
   ),
 ]
 
-playground.contacts << Contact.new(
+tournament.contacts << Contact.new(
   name: 'Kylie Minogue',
   email: 'director@example.org',
   role: :director,
 )
-playground.contacts << Contact.new(
+tournament.contacts << Contact.new(
   name: 'Dua Lipa',
   email: 'architect@example.org',
   role: :secretary,
 )
-playground.contacts << Contact.new(
+tournament.contacts << Contact.new(
   name: 'Stevie Nicks',
   email: 'treasurer@example.org',
   role: :treasurer,
 )
 
-playground.purchasable_items += [
+tournament.purchasable_items += [
   PurchasableItem.new(
     category: :ledger,
     determination: :entry_fee,
@@ -248,19 +248,19 @@ playground.purchasable_items += [
 ]
 
 eff = ExtendedFormField.find_by(name: 'standings_link')
-playground.additional_questions << AdditionalQuestion.new(
+tournament.additional_questions << AdditionalQuestion.new(
   extended_form_field: eff,
   validation_rules: eff.validation_rules,
   order: 2,
 )
 eff = ExtendedFormField.find_by(name: 'comment')
-playground.additional_questions << AdditionalQuestion.new(
+tournament.additional_questions << AdditionalQuestion.new(
   extended_form_field: eff,
   validation_rules: eff.validation_rules,
   order: 3,
 )
 eff = ExtendedFormField.find_by(name: 'pronouns')
-playground.additional_questions << AdditionalQuestion.new(
+tournament.additional_questions << AdditionalQuestion.new(
   extended_form_field: eff,
   validation_rules: eff.validation_rules,
   order: 1,
