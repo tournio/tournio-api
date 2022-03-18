@@ -756,7 +756,7 @@ RSpec.describe TournamentRegistration do
         let(:addresses) { %w[foo@foo.foo foo@foo.org foo@foo.net] }
 
         before do
-          allow(described_class).to receive(:notification_recipients).and_return(addresses)
+          allow(described_class).to receive(:test_mode_notification_recipients).and_return(addresses)
         end
 
         it 'does not send to the bowler' do
@@ -772,7 +772,7 @@ RSpec.describe TournamentRegistration do
 
       context 'an active tournament' do
         before do
-          allow(described_class).to receive(:notification_recipients).and_return(%w[foo@foo.foo])
+          allow(described_class).to receive(:test_mode_notification_recipients).and_return(%w[foo@foo.foo])
         end
 
         it "sends to the bowler's address" do
