@@ -52,7 +52,7 @@ module TournamentRegistration
   def self.bowler_full_name(bowler)
     nickname = bowler.nickname
     display_nickname = nickname.present? ? "'#{nickname}'" : ''
-    "#{bowler.first_name} #{display_nickname} #{bowler.last_name}"
+    "#{bowler.first_name} #{display_nickname} #{bowler.last_name}".squish
   end
 
   def self.bowler_paid?(bowler)

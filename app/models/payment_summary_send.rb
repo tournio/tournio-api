@@ -12,4 +12,5 @@
 #  index_payment_summary_sends_on_tournament_id  (tournament_id)
 #
 class PaymentSummarySend < ApplicationRecord
+  belongs_to :tournament
 end
