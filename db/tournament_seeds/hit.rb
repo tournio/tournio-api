@@ -46,6 +46,8 @@ hit.contacts += [
     name: 'Ron Connors-Elhert',
     email: 'sailingduck55@gmail.com',
     role: :director,
+    notify_on_registration: true,
+    notify_on_payment: true,
   ),
 ]
 
