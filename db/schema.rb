@@ -10,7 +10,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema[7.0].define(version: 2022_02_15_190443) do
+ActiveRecord::Schema[7.0].define(version: 2022_03_17_191418) do
   # These are extensions that must be enabled in order to support this database
   enable_extension "plpgsql"
 
@@ -119,6 +119,13 @@ ActiveRecord::Schema[7.0].define(version: 2022_02_15_190443) do
     t.index ["identifier"], name: "index_ledger_entries_on_identifier"
   end
 
+  create_table "payment_summary_sends", force: :cascade do |t|
+    t.bigint "tournament_id", null: false
+    t.datetime "last_sent_at", precision: nil, null: false
+    t.integer "bowler_count", default: 0
+    t.index ["tournament_id"], name: "index_payment_summary_sends_on_tournament_id"
+  end
+
   create_table "paypal_orders", force: :cascade do |t|
     t.string "identifier"
     t.jsonb "details"
@@ -176,6 +183,13 @@ ActiveRecord::Schema[7.0].define(version: 2022_02_15_190443) do
     t.index ["identifier"], name: "index_purchases_on_identifier"
     t.index ["paypal_order_id"], name: "index_purchases_on_paypal_order_id"
     t.index ["purchasable_item_id"], name: "index_purchases_on_purchasable_item_id"
+  end
+
+  create_table "registration_summary_sends", force: :cascade do |t|
+    t.bigint "tournament_id", null: false
+    t.datetime "last_sent_at", precision: nil, null: false
+    t.integer "bowler_count", default: 0
+    t.index ["tournament_id"], name: "index_registration_summary_sends_on_tournament_id"
   end
 
   create_table "teams", force: :cascade do |t|

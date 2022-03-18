@@ -9,6 +9,10 @@ class TemplateMailerJob < MailerJob
     raise NotImplementedError
   end
 
+  def subject
+    ''
+  end
+
   # Child classes should call this as the last step in their perform() method,
   # after setting up template data, etc.
 

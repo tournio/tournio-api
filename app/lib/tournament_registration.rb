@@ -52,7 +52,7 @@ module TournamentRegistration
   def self.bowler_full_name(bowler)
     nickname = bowler.nickname
     display_nickname = nickname.present? ? "'#{nickname}'" : ''
-    "#{bowler.first_name} #{display_nickname} #{bowler.last_name}"
+    "#{bowler.first_name} #{display_nickname} #{bowler.last_name}".squish
   end
 
   def self.bowler_paid?(bowler)
@@ -73,7 +73,6 @@ module TournamentRegistration
     add_late_fees_to_ledger(bowler)
     complete_doubles_link(bowler) if bowler.doubles_partner_id.present?
     send_confirmation_email(bowler)
-    send_registration_notification_email(bowler)
   end
 
   def self.purchase_entry_fee(bowler)
@@ -168,26 +167,16 @@ module TournamentRegistration
     recipients = if notify_bowler?(tournament)
                    [bowler.email]
                  else
-                   Rails.env.production? ? notification_recipients(tournament) : [MailerJob::FROM]
+                   Rails.env.production? ? test_mode_notification_recipients(tournament) : [MailerJob::FROM]
                  end
     recipients.each { |r| RegistrationConfirmationNotifierJob.perform_async(bowler.id, r) }
   end
 
-  def self.send_registration_notification_email(bowler)
-    tournament = bowler.tournament
-    recipients = if Rails.env.production?
-                   notification_recipients(tournament)
-                 else
-                   [MailerJob::FROM]
-                 end
-    recipients.each { |r| NewRegistrationNotifierJob.perform_async(bowler.id, r) }
-  end
+  # Private methods
 
-  def self.notification_recipients(tournament)
+  def self.test_mode_notification_recipients(tournament)
     tournament.contacts.registration_notifiable.pluck(:email).uniq
   end
-
-  # Private methods
 
   def self.notify_bowler?(tournament)
     Rails.env.production? && tournament.active?

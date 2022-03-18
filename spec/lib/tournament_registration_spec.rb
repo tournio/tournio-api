@@ -756,7 +756,7 @@ RSpec.describe TournamentRegistration do
         let(:addresses) { %w[foo@foo.foo foo@foo.org foo@foo.net] }
 
         before do
-          allow(described_class).to receive(:notification_recipients).and_return(addresses)
+          allow(described_class).to receive(:test_mode_notification_recipients).and_return(addresses)
         end
 
         it 'does not send to the bowler' do
@@ -772,7 +772,7 @@ RSpec.describe TournamentRegistration do
 
       context 'an active tournament' do
         before do
-          allow(described_class).to receive(:notification_recipients).and_return(%w[foo@foo.foo])
+          allow(described_class).to receive(:test_mode_notification_recipients).and_return(%w[foo@foo.foo])
         end
 
         it "sends to the bowler's address" do
@@ -788,93 +788,4 @@ RSpec.describe TournamentRegistration do
     end
   end
 
-  describe '#send_registration_notification_email' do
-    subject { subject_class.send_registration_notification_email(bowler) }
-
-    let(:tournament) { create :tournament, :active }
-    let(:bowler) { create(:bowler, person: create(:person), tournament: tournament) }
-
-    before do
-      allow(NewRegistrationNotifierJob).to receive(:perform_async)
-    end
-
-    context 'in development' do
-      before do
-        allow(Rails.env).to receive(:development?).and_return(true)
-      end
-
-      it 'sends to the development address' do
-        expect(NewRegistrationNotifierJob).to receive(:perform_async).with(bowler.id, MailerJob::FROM)
-        subject
-      end
-    end
-
-    context 'in test' do
-      it 'sends to the development address' do
-        expect(NewRegistrationNotifierJob).to receive(:perform_async).with(bowler.id, MailerJob::FROM)
-        subject
-      end
-    end
-
-    context 'in production' do
-      before do
-        allow(Rails.env).to receive(:production?).and_return(true)
-      end
-
-      context 'a tournament in test mode' do
-        let(:tournament) { create :tournament, :testing }
-        let(:addresses) { %w[foo@foo.foo foo@foo.org foo@foo.net] }
-
-        before do
-          allow(described_class).to receive(:notification_recipients).and_return(addresses)
-        end
-
-        it "sends to the notifiable addresses" do
-          expect(NewRegistrationNotifierJob).to receive(:perform_async).with(bowler.id, 'foo@foo.foo')
-          expect(NewRegistrationNotifierJob).to receive(:perform_async).with(bowler.id, 'foo@foo.org')
-          expect(NewRegistrationNotifierJob).to receive(:perform_async).with(bowler.id, 'foo@foo.net')
-          subject
-        end
-      end
-
-      context 'an active tournament' do
-        before do
-          allow(described_class).to receive(:notification_recipients).and_return(%w[foo@foo.foo])
-        end
-
-        it "sends to the notifiable address" do
-          expect(NewRegistrationNotifierJob).to receive(:perform_async).with(bowler.id, 'foo@foo.foo')
-          subject
-        end
-      end
-    end
-  end
-
-  describe '#notification_recipients' do
-    subject { described_class.notification_recipients(tournament) }
-
-    let(:tournament) { create :tournament, :active }
-    let!(:notify1) { create :contact, email: 'notify_me@some.domain.com', notify_on_registration: true, tournament: tournament }
-    let!(:notify2) { create :contact, email: 'notify_me2@some.domain.com', notify_on_registration: true, tournament: tournament }
-    let!(:no_notify) { create :contact, email: 'do_not_notify_me@some.domain.com', tournament: tournament }
-
-    it 'returns a list of addresses to notify' do
-      result = subject
-      expect(result).to match_array([notify1.email, notify2.email])
-    end
-
-    it 'does not include contacts with notify = false' do
-      result = subject
-      expect(result).not_to include(no_notify.email)
-    end
-
-    context 'when multiple Contacts share an address' do
-      let!(:notify3) { create :contact, email: 'notify_me@some.domain.com', notify_on_registration: true, tournament: tournament }
-
-      it 'includes the shared address only once' do
-        result = subject
-        expect(result).to match_array([notify1.email, notify2.email])
-      end
-    end
-  end
 end
