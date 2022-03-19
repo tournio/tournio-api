@@ -2,8 +2,8 @@
 
 okc = Tournament.create!(
   name: 'OK Classic',
-  year: 2022,
-  start_date: '2022-04-22',
+  year: 2023,
+  start_date: '2023-04-21',
 )
 
 okc.config_items += [
@@ -13,7 +13,7 @@ okc.config_items += [
   ),
   ConfigItem.new(
     key: 'entry_deadline',
-    value: '2022-04-03T23:59:59-05:00',
+    value: '2023-04-03T23:59:59-05:00',
   ),
   ConfigItem.new(
     key: 'time_zone',
@@ -76,7 +76,7 @@ okc.purchasable_items += [
     user_selectable: false,
     value: 10,
     configuration: {
-      applies_at: '2022-03-28T00:00:00-05:00',
+      applies_at: '2023-03-28T00:00:00-05:00',
     },
   ),
   PurchasableItem.new(
