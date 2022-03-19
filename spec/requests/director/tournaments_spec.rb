@@ -289,6 +289,106 @@ describe Director::TournamentsController, type: :request do
     end
   end
 
+  describe '#additional_questions' do
+    subject { post uri, headers: auth_headers, params: params, as: :json }
+
+    let(:uri) { "/director/tournaments/#{tournament.identifier}/additional_questions" }
+
+    let(:tournament) { create :tournament }
+    let(:eff) { create :extended_form_field }
+    let(:params) do
+      {
+        extended_form_field_id: eff.id,
+        required: false,
+      }
+    end
+
+    include_examples 'an authorized action'
+
+    it 'responds with 201 Created' do
+      subject
+      expect(response).to have_http_status(:created)
+    end
+
+    it 'creates an additional question' do
+      expect{ subject }.to change { AdditionalQuestion.count }.by(1)
+    end
+
+    it 'includes the necessary stuff in the response' do
+      # Pick up here
+    end
+
+    context 'Tournament modes' do
+      context 'Testing' do
+        let(:tournament) { create :tournament, :testing }
+
+        it 'responds with 201 Created' do
+          subject
+          expect(response).to have_http_status(:created)
+        end
+
+        it 'creates an additional question' do
+          expect{ subject }.to change { AdditionalQuestion.count }.by(1)
+        end
+      end
+
+      context 'Active' do
+        let(:tournament) { create :tournament, :active }
+
+        it 'responds with Forbidden' do
+          subject
+          expect(response).to have_http_status(:forbidden)
+        end
+
+        it 'does not create an additional question' do
+          expect{ subject }.not_to change { AdditionalQuestion.count }
+        end
+      end
+
+      context 'Closed' do
+        let(:tournament) { create :tournament, :closed }
+
+        it 'rejects the request' do
+          subject
+          expect(response).to have_http_status(:forbidden)
+        end
+
+        it 'does not create an additional question' do
+          expect{ subject }.not_to change { AdditionalQuestion.count }
+        end
+      end
+    end
+
+    context 'When I am an unpermitted user' do
+      let(:requesting_user) { create(:user, :unpermitted) }
+
+      it 'yields a 401 Unauthorized' do
+        subject
+        expect(response).to have_http_status(:unauthorized)
+      end
+    end
+
+    context 'When I am a tournament director' do
+      let(:requesting_user) { create(:user, :director, tournaments: my_tournaments) }
+      let(:my_tournaments) { [] }
+
+      it 'yields a 401 Unauthorized' do
+        subject
+        expect(response).to have_http_status(:unauthorized)
+      end
+
+      context 'for this tournament' do
+        let(:my_tournaments) { [tournament] }
+
+        it 'responds with 201 Created' do
+          subject
+          expect(response).to have_http_status(:created)
+        end
+      end
+    end
+  end
+
+
   describe '#csv_download' do
 
   end
