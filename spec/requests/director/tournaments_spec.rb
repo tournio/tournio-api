@@ -84,7 +84,7 @@ describe Director::TournamentsController, type: :request do
 
     it 'returns a JSON representation of the tournament' do
       subject
-      expect(json['identifier']).to eq(tournament.identifier);
+      expect(json['identifier']).to eq(tournament.identifier)
     end
 
     context 'When I am an unpermitted user' do
@@ -289,25 +289,33 @@ describe Director::TournamentsController, type: :request do
     end
   end
 
-  describe '#additional_questions' do
-    subject { post uri, headers: auth_headers, params: params, as: :json }
+  describe '#update' do
+    subject { patch uri, headers: auth_headers, params: params, as: :json }
 
-    let(:uri) { "/director/tournaments/#{tournament.identifier}/additional_questions" }
+    let(:uri) { "/director/tournaments/#{tournament.identifier}" }
 
     let(:tournament) { create :tournament }
     let(:eff) { create :extended_form_field }
     let(:params) do
       {
-        extended_form_field_id: eff.id,
-        required: false,
+        tournament: {
+          additional_questions_attributes: [
+            {
+              extended_form_field_id: eff.id,
+              validation_rules: {
+                required: false,
+              },
+            },
+          ],
+        },
       }
     end
 
     include_examples 'an authorized action'
 
-    it 'responds with 201 Created' do
+    it 'responds with OK' do
       subject
-      expect(response).to have_http_status(:created)
+      expect(response).to have_http_status(:ok)
     end
 
     it 'creates an additional question' do
@@ -315,16 +323,18 @@ describe Director::TournamentsController, type: :request do
     end
 
     it 'includes the necessary stuff in the response' do
-      # Pick up here
+      subject
+      expect(json['identifier']).to eq(tournament.identifier)
+      expect(json['additional_questions']).not_to be_empty
     end
 
-    context 'Tournament modes' do
+    context 'Other tournament modes' do
       context 'Testing' do
         let(:tournament) { create :tournament, :testing }
 
-        it 'responds with 201 Created' do
+        it 'responds with OK' do
           subject
-          expect(response).to have_http_status(:created)
+          expect(response).to have_http_status(:ok)
         end
 
         it 'creates an additional question' do
@@ -380,9 +390,9 @@ describe Director::TournamentsController, type: :request do
       context 'for this tournament' do
         let(:my_tournaments) { [tournament] }
 
-        it 'responds with 201 Created' do
+        it 'responds with OK' do
           subject
-          expect(response).to have_http_status(:created)
+          expect(response).to have_http_status(:ok)
         end
       end
     end
