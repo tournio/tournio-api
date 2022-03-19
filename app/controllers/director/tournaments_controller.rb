@@ -77,6 +77,24 @@ module Director
       render json: TournamentBlueprint.render(tournament, view: :director_detail)
     end
 
+    def update
+      unless tournament.present?
+        render json: nil, status: 404
+        return
+      end
+
+      authorize tournament
+
+      if tournament.active? || tournament.closed?
+        render json: nil, status: 403
+        return
+      end
+
+      tournament.update(update_params)
+
+      render json: TournamentBlueprint.render(tournament, view: :director_detail)
+    end
+
     private
 
     attr_accessor :tournament
@@ -92,6 +110,10 @@ module Director
                                             :free_entries,
                                             additional_questions: [:extended_form_field])
                                   .find_by_identifier(id)
+    end
+
+    def update_params
+      params.require(:tournament).permit(additional_questions_attributes: [:extended_form_field_id, validation_rules: {}])
     end
   end
 end

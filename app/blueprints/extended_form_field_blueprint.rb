@@ -1,3 +1,5 @@
 class ExtendedFormFieldBlueprint < Blueprinter::Base
-  fields :label, :name
+  identifier :id
+
+  fields :label, :name, :validation_rules
 end
