@@ -305,6 +305,7 @@ describe Director::TournamentsController, type: :request do
               validation_rules: {
                 required: false,
               },
+              order: 1,
             },
           ],
         },

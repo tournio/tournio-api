@@ -92,7 +92,7 @@ module Director
 
       tournament.update(update_params)
 
-      render json: TournamentBlueprint.render(tournament, view: :director_detail)
+      render json: TournamentBlueprint.render(tournament.reload, view: :director_detail)
     end
 
     private
@@ -113,7 +113,7 @@ module Director
     end
 
     def update_params
-      params.require(:tournament).permit(additional_questions_attributes: [:extended_form_field_id, validation_rules: {}])
+      params.require(:tournament).permit(additional_questions_attributes: [:id, :extended_form_field_id, :order, :_destroy, validation_rules: {}])
     end
   end
 end

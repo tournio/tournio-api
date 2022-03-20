@@ -35,7 +35,7 @@ class Tournament < ApplicationRecord
   has_one :registration_summary_send
   has_one :payment_summary_send
 
-  accepts_nested_attributes_for :additional_questions
+  accepts_nested_attributes_for :additional_questions, allow_destroy: true
 
   before_create :generate_identifier, if: -> { identifier.blank? }
   after_create :initiate_testing_environment
