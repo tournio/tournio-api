@@ -63,6 +63,12 @@ class RecentRegistrationsSummaryJob < TemplateMailerJob
           team_name: bowler.team.name,
           team_order: bowler.position,
           doubles_partner: bowler.doubles_partner.present? ? TournamentRegistration.bowler_full_name(bowler.doubles_partner) : 'n/a',
+          address1: bowler.address1,
+          address2: bowler.address2,
+          city: bowler.city,
+          state: bowler.state,
+          postal_code: bowler.postal_code,
+          country: bowler.country
         }
       end
     }
