@@ -20,10 +20,6 @@ playground.config_items += [
     value: 'America/New_York',
   ),
   ConfigItem.new(
-    key: 'currency',
-    value: 'USD',
-  ),
-  ConfigItem.new(
     key: 'image_path',
     value: '/images/generic.jpg',
   ),

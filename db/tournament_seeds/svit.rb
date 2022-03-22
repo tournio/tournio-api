@@ -20,10 +20,6 @@ svit.config_items += [
     value: 'America/Los_Angeles',
   ),
   ConfigItem.new(
-    key: 'currency',
-    value: 'USD',
-  ),
-  ConfigItem.new(
     key: 'image_path',
     value: '/images/svit.jpg',
   ),
