@@ -90,7 +90,14 @@ module Director
         return
       end
 
-      tournament.update(update_params)
+      updates = update_params
+      updates[:additional_questions_attributes].each do |aqa|
+        if aqa[:extended_form_field_id].present?
+          eff = ExtendedFormField.find(aqa[:extended_form_field_id])
+          aqa[:validation_rules] = eff.validation_rules.merge(aqa[:validation_rules])
+        end
+      end
+      tournament.update(updates)
 
       render json: TournamentBlueprint.render(tournament.reload, view: :director_detail)
     end
