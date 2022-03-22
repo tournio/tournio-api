@@ -53,3 +53,18 @@ ExtendedFormField.create(
   helper_text: '',
   helper_url: '',
 )
+
+ExtendedFormField.create(
+  name: 'entering_average',
+  label: 'Entering average',
+  html_element_type: 'input',
+  html_element_config: {
+    type: 'number',
+    value: '',
+  },
+  validation_rules: {
+    min: 0,
+    max: 300,
+  },
+  helper_text: 'See tournament rules for details',
+)

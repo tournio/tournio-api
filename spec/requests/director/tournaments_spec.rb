@@ -329,6 +329,95 @@ describe Director::TournamentsController, type: :request do
       expect(json['additional_questions']).not_to be_empty
     end
 
+    context 'changing the order of existing questions' do
+      let!(:aq1) { create :additional_question, extended_form_field: eff, tournament: tournament }
+      let!(:aq2) { create :additional_question, extended_form_field: create(:extended_form_field, :average), tournament: tournament }
+      let(:params) do
+        {
+          tournament: {
+            additional_questions_attributes: [
+              {
+                id: aq1.id,
+                order: 2,
+                _destroy: false,
+              },
+              {
+                id: aq2.id,
+                order: 1,
+                _destroy: false,
+              },
+            ],
+          },
+        }
+      end
+
+      it 'responds with OK' do
+        subject
+        expect(response).to have_http_status(:ok)
+      end
+
+      it 'does not change the count of Additional Questions' do
+        expect{ subject }.not_to change { AdditionalQuestion.count }
+      end
+    end
+
+    context 'deleting an existing question' do
+      let!(:aq1) { create :additional_question, extended_form_field: eff, tournament: tournament }
+      let!(:aq2) { create :additional_question, extended_form_field: create(:extended_form_field, :average), tournament: tournament }
+      let(:params) do
+        {
+          tournament: {
+            additional_questions_attributes: [
+              {
+                id: aq1.id,
+                order: 2,
+                _destroy: true,
+              },
+              {
+                id: aq2.id,
+                order: 1,
+                _destroy: false,
+              },
+            ],
+          },
+        }
+      end
+
+      it 'responds with OK' do
+        subject
+        expect(response).to have_http_status(:ok)
+      end
+
+      it 'drops the count of Additional Questions' do
+        expect{ subject }.to change { AdditionalQuestion.count }.by(-1)
+      end
+    end
+
+    context 'a question that has validation rules' do
+      let(:eff) { create :extended_form_field, :average }
+      let(:params) do
+        {
+          tournament: {
+            additional_questions_attributes: [
+              {
+                extended_form_field_id: eff.id,
+                validation_rules: {
+                  required: true,
+                },
+                order: 1,
+              },
+            ],
+          },
+        }
+      end
+
+      it "merges validation rules with what's on the EFF" do
+        subject
+        eff_key_count = eff.validation_rules.keys.count
+        expect(AdditionalQuestion.last.validation_rules.keys.count).to eq(eff_key_count + 1)
+      end
+    end
+
     context 'Other tournament modes' do
       context 'Testing' do
         let(:tournament) { create :tournament, :testing }

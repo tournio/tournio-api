@@ -19,7 +19,7 @@ FactoryBot.define do
     label { "An Extended Form Field" }
     html_element_type { 'input' }
     html_element_config { { type: 'text', value: '' } }
-    validation_rules { { required: false } }
+    validation_rules { {} }
   end
 
   trait :comment do
@@ -64,6 +64,18 @@ FactoryBot.define do
           },
         ],
         value: '',
+      }
+    end
+  end
+
+  trait :average do
+    name { 'average' }
+    html_element_type { 'input' }
+    html_element_config { { type: 'number' } }
+    validation_rules do
+      {
+        min: 0,
+        max: 300,
       }
     end
   end
