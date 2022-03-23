@@ -1,7 +1,7 @@
 class ConfigItemBlueprint < Blueprinter::Base
-  fields :id, :key
+  fields :id, :key, :value
 
-  field :value do |c, _|
+  field :value_shortened do |c, _|
     c.value.truncate(20)
   end
 
