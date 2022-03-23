@@ -20,10 +20,6 @@ bigd.config_items += [
     value: 'http://www.bigdclassic.com',
   ),
   ConfigItem.new(
-    key: 'entry_fee',
-    value: 105,
-  ),
-  ConfigItem.new(
     key: 'location',
     value: 'Dallas, TX',
   ),
