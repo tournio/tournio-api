@@ -4,6 +4,7 @@ class ConfigItemsFilter < Blueprinter::Transformer
 
     index = result_hash[:config_items].index { |ci| ci[:key] == 'entry_deadline' }
     value = result_hash[:config_items][index][:value]
-    result_hash[:config_items][index][:value] = DateTime.parse(value).strftime('%b %-d, %Y %l:%M%P')
+    # result_hash[:config_items][index][:value] = DateTime.parse(value).strftime('%b %-d, %Y %l:%M%P')
+    result_hash[:config_items][index][:value] = DateTime.parse(value).strftime('%FT%T')
   end
 end

@@ -33,6 +33,7 @@ Rails.application.routes.draw do
         end
       end
       resource :testing_environment, only: %i(update)
+      resources :config_items, only: %i(update), shallow: true
     end
   end
 
