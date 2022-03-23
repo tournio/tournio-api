@@ -20,10 +20,6 @@ tournament.config_items += [
     value: 'America/New_York',
   ),
   ConfigItem.new(
-    key: 'currency',
-    value: 'USD',
-  ),
-  ConfigItem.new(
     key: 'image_path',
     value: '/images/generic.jpg',
   ),
@@ -246,22 +242,3 @@ tournament.purchasable_items += [
     },
   ),
 ]
-
-eff = ExtendedFormField.find_by(name: 'standings_link')
-tournament.additional_questions << AdditionalQuestion.new(
-  extended_form_field: eff,
-  validation_rules: eff.validation_rules,
-  order: 2,
-)
-eff = ExtendedFormField.find_by(name: 'comment')
-tournament.additional_questions << AdditionalQuestion.new(
-  extended_form_field: eff,
-  validation_rules: eff.validation_rules,
-  order: 3,
-)
-eff = ExtendedFormField.find_by(name: 'pronouns')
-tournament.additional_questions << AdditionalQuestion.new(
-  extended_form_field: eff,
-  validation_rules: eff.validation_rules,
-  order: 1,
-)

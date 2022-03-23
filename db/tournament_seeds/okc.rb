@@ -20,10 +20,6 @@ okc.config_items += [
     value: 'America/Chicago',
   ),
   ConfigItem.new(
-    key: 'currency',
-    value: 'USD',
-  ),
-  ConfigItem.new(
     key: 'image_path',
     value: '/images/okclassic.jpg',
   ),

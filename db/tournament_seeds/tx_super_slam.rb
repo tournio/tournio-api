@@ -8,10 +8,6 @@ tss = Tournament.create!(
 
 tss.config_items += [
   ConfigItem.new(
-    key: 'currency',
-    value: 'USD',
-  ),
-  ConfigItem.new(
     key: 'image_path',
     value: '/images/txsuperslam.webp',
   ),

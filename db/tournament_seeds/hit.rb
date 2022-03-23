@@ -8,10 +8,6 @@ hit = Tournament.create!(
 
 hit.config_items += [
   ConfigItem.new(
-    key: 'currency',
-    value: 'USD',
-  ),
-  ConfigItem.new(
     key: 'image_path',
     value: '/images/houston.jpg',
   ),

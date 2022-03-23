@@ -8,10 +8,6 @@ bigd = Tournament.create!(
 
 bigd.config_items += [
   ConfigItem.new(
-    key: 'currency',
-    value: 'USD',
-  ),
-  ConfigItem.new(
     key: 'image_path',
     value: '/images/bigdclassic.jpg',
   ),
@@ -22,10 +18,6 @@ bigd.config_items += [
   ConfigItem.new(
     key: 'website',
     value: 'http://www.bigdclassic.com',
-  ),
-  ConfigItem.new(
-    key: 'entry_fee',
-    value: 105,
   ),
   ConfigItem.new(
     key: 'location',

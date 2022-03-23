@@ -8,10 +8,6 @@ trot = Tournament.create!(
 
 trot.config_items += [
   ConfigItem.new(
-    key: 'currency',
-    value: 'USD',
-  ),
-  ConfigItem.new(
     key: 'image_path',
     value: '/images/trot.png',
   ),
