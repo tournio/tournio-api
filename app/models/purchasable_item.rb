@@ -40,6 +40,11 @@ class PurchasableItem < ApplicationRecord
     early_discount: 'early_discount',
     single_use: 'single_use',
     multi_use: 'multi_use',
+
+    # this allows directors to cancel out an early-registration discount when
+    # a bowler has failed to complete their registration, e.g., pay fees, before
+    # the deadline.
+    # Currently only available to use by superusers via console.
     discount_expiration: 'discount_expiration',
   }
 
