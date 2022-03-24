@@ -56,6 +56,22 @@ describe Director::PurchasableItemsController, type: :request do
       expect(json).to have_key('identifier')
     end
 
+    context 'a banquet item' do
+      let(:category) { 'banquet' }
+      let(:determination) { 'multi_use' }
+      let(:configuration_param) do
+        {
+          order: '',
+          note: '',
+        }
+      end
+
+      it 'succeeds with a 201 Created' do
+        subject
+        expect(response).to have_http_status(:created)
+      end
+    end
+
     context 'an active tournament' do
       let(:tournament) { create :tournament, :active }
 
