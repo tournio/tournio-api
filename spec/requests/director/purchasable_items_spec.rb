@@ -11,6 +11,99 @@ describe Director::PurchasableItemsController, type: :request do
   end
   let(:auth_headers) { Devise::JWT::TestHelpers.auth_headers(headers, requesting_user) }
 
+  describe '#create' do
+    subject { post uri, headers: auth_headers, params: params, as: :json }
+
+    let(:uri) { "/director/tournaments/#{tournament_identifier}/purchasable_items" }
+
+    let(:tournament) { create :tournament }
+    let(:tournament_identifier) { tournament.identifier }
+
+    let(:params) do
+      {
+        purchasable_item: new_item_params,
+      }
+    end
+    let(:new_item_params) do
+      {
+        category: category,
+        determination: determination,
+        name: 'A new purchasable item',
+        value: 27,
+        configuration: configuration_param,
+      }
+    end
+    let(:category) { 'bowling' }
+    let(:determination) { 'single_use' }
+    let(:configuration_param) do
+      {
+        order: 3,
+        note: '',
+      }
+    end
+
+    ###############
+
+    include_examples 'an authorized action'
+
+    it 'succeeds with a 201 Created' do
+      subject
+      expect(response).to have_http_status(:created)
+    end
+
+    it 'includes the new item in the response' do
+      subject
+      expect(json).to have_key('identifier')
+    end
+
+    context 'an active tournament' do
+      let(:tournament) { create :tournament, :active }
+
+      it 'is forbidden' do
+        subject
+        expect(response).to have_http_status(:forbidden)
+      end
+    end
+
+    context 'as an unpermitted user' do
+      let(:requesting_user) { create(:user, :unpermitted) }
+
+      it 'shall not pass' do
+        subject
+        expect(response).to have_http_status(:unauthorized)
+      end
+    end
+
+    context 'as a director' do
+      let(:requesting_user) { create(:user, :director) }
+
+      it 'shall not pass' do
+        subject
+        expect(response).to have_http_status(:unauthorized)
+      end
+
+      context 'associated with this tournament' do
+        let(:requesting_user) { create :user, :director, tournaments: [tournament] }
+
+        it 'shall pass' do
+          subject
+          expect(response).to have_http_status(:created)
+        end
+      end
+    end
+
+    context 'error scenarios' do
+      context 'an unrecognized tournament identifier' do
+        let(:tournament_identifier) { 'say-what-now' }
+
+        it 'yields a 404 Not Found' do
+          subject
+          expect(response).to have_http_status(:not_found)
+        end
+      end
+    end
+  end
+
   describe '#update' do
     subject { patch uri, headers: auth_headers, params: params, as: :json }
 
