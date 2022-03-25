@@ -59,6 +59,7 @@ class PurchasableItem < ApplicationRecord
   validate :contains_valid_until, if: proc { |pi| pi.ledger? && pi.early_discount? }
   validate :contains_input_label, if: proc { |pi| pi.input? }
   validate :contains_division, if: proc { |pi| pi.division? }
+  validate :contains_denomination, if: proc { |pi| pi.denomination? }
 
   before_create :generate_identifier
 
@@ -107,6 +108,12 @@ class PurchasableItem < ApplicationRecord
   def contains_division
     unless configuration['division'].present?
       errors.add(:configuration, 'needs a division indicator')
+    end
+  end
+
+  def contains_denomination
+    unless configuration['denomination'].present?
+      errors.add(:configuration, 'needs a denomination indicator')
     end
   end
 

@@ -30,11 +30,13 @@ describe Director::PurchasableItemsController, type: :request do
         determination: determination,
         name: 'A new purchasable item',
         value: 27,
+        refinement: refinement,
         configuration: configuration_param,
       }
     end
     let(:category) { 'bowling' }
     let(:determination) { 'single_use' }
+    let(:refinement) { '' }
     let(:configuration_param) do
       {
         order: 3,
@@ -61,7 +63,7 @@ describe Director::PurchasableItemsController, type: :request do
       let(:determination) { 'multi_use' }
       let(:configuration_param) do
         {
-          order: '',
+          order: 1,
           note: '',
         }
       end
@@ -69,6 +71,39 @@ describe Director::PurchasableItemsController, type: :request do
       it 'succeeds with a 201 Created' do
         subject
         expect(response).to have_http_status(:created)
+      end
+    end
+
+    context 'a product item with denomination refinement' do
+      let(:category) { 'product' }
+      let(:determination) { 'multi_use' }
+      let(:refinement) { 'denomination' }
+      let(:configuration_param) do
+        {
+          order: 2,
+          note: 'Available for pre-purchase only',
+          denomination: '237 of the thing',
+        }
+      end
+
+      it 'succeeds with a 201 Created' do
+        subject
+        expect(response).to have_http_status(:created)
+      end
+
+      context 'without providing a denomination' do
+        let(:configuration_param) do
+          {
+            order: 3,
+            note: 'A special item',
+            denomination: '',
+          }
+        end
+
+        it 'fails with unprocessable entity' do
+          subject
+          expect(response).to have_http_status(:unprocessable_entity)
+        end
       end
     end
 
