@@ -14,22 +14,21 @@ module Director
         return
       end
 
-      pi = PurchasableItem.new(purchasable_item_create_params)
-      pi.tournament = tournament
-      if pi.save
-        render json: PurchasableItemBlueprint.render(pi), status: :created
-        return
+      PurchasableItem.transaction do
+        self.items = PurchasableItem.create!(purchasable_item_create_params)
+        render json: PurchasableItemBlueprint.render(items), status: :created
       end
 
-      if pi.errors[:determination].any?
-        render json: {error: pi.errors.full_messages.first}, status: :conflict
-        return;
-      end
-
-      render json: {error: pi.errors.full_messages.first}, status: :unprocessable_entity
     rescue ActiveRecord::RecordNotFound
       skip_authorization
       render json: nil, status: :not_found
+    rescue ActiveRecord::RecordInvalid => exception
+      if exception.message.include? 'Determination'
+        render json: {error: 'Determination already present'}, status: :conflict
+        return;
+      end
+
+      render json: {error: 'Invalid item configuration'}, status: :unprocessable_entity
     end
 
     def update
@@ -53,14 +52,16 @@ module Director
 
     private
 
-    attr_accessor :tournament
+    attr_accessor :tournament, :items
 
     def purchasable_item_update_params
       params.require(:purchasable_item).permit(:value, configuration: %i(order applies_at valid_until division note denomination)).to_h.symbolize_keys
     end
 
     def purchasable_item_create_params
-      params.require(:purchasable_item).permit(:value, :name, :category, :determination, :refinement, configuration: %i(order applies_at valid_until division note denomination)).to_h.symbolize_keys
+      params.permit(purchasable_items: [:value, :name, :category, :determination, :refinement, configuration: %i(order applies_at valid_until division note denomination)])
+            .require(:purchasable_items)
+            .map! { |pi_hash| pi_hash.merge(tournament_id: tournament.id) }
     end
   end
 end

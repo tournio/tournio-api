@@ -21,7 +21,7 @@ describe Director::PurchasableItemsController, type: :request do
 
     let(:params) do
       {
-        purchasable_item: new_item_params,
+        purchasable_items: [new_item_params],
       }
     end
     let(:new_item_params) do
@@ -53,9 +53,49 @@ describe Director::PurchasableItemsController, type: :request do
       expect(response).to have_http_status(:created)
     end
 
+    it 'returns an array of created items' do
+      subject
+      expect(json).to be_a_kind_of(Array)
+      expect(json.count).to eq(1)
+    end
+
     it 'includes the new item in the response' do
       subject
-      expect(json).to have_key('identifier')
+      expect(json.first).to have_key('identifier')
+    end
+
+    context 'a collection of division items' do
+      let(:category) { 'bowling' }
+      let(:determination) { 'single_use' }
+      let(:refinement) { 'division' }
+
+      let(:params) do
+        {
+          purchasable_items: %w(A B C D E).collect do |div|
+            {
+              category: category,
+              determination: determination,
+              refinement: refinement,
+              name: 'A Division Item',
+              value: 29,
+              configuration: {
+                division: div,
+              },
+            }
+          end
+        }
+      end
+
+      it 'succeeds with a 201 Created' do
+        subject
+        expect(response).to have_http_status(:created)
+      end
+
+      it 'returns an array of created items' do
+        subject
+        expect(json).to be_a_kind_of(Array)
+        expect(json.count).to eq(5)
+      end
     end
 
     context 'a ledger item' do
