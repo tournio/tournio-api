@@ -58,6 +58,114 @@ describe Director::PurchasableItemsController, type: :request do
       expect(json).to have_key('identifier')
     end
 
+    context 'a ledger item' do
+      let(:category) { 'ledger' }
+
+      context 'entry fee' do
+        let(:determination) { 'entry_fee' }
+        let(:configuration_param) do
+          {
+            order: '',
+            note: '',
+          }
+        end
+
+        it 'succeeds with a 201 Created' do
+          subject
+          expect(response).to have_http_status(:created)
+        end
+
+        context 'when an entry fee already exists' do
+          before { create :purchasable_item, :entry_fee, tournament: tournament }
+
+          it 'fails with a Conflict' do
+            subject
+            expect(response).to have_http_status(:conflict)
+          end
+        end
+      end
+
+      context 'late registration fee' do
+        let(:determination) { 'late_fee' }
+        let(:configuration_param) do
+          {
+            applies_at: (Time.zone.now + 3.months).strftime("%FT%T%:z"),
+            order: '',
+            note: '',
+          }
+        end
+
+        it 'succeeds with a 201 Created' do
+          subject
+          expect(response).to have_http_status(:created)
+        end
+
+        context 'without providing an applies_at timestamp' do
+          let(:configuration_param) do
+            {
+              applies_at: '',
+              order: '',
+              note: '',
+            }
+          end
+
+          it 'fails with unprocessable entity' do
+            subject
+            expect(response).to have_http_status(:unprocessable_entity)
+          end
+        end
+
+        context 'when a late fee already exists' do
+          before { create :purchasable_item, :late_fee, tournament: tournament }
+
+          it 'fails with a Conflict' do
+            subject
+            expect(response).to have_http_status(:conflict)
+          end
+        end
+      end
+
+      context 'early registration discount' do
+        let(:determination) { 'early_discount' }
+        let(:configuration_param) do
+          {
+            valid_until: (Time.zone.now + 3.months).strftime("%FT%T%:z"),
+            order: '',
+            note: '',
+          }
+        end
+
+        it 'succeeds with a 201 Created' do
+          subject
+          expect(response).to have_http_status(:created)
+        end
+
+        context 'without providing a valid_until timestamp' do
+          let(:configuration_param) do
+            {
+              valid_until: '',
+              order: '',
+              note: '',
+            }
+          end
+
+          it 'fails with unprocessable entity' do
+            subject
+            expect(response).to have_http_status(:unprocessable_entity)
+          end
+        end
+
+        context 'when a discount already exists' do
+          before { create :purchasable_item, :early_discount, tournament: tournament }
+
+          it 'fails with a Conflict' do
+            subject
+            expect(response).to have_http_status(:conflict)
+          end
+        end
+      end
+    end
+
     context 'a banquet item' do
       let(:category) { 'banquet' }
       let(:determination) { 'multi_use' }

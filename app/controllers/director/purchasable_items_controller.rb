@@ -21,7 +21,12 @@ module Director
         return
       end
 
-      render json: {error: pi.errors.full_messages}, status: :unprocessable_entity
+      if pi.errors[:determination].any?
+        render json: {error: pi.errors.full_messages.first}, status: :conflict
+        return;
+      end
+
+      render json: {error: pi.errors.full_messages.first}, status: :unprocessable_entity
     rescue ActiveRecord::RecordNotFound
       skip_authorization
       render json: nil, status: :not_found
