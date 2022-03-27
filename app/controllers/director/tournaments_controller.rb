@@ -102,6 +102,24 @@ module Director
       render json: TournamentBlueprint.render(tournament.reload, view: :director_detail)
     end
 
+    def destroy
+      unless tournament.present?
+        skip_authorization
+        render json: nil, status: 404
+        return
+      end
+
+      authorize tournament
+
+      unless tournament.active?
+        tournament.destroy
+        render json: {}, status: :no_content
+        return
+      end
+
+      render json: { error: 'Cannot delete an active tournament' }, status: :forbidden
+    end
+
     private
 
     attr_accessor :tournament

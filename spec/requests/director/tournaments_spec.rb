@@ -496,4 +496,95 @@ describe Director::TournamentsController, type: :request do
   describe '#igbots_download' do
 
   end
+
+  describe '#destroy' do
+    subject { delete uri, headers: auth_headers, as: :json }
+
+    let(:uri) { "/director/tournaments/#{tournament_identifier}" }
+
+    let(:tournament) { create :tournament }
+    let(:tournament_identifier) { tournament.identifier }
+
+    include_examples 'for superusers only', :no_content
+
+    context 'an unrecognized tournament identifier' do
+      let(:tournament_identifier) { 'i-dont-know-her' }
+
+      it 'responds with a Not Found' do
+        subject
+        expect(response).to have_http_status(:not_found)
+      end
+    end
+
+    context 'Tournament modes' do
+      context 'Setup' do
+        it 'responds with No Content' do
+          subject
+          expect(response).to have_http_status(:no_content)
+        end
+
+        it 'destroys the tournament' do
+          subject
+          begin
+            tournament.reload
+          rescue => exception
+          ensure
+            expect(exception).to be_instance_of ActiveRecord::RecordNotFound
+          end
+        end
+      end
+
+      context 'Testing' do
+        let(:tournament) { create :tournament, :testing }
+
+        it 'responds with No Content' do
+          subject
+          expect(response).to have_http_status(:no_content)
+        end
+
+        it 'destroys the tournament' do
+          subject
+          begin
+            tournament.reload
+          rescue => exception
+          ensure
+            expect(exception).to be_instance_of ActiveRecord::RecordNotFound
+          end
+        end
+      end
+
+      context 'Active' do
+        let(:tournament) { create :tournament, :active }
+
+        it 'responds with Forbidden' do
+          subject
+          expect(response).to have_http_status(:forbidden)
+        end
+
+        it 'does not destroy the tournament' do
+          subject
+          expect(tournament.reload).not_to be_nil
+        end
+      end
+
+      context 'Closed' do
+        let(:tournament) { create :tournament, :closed }
+
+        it 'responds with No Content' do
+          subject
+          expect(response).to have_http_status(:no_content)
+        end
+
+        it 'destroys the tournament' do
+          subject
+          begin
+            tournament.reload
+          rescue => exception
+          ensure
+            expect(exception).to be_instance_of ActiveRecord::RecordNotFound
+          end
+        end
+      end
+    end
+  end
 end

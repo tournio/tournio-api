@@ -39,6 +39,10 @@ class TournamentPolicy < DirectorPolicy
     sufficient_access?
   end
 
+  def destroy?
+    user.superuser?
+  end
+
   private
 
   def sufficient_role?
