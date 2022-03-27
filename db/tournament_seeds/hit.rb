@@ -45,6 +45,13 @@ hit.contacts += [
     notify_on_registration: true,
     notify_on_payment: true,
   ),
+  Contact.new(
+    name: 'Edward Stone',
+    email: '',
+    role: :director,
+    notify_on_registration: false,
+    notify_on_payment: false,
+  ),
 ]
 
 hit.purchasable_items += [
