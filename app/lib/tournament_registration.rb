@@ -16,6 +16,9 @@ module TournamentRegistration
   class FreeEntryAlreadyConfirmed < StandardError
   end
 
+  class DeterminationAlreadyPresentException < Exception
+  end
+
   def self.display_date(date)
     date.present? ? date.strftime('%Y %b %-d') : 'n/a'
   end

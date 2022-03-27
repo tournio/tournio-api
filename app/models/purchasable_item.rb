@@ -40,6 +40,11 @@ class PurchasableItem < ApplicationRecord
     early_discount: 'early_discount',
     single_use: 'single_use',
     multi_use: 'multi_use',
+
+    # this allows directors to cancel out an early-registration discount when
+    # a bowler has failed to complete their registration, e.g., pay fees, before
+    # the deadline.
+    # Currently only available to use by superusers via console.
     discount_expiration: 'discount_expiration',
   }
 
@@ -50,10 +55,12 @@ class PurchasableItem < ApplicationRecord
     # add other refinements here as support them, e.g., size, classification
   }
 
+  validate :one_ledger_item_per_determination, if: proc { |pi| pi.ledger? }
   validate :contains_applies_at, if: proc { |pi| pi.ledger? && pi.late_fee? }
   validate :contains_valid_until, if: proc { |pi| pi.ledger? && pi.early_discount? }
   validate :contains_input_label, if: proc { |pi| pi.input? }
   validate :contains_division, if: proc { |pi| pi.division? }
+  validate :contains_denomination, if: proc { |pi| pi.denomination? }
 
   before_create :generate_identifier
 
@@ -62,6 +69,13 @@ class PurchasableItem < ApplicationRecord
   ###################################
   # Validation methods
   ###################################
+
+  def one_ledger_item_per_determination
+    unless PurchasableItem.where(tournament_id: tournament_id, category: 'ledger', determination: determination).empty?
+      errors.add(:determination, 'already present')
+      return
+    end
+  end
 
   def contains_applies_at
     unless configuration['applies_at'].present?
@@ -102,6 +116,12 @@ class PurchasableItem < ApplicationRecord
   def contains_division
     unless configuration['division'].present?
       errors.add(:configuration, 'needs a division indicator')
+    end
+  end
+
+  def contains_denomination
+    unless configuration['denomination'].present?
+      errors.add(:configuration, 'needs a denomination indicator')
     end
   end
 
