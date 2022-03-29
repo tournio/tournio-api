@@ -76,6 +76,7 @@ module TournamentRegistration
     add_late_fees_to_ledger(bowler)
     complete_doubles_link(bowler) if bowler.doubles_partner_id.present?
     send_confirmation_email(bowler)
+    notify_registration_contacts(bowler)
   end
 
   def self.purchase_entry_fee(bowler)
@@ -173,6 +174,15 @@ module TournamentRegistration
                    Rails.env.production? ? test_mode_notification_recipients(tournament) : [MailerJob::FROM]
                  end
     recipients.each { |r| RegistrationConfirmationNotifierJob.perform_async(bowler.id, r) }
+  end
+
+  def self.notify_registration_contacts(bowler)
+    tournament = bowler.tournament
+    contacts = tournament.contacts.registration_notifiable.individually
+    contacts.each do |c|
+      email = Rails.env.production? ? c.email : MailerJob::FROM
+      NewRegistrationNotifierJob.perform_async(bowler.id, email)
+    end
   end
 
   # Private methods

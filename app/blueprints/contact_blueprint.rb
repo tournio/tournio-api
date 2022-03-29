@@ -1,9 +1,5 @@
 class ContactBlueprint < Blueprinter::Base
   identifier :id
 
-  field :name
-  field :email
-  field :role do |c|
-    c.role&.titlecase || c.notes
-  end
+  fields :name, :email, :role, :notify_on_registration, :notify_on_payment, :notification_preference
 end

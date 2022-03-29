@@ -5,7 +5,7 @@ namespace :igbo do
     puts "Preparing to send registration summaries"
     Tournament.includes(:contacts).active.each do |tournament|
       puts "-- Tournament: #{tournament.name}"
-      tournament.contacts.registration_notifiable.each do |contact|
+      tournament.contacts.registration_notifiable.daily_summary.each do |contact|
         puts "---- Sending to #{contact.role}"
         if Rails.env.production?
           RecentRegistrationsSummaryJob.perform_async(tournament.id, contact.email)
@@ -24,7 +24,7 @@ namespace :igbo do
     puts "Preparing to send payment summaries"
     Tournament.includes(:contacts).active.each do |tournament|
       puts "-- Tournament: #{tournament.name}"
-      tournament.contacts.payment_notifiable.each do |contact|
+      tournament.contacts.payment_notifiable.daily_summary.each do |contact|
         puts "---- Sending to #{contact.role}"
         if Rails.env.production?
           RecentPaymentsSummaryJob.perform_async(tournament.id, contact.email)

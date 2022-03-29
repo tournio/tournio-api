@@ -62,6 +62,7 @@ class PurchasesController < ApplicationController
     end
 
     send_receipt_email(bowler, ppo.identifier)
+    send_payment_notification(bowler, ppo.identifier, total_credit, paid_at)
 
     if (new_purchases.empty?)
       render json: nil, status: :no_content
@@ -91,5 +92,16 @@ class PurchasesController < ApplicationController
                   MailerJob::FROM
                 end
     PaymentReceiptNotifierJob.perform_async(paypal_order_identifier, recipient)
+  end
+
+  # def perform(bowler_id, payment_identifier, amount, received_at, recipient_email)
+  def send_payment_notification(bowler, payment_identifier, amount, received_at = Time.zone.now)
+    tournament = bowler.tournament
+    contacts = tournament.contacts.payment_notifiable.individually
+    contacts.each do |c|
+      email = Rails.env.production? ? c.email : MailerJob::FROM
+      NewPaymentNotifierJob.perform_async(bowler.id, payment_identifier, amount, received_at, email)
+    end
+
   end
 end
