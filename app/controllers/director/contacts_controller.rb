@@ -23,10 +23,7 @@ module Director
 
       authorize tournament, :update?
 
-      Rails.logger.info "Updating contact. Params: #{update_contact_params.inspect}"
-
       if contact.update(update_contact_params)
-        Rails.logger.info "Contact updated. #{contact.reload.inspect}"
         render json: ContactBlueprint.render(contact.reload), status: :ok
       end
     rescue ActiveRecord::RecordNotFound
