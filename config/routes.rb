@@ -18,7 +18,7 @@ Rails.application.routes.draw do
 
   namespace :director do
     resources :users, only: %i(show index create update destroy), param: :identifier
-    resources :tournaments, only: %i(index show update), param: :identifier do
+    resources :tournaments, only: %i(index show update destroy), param: :identifier do
       member do
         post 'clear_test_data'
         post 'state_change'
