@@ -49,6 +49,7 @@ tss.contacts += [
     role: :'secretary-treasurer',
     notify_on_registration: true,
     notify_on_payment: true,
+    notification_preference: :daily_summary,
   ),
   Contact.new(
     name: 'Brian Hamburg',
@@ -108,7 +109,7 @@ tss.purchasable_items += [
     user_selectable: true,
     value: 30,
     configuration: {
-      order: 3,
+      order: 1,
     }
   ),
   # PurchasableItem.new(
