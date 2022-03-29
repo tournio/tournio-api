@@ -111,7 +111,7 @@ describe Director::ContactsController, type: :request do
       {
         notify_on_payment: false,
         notify_on_registration: true,
-        notification_preference: 'daily_summary',
+        notification_preference: 'individually',
       }
     end
 
@@ -132,6 +132,11 @@ describe Director::ContactsController, type: :request do
     it 'updates the contact correctly' do
       subject
       expect(contact.reload.notify_on_registration).to be_truthy
+    end
+
+    it 'updates the notification preference correctly' do
+      subject
+      expect(contact.reload.individually?).to be_truthy
     end
 
     it 'includes the contact in the response' do
