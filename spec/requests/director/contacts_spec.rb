@@ -98,18 +98,24 @@ describe Director::ContactsController, type: :request do
 
     let(:uri) { "/director/contacts/#{contact_id}" }
 
-    let(:tournament_identifier) { tournament.identifier }
     let(:tournament) { create :tournament }
-    let(:contact) { create :contact, :location, tournament: tournament }
+    let(:contact) { create :contact, tournament: tournament, name: 'JoJo Rabbit', email: 'jojo@rabbit.org', role: :director }
     let(:contact_id) { contact.id }
 
     let(:params) do
       {
-        contact: {
-          value: 'Anchorage, AK',
-        }
+        contact: contact_params,
       }
     end
+    let(:contact_params) do
+      {
+        notify_on_payment: false,
+        notify_on_registration: true,
+        notification_preference: 'daily_summary',
+      }
+    end
+
+    ###############
 
     include_examples 'an authorized action'
 
@@ -118,13 +124,19 @@ describe Director::ContactsController, type: :request do
       expect(response).to have_http_status(:ok)
     end
 
-    context 'an active tournament' do
-      let(:tournament) { create :tournament, :active }
+    it 'return the created contact' do
+      subject
+      expect(json).to have_key('id')
+    end
 
-      it 'prevents updates' do
-        subject
-        expect(response).to have_http_status(:forbidden)
-      end
+    it 'updates the contact correctly' do
+      subject
+      expect(contact.reload.notify_on_registration).to be_truthy
+    end
+
+    it 'includes the contact in the response' do
+      subject
+      expect(json['name']).to eq('JoJo Rabbit')
     end
 
     context 'as an unpermitted user' do
@@ -155,7 +167,7 @@ describe Director::ContactsController, type: :request do
     end
 
     context 'error scenarios' do
-      context 'an unrecognized config item id' do
+      context 'an unrecognized contact identifier' do
         let(:contact_id) { 'say-what-now' }
 
         it 'yields a 404 Not Found' do

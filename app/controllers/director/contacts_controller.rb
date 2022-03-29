@@ -18,7 +18,17 @@ module Director
     end
 
     def update
+      contact = Contact.includes(:tournament).find(params[:id])
+      self.tournament = contact.tournament
 
+      authorize tournament, :update?
+
+      if contact.update(update_contact_params)
+        render json: ContactBlueprint.render(contact.reload), status: :ok
+      end
+    rescue ActiveRecord::RecordNotFound
+      skip_authorization
+      render json: {}, status: :not_found
     end
 
     def destroy
@@ -31,6 +41,10 @@ module Director
 
     def new_contact_params
       params.permit(:tournament_identifier, contact: %i(name email role notify_on_payment notify_on_registration notification_preference)).require(:contact)
+    end
+
+    def update_contact_params
+      params.require(:contact).permit(%i(name email role notify_on_payment notify_on_registration notification_preference))
     end
   end
 end
