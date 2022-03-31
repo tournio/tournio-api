@@ -8,8 +8,7 @@ class BowlerBlueprint < Blueprinter::Base
   association :tournament, blueprint: TournamentBlueprint
 
   field :amount_due do |b, _|
-    due = TournamentRegistration.amount_due(b).to_i
-    ActionController::Base.helpers.number_to_currency(due, precision: 0)
+    TournamentRegistration.amount_due(b).to_i
   end
 
   view :detail do

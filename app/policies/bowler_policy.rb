@@ -12,7 +12,7 @@ class BowlerPolicy < DirectorPolicy
   end
 
   def update?
-    sufficient_role?
+    sufficient_access?
   end
 
   def mark_as_paid?
@@ -29,4 +29,7 @@ class BowlerPolicy < DirectorPolicy
     user.superuser? || user.director?
   end
 
+  def sufficient_access?
+    user.superuser? || user.director? && user.tournaments.include?(record.tournament)
+  end
 end
