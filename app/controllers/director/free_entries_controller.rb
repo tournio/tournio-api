@@ -19,7 +19,7 @@ module Director
                      else
                        policy_scope(tournament.free_entries).includes(bowler: :person).order(:unique_code)
                      end
-
+      sleep(3) if Rails.env.development?
       render json: FreeEntryBlueprint.render(free_entries, view: :director_list), status: :ok
     end
 
