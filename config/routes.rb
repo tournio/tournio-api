@@ -25,7 +25,9 @@ Rails.application.routes.draw do
         get 'csv_download'
         get 'igbots_download'
       end
-      resources :bowlers, only: %i(index show destroy update), param: :identifier, shallow: true
+      resources :bowlers, only: %i(index show destroy update), param: :identifier, shallow: true do
+        resources :ledger_entries, only: %i(create), shallow: true
+      end
       resources :teams, only: %i(index create show update destroy), param: :identifier, shallow: true
       resources :free_entries, only: %i(index create destroy update), shallow: true do
         member do

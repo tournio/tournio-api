@@ -43,7 +43,7 @@ module Director
       end
 
       authorize tournament, :show?
-
+      sleep(5) if Rails.env.development?
       render json: BowlerBlueprint.render(bowler, view: :director_detail)
     end
 
