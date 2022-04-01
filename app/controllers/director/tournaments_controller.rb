@@ -121,6 +121,25 @@ module Director
       render json: { error: 'Cannot delete an active tournament' }, status: :forbidden
     end
 
+    def email_payment_reminders
+      unless tournament.present?
+        skip_authorization
+        render json: nil, status: 404
+        return
+      end
+
+      authorize tournament
+
+      unless tournament.active? || tournament.closed?
+        render json: nil, status: 403
+        return
+      end
+
+      PaymentReminderSchedulerJob.perform_async(tournament.id)
+
+      render json: nil, status: :ok
+    end
+
     private
 
     attr_accessor :tournament

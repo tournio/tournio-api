@@ -43,6 +43,10 @@ class TournamentPolicy < DirectorPolicy
     user.superuser?
   end
 
+  def email_payment_reminders?
+    sufficient_access?
+  end
+
   private
 
   def sufficient_role?
