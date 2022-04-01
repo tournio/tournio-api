@@ -6,7 +6,10 @@ class PaymentReminderSchedulerJob
   def perform(tournament_id)
     self.tournament = Tournament.includes(bowlers: [:ledger_entries]).find(tournament_id)
     find_relevant_bowlers
-    bowlers.each { |b| PaymentReminderJob.perform_async(b.id, b.email) }
+    bowlers.each do |b|
+      email = Rails.env.production? ? b.email : MailerJob::FROM_ADDRESS
+      PaymentReminderJob.perform_async(b.id, email)
+    end
   rescue ActiveRecord::RecordNotFound
   end
 
