@@ -497,6 +497,78 @@ describe Director::TournamentsController, type: :request do
 
   end
 
+  describe '#email_payment_reminders' do
+    subject { post uri, headers: auth_headers, as: :json }
+
+    let(:uri) { "/director/tournaments/#{tournament_identifier}/email_payment_reminders" }
+
+    let(:tournament) { create :tournament }
+    let(:tournament_identifier) { tournament.identifier }
+
+    include_examples 'an authorized action'
+
+    context 'an unrecognized tournament identifier' do
+      let(:tournament_identifier) { 'i-dont-know-her' }
+
+      it 'responds with a Not Found' do
+        subject
+        expect(response).to have_http_status(:not_found)
+      end
+    end
+
+    context 'Tournament modes' do
+      context 'Setup' do
+        it 'responds with Forbidden' do
+          subject
+          expect(response).to have_http_status(:forbidden)
+        end
+
+        it 'does not invoke the scheduler' do
+          expect { subject }.not_to change(PaymentReminderSchedulerJob.jobs, :size)
+        end
+      end
+
+      context 'Testing' do
+        let(:tournament) { create :tournament, :testing }
+
+        it 'responds with Forbidden' do
+          subject
+          expect(response).to have_http_status(:forbidden)
+        end
+
+        it 'does not invoke the scheduler' do
+          expect { subject }.not_to change(PaymentReminderSchedulerJob.jobs, :size)
+        end
+      end
+
+      context 'Active' do
+        let(:tournament) { create :tournament, :active }
+
+        it 'responds with OK' do
+          subject
+          expect(response).to have_http_status(:ok)
+        end
+
+        it 'invokes the scheduler' do
+          expect { subject }.to change(PaymentReminderSchedulerJob.jobs, :size).by(1)
+        end
+      end
+
+      context 'Closed' do
+        let(:tournament) { create :tournament, :closed }
+
+        it 'responds with OK' do
+          subject
+          expect(response).to have_http_status(:ok)
+        end
+
+        it 'invokes the scheduler' do
+          expect { subject }.to change(PaymentReminderSchedulerJob.jobs, :size).by(1)
+        end
+      end
+    end
+  end
+
   describe '#destroy' do
     subject { delete uri, headers: auth_headers, as: :json }
 
