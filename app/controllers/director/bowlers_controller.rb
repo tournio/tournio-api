@@ -111,6 +111,7 @@ module Director
       params.require(:bowler).permit(team: %i(identifier),
                                      person_attributes: PERSON_ATTRS,
                                      additional_question_responses: %i(name response),
+                                     verified_data: %i(verified_average handicap),
       )
             .to_h.with_indifferent_access
     end
@@ -135,7 +136,18 @@ module Director
 
     def try_updating_details
       bowler_data = bowler_params
-      return false unless bowler_data[:person_attributes].present?
+
+      # First, update bowler deets
+      if bowler_data[:verified_data].present?
+        bowler.verified_data.merge!(bowler_data[:verified_data])
+        unless bowler.save
+          self.error = bowler.errors.full_messages
+          return
+        end
+      end
+
+      # Next, update person deets, if there are any
+      return unless bowler_data[:person_attributes].present?
 
       unless bowler.person.update(bowler_data[:person_attributes])
         self.error = bowler.person.errors.full_messages

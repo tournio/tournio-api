@@ -8,7 +8,7 @@
 #  email                   :string
 #  name                    :string
 #  notes                   :text
-#  notification_preference :integer          default(0)
+#  notification_preference :integer          default("daily_summary")
 #  notify_on_payment       :boolean          default(FALSE)
 #  notify_on_registration  :boolean          default(FALSE)
 #  phone                   :string
