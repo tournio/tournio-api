@@ -7,6 +7,7 @@
 #  id                 :bigint           not null, primary key
 #  identifier         :string
 #  position           :integer
+#  verified_data      :jsonb
 #  created_at         :datetime         not null
 #  updated_at         :datetime         not null
 #  doubles_partner_id :bigint

@@ -198,12 +198,14 @@ describe Director::BowlersController, type: :request do
     let(:person_attributes) { { nickname: 'Freddy' } }
     let(:team_params) { {} }
     let(:additional_question_response_params) { {} }
+    let(:verified_data_params) { {} }
     let(:params) do
       {
         bowler: {
           person_attributes: person_attributes,
           team: team_params,
           additional_question_responses: additional_question_response_params,
+          verified_data: verified_data_params,
         },
       }
     end
@@ -330,6 +332,31 @@ describe Director::BowlersController, type: :request do
         subject
         expect(json).to have_key('additional_question_responses')
         expect(json['additional_question_responses'][aq.name]['response']).to eq('my updated response')
+      end
+    end
+
+    context 'updating verified data' do
+      let(:verified_data_params) do
+        {
+          verified_average: 199,
+          handicap: 17,
+        }
+      end
+
+      it 'succeeds with a 200 OK' do
+        subject
+        expect(response).to have_http_status(:ok)
+      end
+
+      it 'includes the updated bowler in the response' do
+        subject
+        expect(json).to have_key('identifier')
+      end
+
+      it 'reflects the response' do
+        subject
+        expect(json).to have_key('verified_average')
+        expect(json['verified_average']).to eq(199)
       end
     end
 
