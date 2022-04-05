@@ -98,11 +98,14 @@ class BowlerBlueprint < Blueprinter::Base
     end
     field :created_at, name: :date_registered, datetime_format: "%F"
 
+    field :amount_due do |b, _|
+      TournamentRegistration.amount_due(b)
+    end
+
     association :team, blueprint: TeamBlueprint, view: :director_list
     association :free_entry, blueprint: FreeEntryBlueprint
     association :purchases, blueprint: PurchaseBlueprint
     association :ledger_entries, blueprint: LedgerEntryBlueprint
-    # association :additional_question_responses, blueprint: AdditionalQuestionResponseBlueprint
 
     field :additional_question_responses do |b, _|
       b.additional_question_responses.each_with_object({}) { |aqr, obj| obj[aqr.name] = AdditionalQuestionResponseBlueprint.render_as_hash(aqr) }
