@@ -35,6 +35,10 @@ psdic.config_items += [
     key: 'website',
     value: 'http://psdic.org/home/',
   ),
+  ConfigItem.new(
+    key: 'email_in_dev',
+    value: 'false',
+  ),
 ]
 
 psdic.contacts += [

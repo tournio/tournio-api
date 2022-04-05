@@ -35,6 +35,10 @@ hit.config_items += [
     key: 'paypal_client_id',
     value: 'sb',
   ),
+  ConfigItem.new(
+    key: 'email_in_dev',
+    value: 'false',
+  ),
 ]
 
 hit.contacts += [

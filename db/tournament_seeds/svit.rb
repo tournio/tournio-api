@@ -31,6 +31,10 @@ svit.config_items += [
     key: 'website',
     value: 'http://svitbowl.com/home.html',
   ),
+  ConfigItem.new(
+    key: 'email_in_dev',
+    value: 'false',
+  ),
 ]
 
 svit.contacts += [

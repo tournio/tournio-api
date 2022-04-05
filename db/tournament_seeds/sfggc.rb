@@ -31,6 +31,10 @@ playground.config_items += [
     key: 'website',
     value: 'http://www.goldengateclassic.org',
   ),
+  ConfigItem.new(
+    key: 'email_in_dev',
+    value: 'false',
+  ),
 ]
 
 playground.contacts << Contact.new(

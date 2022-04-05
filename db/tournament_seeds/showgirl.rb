@@ -31,22 +31,28 @@ t.config_items += [
     key: 'website',
     value: 'http://lvshowgirl.net/',
   ),
+  ConfigItem.new(
+    key: 'email_in_dev',
+    value: 'false',
+  ),
 ]
 
 t.contacts += [
   Contact.new(
     name: 'Randy Ulrich',
     email: 'codirector1@lvshowgirl.net',
-    notes: 'Director',
+    role: :director,
   ),
   Contact.new(
     name: 'Vanessa Quigley',
     email: 'treasurer@lvshowgirl.net',
-    notes: 'Treasurer',
+    role: :treasurer,
+    notify_on_payment: true,
   ),
   Contact.new(
     name: 'Mikey Bridges',
     email: 'secretary@lvshowgirl.net',
-    notes: 'Secretary',
+    role: :secretary,
+    notify_on_registration: true,
   ),
 ]
