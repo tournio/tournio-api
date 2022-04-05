@@ -99,6 +99,7 @@ RSpec.describe TournamentBusiness do
       tournament.config_items << ConfigItem.new(key: 'dummy17', value: '17')
       tournament.config_items << ConfigItem.new(key: 'dummytrue', value: 'true')
       tournament.config_items << ConfigItem.new(key: 'dummyfalse', value: 'false')
+      tournament.config_items << ConfigItem.new(key: 'dummyf', value: 'f')
     end
 
     it 'returns a hash' do
@@ -115,6 +116,11 @@ RSpec.describe TournamentBusiness do
       result = subject
       expect(result[:dummytrue]).to be_instance_of(TrueClass)
       expect(result[:dummyfalse]).to be_instance_of(FalseClass)
+    end
+
+    it 'casts "f" to boolean false' do
+      result = subject
+      expect(result[:dummyf]).to be_instance_of(FalseClass)
     end
   end
 

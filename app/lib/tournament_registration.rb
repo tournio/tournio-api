@@ -168,6 +168,10 @@ module TournamentRegistration
 
   def self.send_confirmation_email(bowler)
     tournament = bowler.tournament
+    if Rails.env.development? && !tournament.config[:email_in_dev]
+      Rails.logger.info "========= Not sending confirmation email, dev config says not to."
+      return
+    end
     recipients = if notify_bowler?(tournament)
                    [bowler.email]
                  else

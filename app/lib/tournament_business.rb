@@ -27,7 +27,7 @@ module TournamentBusiness
       symbolized_key = item.key.to_sym
       config_hash[symbolized_key] = if item.value == 'true'
                                       true
-                                    elsif item.value == 'false'
+                                    elsif item.value == 'false' || item.value == 'f'
                                       false
                                     else
                                       item.value
