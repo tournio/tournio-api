@@ -108,6 +108,13 @@ class BowlerBlueprint < Blueprinter::Base
       b.additional_question_responses.each_with_object({}) { |aqr, obj| obj[aqr.name] = AdditionalQuestionResponseBlueprint.render_as_hash(aqr) }
     end
 
+    field :verified_average do |b, _|
+      b.verified_data['verified_average']
+    end
+
+    field :handicap do |b, _|
+      b.verified_data['handicap']
+    end
   end
 end
 
