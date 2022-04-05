@@ -729,13 +729,31 @@ RSpec.describe TournamentRegistration do
     end
 
     context 'in development' do
-      before do
-        allow(Rails.env).to receive(:development?).and_return(true)
+      before { allow(Rails.env).to receive(:development?).and_return(true) }
+
+      context 'with email_in_dev configured to be true' do
+        before { create(:config_item, :email_in_dev, tournament: tournament) }
+
+        it 'sends to the development address' do
+          expect(RegistrationConfirmationNotifierJob).to receive(:perform_async).with(bowler.id, MailerJob::FROM)
+          subject
+        end
       end
 
-      it 'sends to the development address' do
-        expect(RegistrationConfirmationNotifierJob).to receive(:perform_async).with(bowler.id, MailerJob::FROM)
-        subject
+      context 'with email_in_dev configured to be false' do
+        before { create(:config_item, :email_in_dev, tournament: tournament, value: 'false') }
+
+        it 'sends no notification' do
+          expect(RegistrationConfirmationNotifierJob).not_to receive(:perform_async)
+          subject
+        end
+      end
+
+      context 'with no email_in_dev config item' do
+        it 'sends no notification' do
+          expect(RegistrationConfirmationNotifierJob).not_to receive(:perform_async)
+          subject
+        end
       end
     end
 

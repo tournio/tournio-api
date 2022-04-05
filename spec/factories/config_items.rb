@@ -42,5 +42,10 @@ FactoryBot.define do
       key { 'paypal_client_id' }
       value { 'a-tournament-client-id' }
     end
+
+    trait :email_in_dev do
+      key { 'email_in_dev'}
+      value { 'true' }
+    end
   end
 end
