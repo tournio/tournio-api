@@ -30,6 +30,10 @@ FactoryBot.define do
     end
   end
 
+  trait :demo do
+    aasm_state { :demo }
+  end
+
   trait :testing do
     aasm_state { :testing }
   end
