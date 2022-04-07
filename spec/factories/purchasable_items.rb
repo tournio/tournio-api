@@ -82,6 +82,11 @@ FactoryBot.define do
       category { :bowling }
       determination { :single_use }
       name { 'An optional event' }
+      configuration do
+        {
+          order: 1,
+        }
+      end
     end
 
     trait :banquet_entry do
