@@ -139,12 +139,15 @@ module TournamentRegistration
   end
 
   def self.amount_billed(bowler)
-    bowler.ledger_entries.sum(&:debit)
+    bowler.ledger_entries.sum(&:debit).to_i - (bowler.ledger_entries.registration + bowler.ledger_entries.purchase).sum(&:credit).to_i
+  end
+
+  def self.amount_paid(bowler)
+    (bowler.ledger_entries.paypal + bowler.ledger_entries.manual).sum(&:credit).to_i
   end
 
   def self.amount_due(bowler)
-    credits = bowler.ledger_entries.sum(&:credit)
-    (amount_billed(bowler) - credits).to_i
+    (bowler.ledger_entries.sum(&:debit) - bowler.ledger_entries.sum(&:credit)).to_i
   end
 
   def self.link_doubles_partners(bowlers)
