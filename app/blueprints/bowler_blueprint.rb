@@ -104,7 +104,6 @@ class BowlerBlueprint < Blueprinter::Base
 
     association :team, blueprint: TeamBlueprint, view: :director_list
     association :free_entry, blueprint: FreeEntryBlueprint
-    association :purchases, blueprint: PurchaseBlueprint
     association :ledger_entries, blueprint: LedgerEntryBlueprint
 
     field :additional_question_responses do |b, _|
@@ -117,6 +116,11 @@ class BowlerBlueprint < Blueprinter::Base
 
     field :handicap do |b, _|
       b.verified_data['handicap']
+    end
+
+    field :purchases do |b, _|
+      sorted = b.purchases.to_a.sort_by! { |p| TournamentRegistration.purchasable_item_sort(p) }
+      PurchaseBlueprint.render_as_hash(sorted)
     end
   end
 end
