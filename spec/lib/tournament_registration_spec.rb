@@ -406,14 +406,14 @@ RSpec.describe TournamentRegistration do
   describe '#amount_billed' do
     subject { subject_class.amount_billed(bowler) }
 
-    let(:bowler) { instance_double('Bowler', ledger_entries: ledger_entries) }
-    let(:ledger_entries) do
-      [
-        instance_double('LedgerEntry', debit: 30, credit: 0),
-        instance_double('LedgerEntry', debit: 30, credit: 0),
-        instance_double('LedgerEntry', debit: 30, credit: 0),
-        instance_double('LedgerEntry', debit: 0, credit: 40),
-      ]
+    let(:tournament) { create :tournament, :active }
+    let(:bowler) { create :bowler, tournament: tournament }
+
+    before do
+      create :ledger_entry, debit: 30, bowler: bowler
+      create :ledger_entry, debit: 30, bowler: bowler
+      create :ledger_entry, debit: 30, bowler: bowler
+      create :ledger_entry, credit: 40, source: :manual, bowler: bowler
     end
 
     it 'correctly sums debits' do

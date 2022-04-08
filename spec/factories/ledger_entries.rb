@@ -37,6 +37,7 @@ FactoryBot.define do
     trait :free_entry do
       credit { 100 }
       identifier { 'free entry' }
+      source { :free_entry }
     end
   end
 end
