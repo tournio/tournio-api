@@ -406,14 +406,14 @@ RSpec.describe TournamentRegistration do
   describe '#amount_billed' do
     subject { subject_class.amount_billed(bowler) }
 
-    let(:bowler) { instance_double('Bowler', ledger_entries: ledger_entries) }
-    let(:ledger_entries) do
-      [
-        instance_double('LedgerEntry', debit: 30, credit: 0),
-        instance_double('LedgerEntry', debit: 30, credit: 0),
-        instance_double('LedgerEntry', debit: 30, credit: 0),
-        instance_double('LedgerEntry', debit: 0, credit: 40),
-      ]
+    let(:tournament) { create :tournament, :active }
+    let(:bowler) { create :bowler, tournament: tournament }
+
+    before do
+      create :ledger_entry, debit: 30, bowler: bowler
+      create :ledger_entry, debit: 30, bowler: bowler
+      create :ledger_entry, debit: 30, bowler: bowler
+      create :ledger_entry, credit: 40, source: :manual, bowler: bowler
     end
 
     it 'correctly sums debits' do
@@ -806,4 +806,62 @@ RSpec.describe TournamentRegistration do
     end
   end
 
+  describe '#purchasable_item_sort' do
+    let(:tournament) { create :tournament }
+
+    let(:entry_fee_item) { create :purchasable_item, :entry_fee, tournament: tournament }
+    let(:late_fee_item) { create :purchasable_item, :late_fee, tournament: tournament }
+    let(:early_discount_item) { create :purchasable_item, :early_discount, tournament: tournament }
+    let(:early_discount_expiration_item) { create :purchasable_item, :early_discount_expiration, tournament: tournament }
+    let(:scratch_item) { create :purchasable_item, :scratch_competition, tournament: tournament }
+    let(:optional_event_item) { create :purchasable_item, :optional_event, tournament: tournament }
+    let(:banquet_item) { create :purchasable_item, :banquet_entry, tournament: tournament }
+    let(:raffle_bundle_item) { create :purchasable_item, :raffle_bundle, tournament: tournament }
+
+    it 'puts the entry fee item first' do
+      expect(described_class.purchasable_item_sort(entry_fee_item)).to be < described_class.purchasable_item_sort(early_discount_item)
+    end
+
+    it 'puts the early discount item first' do
+      expect(described_class.purchasable_item_sort(early_discount_item)).to be < described_class.purchasable_item_sort(late_fee_item)
+    end
+
+    it 'puts the late fee item first' do
+      expect(described_class.purchasable_item_sort(late_fee_item)).to be < described_class.purchasable_item_sort(early_discount_expiration_item)
+    end
+
+    it 'puts the bowling item after the ledger item' do
+      expect(described_class.purchasable_item_sort(early_discount_expiration_item)).to be < described_class.purchasable_item_sort(scratch_item)
+    end
+
+    it 'puts the scratch item first' do
+      expect(described_class.purchasable_item_sort(scratch_item)).to be < described_class.purchasable_item_sort(optional_event_item)
+    end
+
+    it 'puts the bowling item before the banquet item' do
+      expect(described_class.purchasable_item_sort(optional_event_item)).to be < described_class.purchasable_item_sort(banquet_item)
+    end
+
+    it 'puts the banquet item first' do
+      expect(described_class.purchasable_item_sort(banquet_item)).to be < described_class.purchasable_item_sort(raffle_bundle_item)
+    end
+
+    context 'two items of the same kind' do
+      let(:item1) { create :purchasable_item, :optional_event, configuration: { order: 4} }
+      let(:item2) { create :purchasable_item, :optional_event, configuration: { order: 2} }
+
+      it 'uses display order for items of the same kind' do
+        expect(described_class.purchasable_item_sort(item1)).to be > described_class.purchasable_item_sort(item2)
+      end
+    end
+
+    context 'with a purchase' do
+      let(:bowler) { create :bowler, tournament: tournament }
+      let(:purchase) { create :purchase, bowler: bowler, purchasable_item: entry_fee_item }
+
+      it 'returns the same sort value' do
+        expect(described_class.purchasable_item_sort(purchase)).to eq(described_class.purchasable_item_sort(entry_fee_item))
+      end
+    end
+  end
 end

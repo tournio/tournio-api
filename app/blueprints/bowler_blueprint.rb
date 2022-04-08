@@ -98,13 +98,18 @@ class BowlerBlueprint < Blueprinter::Base
     end
     field :created_at, name: :date_registered, datetime_format: "%F"
 
+    field :amount_billed do |b, _|
+      TournamentRegistration.amount_billed(b)
+    end
+    field :amount_paid do |b, _|
+      TournamentRegistration.amount_paid(b)
+    end
     field :amount_due do |b, _|
       TournamentRegistration.amount_due(b)
     end
 
     association :team, blueprint: TeamBlueprint, view: :director_list
     association :free_entry, blueprint: FreeEntryBlueprint
-    association :purchases, blueprint: PurchaseBlueprint
     association :ledger_entries, blueprint: LedgerEntryBlueprint
 
     field :additional_question_responses do |b, _|
@@ -121,6 +126,11 @@ class BowlerBlueprint < Blueprinter::Base
 
     field :igbo_member do |b, _|
       b.verified_data['igbo_member'] || false
+    end
+
+    field :purchases do |b, _|
+      sorted = b.purchases.to_a.sort_by! { |p| TournamentRegistration.purchasable_item_sort(p) }
+      PurchaseBlueprint.render_as_hash(sorted)
     end
   end
 end

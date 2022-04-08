@@ -9,6 +9,27 @@ module TournamentRegistration
     active: 'Open for registration',
     closed: 'Closed',
   }.freeze
+  PURCHASABLE_ITEM_SORTING = {
+    category: {
+      ledger: 1,
+      bowling: 100,
+      banquet: 200,
+      product: 300,
+    },
+    determination: {
+      entry_fee: 1,
+      early_discount: 2,
+      late_fee: 3,
+      discount_expiration: 4,
+      single_use: 5,
+      multi_use: 6,
+    },
+    refinement: {
+      division: -1,
+      denomination: 1,
+      input: 2,
+    },
+  }
 
   class IncompleteFreeEntry < StandardError
   end
@@ -118,12 +139,15 @@ module TournamentRegistration
   end
 
   def self.amount_billed(bowler)
-    bowler.ledger_entries.sum(&:debit)
+    bowler.ledger_entries.sum(&:debit).to_i - (bowler.ledger_entries.registration + bowler.ledger_entries.purchase).sum(&:credit).to_i
+  end
+
+  def self.amount_paid(bowler)
+    (bowler.ledger_entries.paypal + bowler.ledger_entries.manual).sum(&:credit).to_i
   end
 
   def self.amount_due(bowler)
-    credits = bowler.ledger_entries.sum(&:credit)
-    (amount_billed(bowler) - credits).to_i
+    (bowler.ledger_entries.sum(&:debit) - bowler.ledger_entries.sum(&:credit)).to_i
   end
 
   def self.link_doubles_partners(bowlers)
@@ -187,6 +211,13 @@ module TournamentRegistration
       email = Rails.env.production? ? c.email : MailerJob::FROM
       NewRegistrationNotifierJob.perform_async(bowler.id, email)
     end
+  end
+
+  def self.purchasable_item_sort(purchase_or_item)
+    PURCHASABLE_ITEM_SORTING[:category][purchase_or_item.category.to_sym] +
+      PURCHASABLE_ITEM_SORTING[:determination][purchase_or_item.determination.to_sym] +
+      (PURCHASABLE_ITEM_SORTING[:refinement][purchase_or_item&.refinement&.to_sym] || 0) +
+      (purchase_or_item.configuration['order'] || 0)
   end
 
   # Private methods
