@@ -340,6 +340,7 @@ describe Director::BowlersController, type: :request do
         {
           verified_average: 199,
           handicap: 17,
+          igbo_member: true,
         }
       end
 
@@ -357,6 +358,12 @@ describe Director::BowlersController, type: :request do
         subject
         expect(json).to have_key('verified_average')
         expect(json['verified_average']).to eq(199)
+      end
+
+      it 'includes the igbo_member property' do
+        subject
+        expect(json).to have_key('igbo_member')
+        expect(json['igbo_member']).to eq(true)
       end
     end
 

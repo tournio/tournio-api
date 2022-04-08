@@ -118,6 +118,10 @@ class BowlerBlueprint < Blueprinter::Base
     field :handicap do |b, _|
       b.verified_data['handicap']
     end
+
+    field :igbo_member do |b, _|
+      b.verified_data['igbo_member'] || false
+    end
   end
 end
 

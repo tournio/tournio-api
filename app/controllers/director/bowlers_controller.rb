@@ -111,7 +111,7 @@ module Director
       params.require(:bowler).permit(team: %i(identifier),
                                      person_attributes: PERSON_ATTRS,
                                      additional_question_responses: %i(name response),
-                                     verified_data: %i(verified_average handicap),
+                                     verified_data: %i(verified_average handicap igbo_member),
       )
             .to_h.with_indifferent_access
     end
