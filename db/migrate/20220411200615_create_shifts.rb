@@ -14,7 +14,6 @@ class CreateShifts < ActiveRecord::Migration[7.0]
 
       t.index :identifier, unique: true
     end
-
-    # create_index :shifts, :identifier, unique: true
+    create_index :shifts, :identifier, unique: true
   end
 end
