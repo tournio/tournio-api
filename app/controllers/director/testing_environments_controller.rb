@@ -14,7 +14,7 @@ module Director
 
       authorize tournament, :update?
 
-      unless tournament.testing?
+      unless tournament.testing? || tournament.demo?
         render json: { error: 'Tournament is not in testing.' }, status: :conflict
         return
       end

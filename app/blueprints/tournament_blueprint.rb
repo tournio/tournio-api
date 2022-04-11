@@ -31,7 +31,7 @@ class TournamentBlueprint < Blueprinter::Base
       t.additional_questions.order(:order).each_with_object({}) { |aq, obj| obj[aq.name] = AdditionalQuestionBlueprint.render_as_hash(aq) }
     end
 
-    association :testing_environment, blueprint: TestingEnvironmentBlueprint, if: ->(_field_name, tournament, options) { tournament.testing? }
+    association :testing_environment, blueprint: TestingEnvironmentBlueprint, if: ->(_field_name, tournament, options) { tournament.testing? || tournament.demo? }
     field :registration_deadline do |t, _|
       datetime_with_timezone(t.config['entry_deadline'], t)
     end
@@ -46,7 +46,7 @@ class TournamentBlueprint < Blueprinter::Base
     end
     field :max_bowlers_per_entry, name: :max_bowlers
     field :registration_fee do |t, _|
-      t.purchasable_items.entry_fee.take.value
+      t.purchasable_items.entry_fee.take&.value
     end
     field :late_registration_fee do |t, _|
       t.purchasable_items.late_fee.take&.value
@@ -99,7 +99,7 @@ class TournamentBlueprint < Blueprinter::Base
     end
 
     field :available_questions do |t, _|
-      if t.setup? || t.testing?
+      if t.setup? || t.testing? || t.demo?
         ExtendedFormField.where.not(id: t.additional_questions.select(:extended_form_field_id)).collect do |eff|
           ExtendedFormFieldBlueprint.render_as_hash(eff)
         end

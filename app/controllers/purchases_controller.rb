@@ -47,10 +47,10 @@ class PurchasesController < ApplicationController
 
       quantity.times do |i|
         new_purchases << Purchase.create(bowler: bowler,
-                                         purchasable_item: item,
-                                         amount: item.value,
-                                         paid_at: paid_at,
-                                         paypal_order: ppo
+          purchasable_item: item,
+          amount: item.value,
+          paid_at: paid_at,
+          paypal_order: ppo
         )
         bowler.ledger_entries << LedgerEntry.new(debit: item.value, source: :purchase, identifier: item[:name])
         total_credit += item.value
@@ -88,10 +88,13 @@ class PurchasesController < ApplicationController
   def send_receipt_email(bowler, paypal_order_identifier)
     recipient = if Rails.env.production?
                   tournament.active? ? bowler.email : tournament.contacts.treasurer.first
-                else
+                elsif tournament.config[:email_in_dev]
                   MailerJob::FROM
                 end
-    PaymentReceiptNotifierJob.perform_async(paypal_order_identifier, recipient)
+
+    if recipient.present?
+      PaymentReceiptNotifierJob.perform_async(paypal_order_identifier, recipient)
+    end
   end
 
   # def perform(bowler_id, payment_identifier, amount, received_at, recipient_email)
@@ -102,6 +105,6 @@ class PurchasesController < ApplicationController
       email = Rails.env.production? ? c.email : MailerJob::FROM
       NewPaymentNotifierJob.perform_async(bowler.id, payment_identifier, amount, received_at, email)
     end
-
   end
+
 end

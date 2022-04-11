@@ -48,6 +48,7 @@ class Tournament < ApplicationRecord
     state :testing
     state :active
     state :closed
+    state :demo
 
     event :test do
       transitions from: :setup, to: :testing
@@ -59,6 +60,21 @@ class Tournament < ApplicationRecord
 
     event :close do
       transitions from: :active, to: :closed
+    end
+
+    event :demonstrate do
+      transitions from: :setup, to: :demo
+    end
+
+    event :reset do
+      before do
+        clear_data
+      end
+      after do
+        reset_demo_basics
+      end
+
+      transitions from: :demo, to: :setup
     end
   end
 
@@ -79,5 +95,21 @@ class Tournament < ApplicationRecord
 
   def initiate_testing_environment
     self.testing_environment = TestingEnvironment.new(conditions: TestingEnvironment.defaultConditions)
+  end
+
+  def clear_data
+    return unless demo?
+    teams.destroy_all
+    bowlers.destroy_all
+    free_entries.destroy_all
+    purchasable_items.destroy_all
+    additional_questions.destroy_all
+  end
+
+  def reset_demo_basics
+    self.start_date = Date.today + 3.months
+    self.year = start_date.year
+    generate_identifier
+    save
   end
 end

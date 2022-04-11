@@ -72,6 +72,10 @@ module Director
       allowable_actions = tournament.aasm.events.map(&:name)
       render json: nil, status: 400 and return unless allowable_actions.include?(action.to_sym)
 
+      if %w(demonstrate reset).include?(action)
+        authorize tournament, :demo_or_reset?
+      end
+
       action_sym = "#{action}!".to_sym
       tournament.send(action_sym)
 
@@ -86,7 +90,7 @@ module Director
 
       authorize tournament
 
-      if tournament.active? || tournament.closed?
+      if tournament.active? || tournament.closed? || tournament.demo?
         render json: nil, status: 403
         return
       end
@@ -112,7 +116,7 @@ module Director
 
       authorize tournament
 
-      unless tournament.active?
+      unless tournament.active? || tournament.demo?
         tournament.destroy
         render json: {}, status: :no_content
         return

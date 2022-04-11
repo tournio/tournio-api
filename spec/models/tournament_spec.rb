@@ -49,6 +49,7 @@ RSpec.describe Tournament, type: :model do
       expect(tournament.testing?).to be_falsey
       expect(tournament.active?).to be_falsey
       expect(tournament.closed?).to be_falsey
+      expect(tournament.demo?).to be_falsey
     end
 
     context 'in setup mode' do
@@ -58,6 +59,14 @@ RSpec.describe Tournament, type: :model do
 
       it 'permits transition to testing' do
         expect { tournament.test! }.not_to raise_error
+      end
+
+      it 'permits transition to demo' do
+        expect { tournament.demonstrate! }.not_to raise_error
+      end
+
+      it 'forbids the reset event' do
+        expect { tournament.reset! }.to raise_error(AASM::InvalidTransition)
       end
 
       it 'forbids transition to open' do
@@ -87,6 +96,14 @@ RSpec.describe Tournament, type: :model do
       it 'forbids transition to closed' do
         expect { tournament.close! }.to raise_error(AASM::InvalidTransition)
       end
+
+      it 'forbids transition to demo' do
+        expect { tournament.demonstrate! }.to raise_error(AASM::InvalidTransition)
+      end
+
+      it 'forbids the reset event' do
+        expect { tournament.reset! }.to raise_error(AASM::InvalidTransition)
+      end
     end
 
     context 'in active mode' do
@@ -106,6 +123,14 @@ RSpec.describe Tournament, type: :model do
 
       it 'permits transition to closed' do
         expect { tournament.close! }.not_to raise_error
+      end
+
+      it 'forbids transition to demo' do
+        expect { tournament.demonstrate! }.to raise_error(AASM::InvalidTransition)
+      end
+
+      it 'forbids the reset event' do
+        expect { tournament.reset! }.to raise_error(AASM::InvalidTransition)
       end
     end
 
@@ -127,6 +152,39 @@ RSpec.describe Tournament, type: :model do
       it 'forbids transition to closed' do
         expect { tournament.close! }.to raise_error(AASM::InvalidTransition)
       end
+
+      it 'forbids transition to demo' do
+        expect { tournament.demonstrate! }.to raise_error(AASM::InvalidTransition)
+      end
+
+      it 'forbids the reset event' do
+        expect { tournament.reset! }.to raise_error(AASM::InvalidTransition)
+      end
     end
+
+    context 'in the demo state' do
+      let(:tournament) { create(:tournament, :demo) }
+
+      it 'is not in the "active" scope' do
+        expect(described_class.active).not_to include(tournament)
+      end
+
+      it 'forbids transition to testing' do
+        expect { tournament.test! }.to raise_error(AASM::InvalidTransition)
+      end
+
+      it 'forbids transition to open' do
+        expect { tournament.open! }.to raise_error(AASM::InvalidTransition)
+      end
+
+      it 'forbids transition to closed' do
+        expect { tournament.close! }.to raise_error(AASM::InvalidTransition)
+      end
+
+      it 'permits the reset event' do
+        expect { tournament.reset! }.not_to raise_error
+      end
+    end
+
   end
 end
