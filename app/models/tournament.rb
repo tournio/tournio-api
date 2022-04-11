@@ -23,14 +23,15 @@ class Tournament < ApplicationRecord
   include AASM
   include TournamentBusiness
 
+  has_many :additional_questions, dependent: :destroy
   has_many :bowlers, dependent: :destroy
   has_many :config_items, dependent: :destroy
   has_many :contacts, dependent: :destroy
-  has_many :free_entries, dependent: :destroy
-  has_many :teams, dependent: :destroy
-  has_many :purchasable_items, dependent: :destroy
-  has_many :additional_questions, dependent: :destroy
   has_many :extended_form_fields, through: :additional_questions
+  has_many :free_entries, dependent: :destroy
+  has_many :purchasable_items, dependent: :destroy
+  has_many :shifts, dependent: :destroy
+  has_many :teams, dependent: :destroy
   has_one :testing_environment, dependent: :destroy
   has_one :registration_summary_send
   has_one :payment_summary_send
