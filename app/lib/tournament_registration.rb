@@ -8,6 +8,7 @@ module TournamentRegistration
     testing: 'Testing',
     active: 'Open for registration',
     closed: 'Closed',
+    demo: 'Demonstration',
   }.freeze
   PURCHASABLE_ITEM_SORTING = {
     category: {

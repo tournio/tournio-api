@@ -47,6 +47,10 @@ class TournamentPolicy < DirectorPolicy
     sufficient_access?
   end
 
+  def demo_or_reset?
+    user.superuser?
+  end
+
   private
 
   def sufficient_role?

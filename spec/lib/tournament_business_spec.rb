@@ -35,6 +35,10 @@ RSpec.describe TournamentBusiness do
         nil
       end
 
+      def demo?
+        nil
+      end
+
       def testing_environment
         nil
       end
@@ -234,9 +238,10 @@ RSpec.describe TournamentBusiness do
 
     let(:the_time) { Time.zone.now }
 
-    context 'when the tournament is not in the testing state' do
+    context 'when the tournament is not in the testing nor demo state' do
       before do
         allow(dummy_obj).to receive(:testing?).and_return(false)
+        allow(dummy_obj).to receive(:demo?).and_return(false)
       end
 
       context 'but no early registration discount is present' do

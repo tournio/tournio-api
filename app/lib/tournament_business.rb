@@ -73,7 +73,7 @@ module TournamentBusiness
   end
 
   def in_early_registration?(current_time = Time.zone.now)
-    if testing? && testing_environment
+    if (demo? || testing?) && testing_environment
       testing_environment.conditions['registration_period'] == TestingEnvironment::EARLY_REGISTRATION
     else
       end_time = early_registration_ends
@@ -82,7 +82,7 @@ module TournamentBusiness
   end
 
   def in_late_registration?(current_time = Time.zone.now)
-    if testing? && testing_environment
+    if (demo? || testing?) && testing_environment
       testing_environment.conditions['registration_period'] == TestingEnvironment::LATE_REGISTRATION
     else
       effective_time = late_fee_applies_at

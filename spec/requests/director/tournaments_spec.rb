@@ -218,6 +218,39 @@ describe Director::TournamentsController, type: :request do
           subject
           expect(tournament.reload.testing?).to be_truthy
         end
+
+        context 'Going into demo mode' do
+          let(:action) { 'demonstrate' }
+
+          it 'responds with 200 OK' do
+            subject
+            expect(response).to have_http_status(:ok)
+          end
+
+          it 'moves the tournament into demo mode' do
+            subject
+            expect(tournament.reload.demo?).to be_truthy
+          end
+
+          context 'as a tournament director' do
+            let(:requesting_user) { create(:user, :director, tournaments: my_tournaments) }
+            let(:my_tournaments) { [] }
+
+            it 'yields a 401 Unauthorized' do
+              subject
+              expect(response).to have_http_status(:unauthorized)
+            end
+
+            context 'for this tournament' do
+              let(:my_tournaments) { [tournament] }
+
+              it 'it still yields a 401 Unauthorized' do
+                subject
+                expect(response).to have_http_status(:unauthorized)
+              end
+            end
+          end
+        end
       end
 
       context 'Testing' do
@@ -256,6 +289,40 @@ describe Director::TournamentsController, type: :request do
         it 'rejects the request' do
           subject
           expect(response).to have_http_status(:forbidden)
+        end
+      end
+
+      context 'Demo' do
+        let(:tournament) { create :tournament, :demo }
+        let(:action) { 'reset' }
+
+        it 'responds with a 200 OK' do
+          subject
+          expect(response).to have_http_status(:ok)
+        end
+
+        it 'moves the tournament into setup mode' do
+          subject
+          expect(tournament.reload.setup?).to be_truthy
+        end
+
+        context 'as a tournament director' do
+          let(:requesting_user) { create(:user, :director, tournaments: my_tournaments) }
+          let(:my_tournaments) { [] }
+
+          it 'yields a 401 Unauthorized' do
+            subject
+            expect(response).to have_http_status(:unauthorized)
+          end
+
+          context 'for this tournament' do
+            let(:my_tournaments) { [tournament] }
+
+            it 'it still yields a 401 Unauthorized' do
+              subject
+              expect(response).to have_http_status(:unauthorized)
+            end
+          end
         end
       end
     end

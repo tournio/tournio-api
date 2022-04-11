@@ -70,6 +70,9 @@ class Tournament < ApplicationRecord
       before do
         clear_data
       end
+      after do
+        reset_demo_basics
+      end
 
       transitions from: :demo, to: :setup
     end
@@ -99,5 +102,14 @@ class Tournament < ApplicationRecord
     teams.destroy_all
     bowlers.destroy_all
     free_entries.destroy_all
+    purchasable_items.destroy_all
+    additional_questions.destroy_all
+  end
+
+  def reset_demo_basics
+    self.start_date = Date.today + 3.months
+    self.year = start_date.year
+    generate_identifier
+    save
   end
 end

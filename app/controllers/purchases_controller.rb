@@ -88,10 +88,10 @@ class PurchasesController < ApplicationController
   def send_receipt_email(bowler, paypal_order_identifier)
     recipient = if Rails.env.production?
                   tournament.active? ? bowler.email : tournament.contacts.treasurer.first
-                else
+                else if tournament.config[:email_in_dev]
                   MailerJob::FROM
                 end
-    PaymentReceiptNotifierJob.perform_async(paypal_order_identifier, recipient)
+    PaymentReceiptNotifierJob.perform_async(paypal_order_identifier, recipient) if recipient.present?
   end
 
   # def perform(bowler_id, payment_identifier, amount, received_at, recipient_email)
