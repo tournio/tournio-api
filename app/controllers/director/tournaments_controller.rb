@@ -157,6 +157,7 @@ module Director
                                             :teams,
                                             :bowlers,
                                             :free_entries,
+                                            :shifts,
                                             additional_questions: [:extended_form_field])
                                   .find_by_identifier(id)
     end

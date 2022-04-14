@@ -26,6 +26,7 @@ class TournamentBlueprint < Blueprinter::Base
     include_view :list
 
     association :contacts, blueprint: ContactBlueprint
+    association :shifts, blueprint: ShiftBlueprint
 
     field :additional_questions do |t, _|
       t.additional_questions.order(:order).each_with_object({}) { |aq, obj| obj[aq.name] = AdditionalQuestionBlueprint.render_as_hash(aq) }
@@ -77,6 +78,7 @@ class TournamentBlueprint < Blueprinter::Base
     association :contacts, blueprint: ContactBlueprint
     association :purchasable_items, blueprint: PurchasableItemBlueprint
     association :testing_environment, blueprint: TestingEnvironmentBlueprint
+    association :shifts, blueprint: ShiftBlueprint
 
     field :available_conditions do |t, _|
       output = {}
