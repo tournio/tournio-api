@@ -18,4 +18,5 @@
 #
 class Shift < ApplicationRecord
   belongs_to :tournament
+  has_many :teams, through: :shift_teams
 end
