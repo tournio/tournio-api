@@ -61,11 +61,13 @@ tournament.shifts += [
   Shift.new(
     capacity: 24,
     name: 'Early',
-    description: 'S on Friday 5-9pm, D/T on Saturday 9am-3pm',
+    description: 'Singles on Friday 5-9pm, Doubles/Team on Saturday 9am-3pm',
+    display_order: 1,
   ),
   Shift.new(
     capacity: 24,
     name: 'Late',
-    description: 'S on Friday 9:30pm-midnight, D/T Saturday 4-10pm',
+    description: 'Singles on Friday 9:30pm-midnight, Doubles/Team Saturday 4-10pm',
+    display_order: 2,
   ),
 ]
