@@ -30,7 +30,7 @@ class Tournament < ApplicationRecord
   has_many :extended_form_fields, through: :additional_questions
   has_many :free_entries, dependent: :destroy
   has_many :purchasable_items, dependent: :destroy
-  has_many :shifts, dependent: :destroy
+  has_many :shifts, -> { order(display_order: :asc)}, dependent: :destroy
   has_many :teams, dependent: :destroy
   has_one :testing_environment, dependent: :destroy
   has_one :registration_summary_send
