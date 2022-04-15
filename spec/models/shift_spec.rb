@@ -7,6 +7,7 @@
 #  confirmed     :integer          default(0), not null
 #  description   :string           not null
 #  desired       :integer          default(0), not null
+#  display_order :integer          default(1), not null
 #  name          :string           not null
 #  created_at    :datetime         not null
 #  updated_at    :datetime         not null

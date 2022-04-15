@@ -56,3 +56,10 @@ tournament.contacts << Contact.new(
   email: 'treasurer@example.org',
   role: :treasurer,
 )
+
+tournament.shifts << Shift.new(
+  capacity: 40,
+  name: 'Main',
+  description: 'Singles on Friday 6-9pm, Doubles/Team Saturday 11am-5pm',
+  display_order: 1,
+)
