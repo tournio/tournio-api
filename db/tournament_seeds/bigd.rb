@@ -3,7 +3,7 @@
 bigd = Tournament.create!(
   name: 'Big D Classic',
   year: 2022,
-  start_date: '2022-08-13',
+  start_date: '2022-08-12',
 )
 
 bigd.config_items += [
