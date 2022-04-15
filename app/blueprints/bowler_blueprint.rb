@@ -58,6 +58,10 @@ class BowlerBlueprint < Blueprinter::Base
     end
 
     field :created_at, name: :date_registered, datetime_format: "%F"
+
+    field :igbo_member do |b, _|
+      b.verified_data['igbo_member'] || false
+    end
   end
 
   view :director_team_detail do
