@@ -197,6 +197,7 @@ ActiveRecord::Schema[7.0].define(version: 2022_04_11_202331) do
   create_table "shifts", force: :cascade do |t|
     t.string "name", null: false
     t.string "description", null: false
+    t.integer "display_order", default: 1, null: false
     t.integer "capacity", default: 40, null: false
     t.integer "desired", default: 0, null: false
     t.integer "confirmed", default: 0, null: false
