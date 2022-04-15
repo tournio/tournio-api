@@ -7,6 +7,7 @@
 #  confirmed     :integer          default(0), not null
 #  description   :string           not null
 #  desired       :integer          default(0), not null
+#  display_order :integer          default(1), not null
 #  name          :string           not null
 #  created_at    :datetime         not null
 #  updated_at    :datetime         not null
@@ -19,4 +20,6 @@
 class Shift < ApplicationRecord
   belongs_to :tournament
   has_many :teams, through: :shift_teams
+
+  scope :available, -> { where('confirmed < capacity') }
 end

@@ -32,6 +32,10 @@ class TournamentBlueprint < Blueprinter::Base
       t.additional_questions.order(:order).each_with_object({}) { |aq, obj| obj[aq.name] = AdditionalQuestionBlueprint.render_as_hash(aq) }
     end
 
+    field :available_shifts do |t, _|
+      ShiftBlueprint.render_as_hash(t.shifts.available)
+    end
+
     association :testing_environment, blueprint: TestingEnvironmentBlueprint, if: ->(_field_name, tournament, options) { tournament.testing? || tournament.demo? }
     field :registration_deadline do |t, _|
       datetime_with_timezone(t.config['entry_deadline'], t)
