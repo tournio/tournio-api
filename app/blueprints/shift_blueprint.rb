@@ -4,8 +4,8 @@ class ShiftBlueprint < Blueprinter::Base
   identifier :id
   fields :name, :description, :capacity
 
-  field :desired_count do |s, _|
-    s.desired
+  field :requested_count do |s, _|
+    s.requested
   end
 
   field :confirmed_count do |s, _|

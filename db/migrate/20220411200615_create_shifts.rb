@@ -5,7 +5,7 @@ class CreateShifts < ActiveRecord::Migration[7.0]
       t.string :description, null: false
       t.integer :display_order, null: false, default: 1
       t.integer :capacity, null: false, default: 40
-      t.integer :desired, null: false, default: 0
+      t.integer :requested, null: false, default: 0
       t.integer :confirmed, null: false, default: 0
       t.references :tournament, null: false
 
