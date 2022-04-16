@@ -32,6 +32,7 @@ class TeamsController < ApplicationController
   TEAM_ATTRS = [
     :name,
     bowlers_attributes: BOWLER_ATTRS,
+    shift_attributes: [:id],
   ].freeze
 
   #####################

@@ -12,7 +12,7 @@ describe TeamsController, type: :request do
     subject { post uri, params: new_team_params, as: :json }
 
     let(:uri) { "/tournaments/#{tournament.identifier}/teams" }
-    let(:tournament) { create :tournament, :active, :with_entry_fee }
+    let(:tournament) { create :tournament, :active, :with_entry_fee, :one_shift }
 
     before do
       comment = create(:extended_form_field, :comment)
@@ -25,9 +25,16 @@ describe TeamsController, type: :request do
     end
 
     context 'with a full team' do
+      let(:shift_params) do
+        {
+          shift_attributes: {
+            id: tournament.shifts.first.id,
+          }
+        }
+      end
       let(:new_team_params) do
         {
-          team: full_team_test_data
+          team: full_team_test_data.merge(shift_params),
         }
       end
 

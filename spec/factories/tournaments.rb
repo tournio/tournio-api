@@ -54,6 +54,19 @@ FactoryBot.define do
     year { (Date.today + 10.days).year }
   end
 
+  trait :one_shift do
+    after(:create) do |t, _|
+      create :shift, tournament: t
+    end
+  end
+
+  trait :two_shifts do
+    after(:create) do |t, _|
+      create :shift, tournament: t, name: 'Shift 1'
+      create :shift, tournament: t, name: 'Shift 2', display_order: 2
+    end
+  end
+
   trait :accepting_payments do
     after(:create) do |t, _|
       create(:config_item, :paypal_client_id, tournament: t)
