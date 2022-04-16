@@ -19,6 +19,25 @@
 #
 FactoryBot.define do
   factory :shift do
-    
+    capacity { 40 }
+    description { 'One event on Friday, the other two on Saturday' }
+    name { 'Main' }
+  end
+
+  trait :half_requested do
+    desired { 20 }
+  end
+
+  trait :half_filled do
+    confirmed { 20 }
+  end
+
+  trait :high_demand do
+    confirmed { 30 }
+    desired { 20 }
+  end
+
+  trait :full do
+    confirmed { 40 }
   end
 end
