@@ -6,9 +6,9 @@
 #  capacity      :integer          default(40), not null
 #  confirmed     :integer          default(0), not null
 #  description   :string           not null
-#  desired       :integer          default(0), not null
 #  display_order :integer          default(1), not null
 #  name          :string           not null
+#  requested     :integer          default(0), not null
 #  created_at    :datetime         not null
 #  updated_at    :datetime         not null
 #  tournament_id :bigint           not null
@@ -25,7 +25,7 @@ FactoryBot.define do
   end
 
   trait :half_requested do
-    desired { 20 }
+    requested { 20 }
   end
 
   trait :half_filled do
@@ -34,7 +34,7 @@ FactoryBot.define do
 
   trait :high_demand do
     confirmed { 30 }
-    desired { 20 }
+    requested { 20 }
   end
 
   trait :full do
