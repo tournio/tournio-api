@@ -6,9 +6,9 @@
 #  capacity      :integer          default(40), not null
 #  confirmed     :integer          default(0), not null
 #  description   :string           not null
-#  desired       :integer          default(0), not null
 #  display_order :integer          default(1), not null
 #  name          :string           not null
+#  requested     :integer          default(0), not null
 #  created_at    :datetime         not null
 #  updated_at    :datetime         not null
 #  tournament_id :bigint           not null
