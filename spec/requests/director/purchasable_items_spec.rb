@@ -501,4 +501,96 @@ describe Director::PurchasableItemsController, type: :request do
     end
   end
 
+  describe '#destroy' do
+    subject { delete uri, headers: auth_headers, as: :json }
+
+    let(:uri) { "/director/purchasable_items/#{purchasable_item_id}" }
+
+    let(:tournament) { create :tournament }
+    let(:tournament_identifier) { tournament.identifier }
+    let(:purchasable_item) { create :purchasable_item, :entry_fee, tournament: tournament }
+    let(:purchasable_item_id) { purchasable_item.identifier }
+
+    include_examples 'an authorized action'
+
+    context 'an unrecognized item identifier' do
+      let(:purchasable_item_id) { 'i-dont-know-her' }
+
+      it 'responds with a Not Found' do
+        subject
+        expect(response).to have_http_status(:not_found)
+      end
+    end
+
+    context 'Tournament modes' do
+      context 'Setup' do
+        it 'responds with No Content' do
+          subject
+          expect(response).to have_http_status(:no_content)
+        end
+
+        it 'destroys the item' do
+          subject
+          begin
+            purchasable_item.reload
+          rescue => exception
+          ensure
+            expect(exception).to be_instance_of ActiveRecord::RecordNotFound
+          end
+        end
+      end
+
+      context 'Testing' do
+        let(:tournament) { create :tournament, :testing }
+
+        it 'responds with No Content' do
+          subject
+          expect(response).to have_http_status(:no_content)
+        end
+
+        it 'destroys the item' do
+          subject
+          begin
+            purchasable_item.reload
+          rescue => exception
+          ensure
+            expect(exception).to be_instance_of ActiveRecord::RecordNotFound
+          end
+        end
+      end
+
+      context 'Active' do
+        let(:tournament) { create :tournament, :active }
+
+        it 'responds with Forbidden' do
+          subject
+          expect(response).to have_http_status(:forbidden)
+        end
+
+        it 'does not destroy the item' do
+          subject
+          expect(purchasable_item.reload).not_to be_nil
+        end
+      end
+
+      context 'Closed' do
+        let(:tournament) { create :tournament, :closed }
+
+        it 'responds with No Content' do
+          subject
+          expect(response).to have_http_status(:no_content)
+        end
+
+        it 'destroys the item' do
+          subject
+          begin
+            purchasable_item.reload
+          rescue => exception
+          ensure
+            expect(exception).to be_instance_of ActiveRecord::RecordNotFound
+          end
+        end
+      end
+    end
+  end
 end

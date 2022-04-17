@@ -52,6 +52,24 @@ module Director
       render json: nil, status: :not_found
     end
 
+    def destroy
+      pi = PurchasableItem.includes(:tournament).find_by!(identifier: params[:identifier])
+      self.tournament = pi.tournament
+
+      authorize tournament, :update?
+
+      unless tournament.active? || tournament.demo?
+        pi.destroy
+        render json: {}, status: :no_content
+        return
+      end
+
+      render json: { error: 'Cannot delete purchasable item from an active tournament' }, status: :forbidden
+    rescue ActiveRecord::RecordNotFound
+      skip_authorization
+      render json: nil, status: :not_found
+    end
+
     private
 
     attr_accessor :tournament, :items

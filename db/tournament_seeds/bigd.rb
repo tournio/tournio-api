@@ -25,7 +25,7 @@ bigd.config_items += [
   ),
   ConfigItem.new(
     key: 'entry_deadline',
-    value: '2022-08-04T23:59:59-05:00',
+    value: '2022-08-03T23:59:59-05:00',
   ),
   ConfigItem.new(
     key: 'time_zone',
@@ -45,7 +45,9 @@ bigd.contacts += [
   Contact.new(
     name: 'Randall Buda',
     email: 'directors@bigdclassic.com',
-    notes: 'Co-Director',
+    role: 'Co-Director',
+    notify_on_registration: true,
+    notify_on_payment: true,
   ),
   Contact.new(
     name: 'José Aguilar',
