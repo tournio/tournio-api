@@ -45,14 +45,14 @@ bigd.contacts += [
   Contact.new(
     name: 'Randall Buda',
     email: 'directors@bigdclassic.com',
-    role: 'Co-Director',
+    role: :'co-director',
     notify_on_registration: true,
     notify_on_payment: true,
   ),
   Contact.new(
     name: 'José Aguilar',
     email: 'directors@bigdclassic.com',
-    notes: 'Co-Director',
+    role: :'co-director',
   ),
 ]
 
@@ -87,7 +87,7 @@ bigd.purchasable_items += [
   PurchasableItem.new(
     category: :bowling,
     determination: :single_use,
-    name: 'Optional Scratch',
+    name: 'Traditional Scratch',
     user_selectable: true,
     value: 20,
     configuration: {
