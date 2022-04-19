@@ -1,8 +1,8 @@
 # frozen_string_literal: true
 
 class ShiftBlueprint < Blueprinter::Base
-  identifier :id
-  fields :name, :description, :capacity
+  identifier :identifier
+  fields :name, :description, :capacity, :display_order
 
   field :requested_count do |s, _|
     s.requested

@@ -1,11 +1,19 @@
-# t.bigint "shift_id", null: false
-# t.bigint "team_id", null: false
-# t.string "aasm_state", null: false
-# t.datetime "confirmed_at"
-# t.datetime "created_at", null: false
-# t.datetime "updated_at", null: false
-# t.index ["shift_id"], name: "index_shifts_teams_on_shift_id"
-# t.index ["team_id"], name: "index_shifts_teams_on_team_id"
+# == Schema Information
+#
+# Table name: shifts_teams
+#
+#  aasm_state   :string           not null
+#  confirmed_at :datetime
+#  created_at   :datetime         not null
+#  updated_at   :datetime         not null
+#  shift_id     :bigint           not null
+#  team_id      :bigint           not null
+#
+# Indexes
+#
+#  index_shifts_teams_on_shift_id  (shift_id)
+#  index_shifts_teams_on_team_id   (team_id)
+#
 
 class ShiftTeam < ApplicationRecord
   include AASM
