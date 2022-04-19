@@ -28,6 +28,9 @@ Rails.application.routes.draw do
       end
       resources :bowlers, only: %i(index show destroy update), param: :identifier, shallow: true do
         resources :ledger_entries, only: %i(create), shallow: true
+        member do
+          post 'resend_email'
+        end
       end
       resources :teams, only: %i(index create show update destroy), param: :identifier, shallow: true
       resources :free_entries, only: %i(index create destroy update), shallow: true do

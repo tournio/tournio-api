@@ -88,6 +88,11 @@ describe PurchasesController, type: :request do
         expect(le.credit).to eq(expected_total)
       end
 
+      it 'sends a receipt email' do
+        expect(PaymentReceiptNotifierJob).to receive(:perform_async)
+        subject
+      end
+
       context 'with early-registration discount' do
         let(:purchase2) { Purchase.new(purchasable_item: early_discount_item) }
         before { bowler.purchases << purchase2 }

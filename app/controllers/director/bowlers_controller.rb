@@ -3,6 +3,7 @@
 module Director
   class BowlersController < BaseController
     rescue_from Pundit::NotAuthorizedError, with: :unauthorized
+    wrap_parameters false
 
     PERSON_ATTRS = %i[
         first_name
@@ -64,7 +65,7 @@ module Director
       # try_linking_free_entry
 
       if error.present?
-        render json: {error: error}, status: :bad_request
+        render json: { error: error }, status: :bad_request
         return
       end
 
@@ -84,6 +85,28 @@ module Director
       render json: nil, status: :no_content
     end
 
+    def resend_email
+
+      load_bowler_and_tournament
+      unless bowler.present?
+        skip_authorization
+        render json: nil, status: :not_found
+        return
+      end
+
+      authorize tournament, :update?
+
+      email_params = params.permit(:type, :order_identifier, :identifier)
+      case email_params['type']
+      when 'registration'
+        TournamentRegistration.send_confirmation_email(bowler)
+      when 'payment_receipt'
+        TournamentRegistration.send_receipt_email(bowler, email_params['order_identifier'])
+      end
+
+      render json: nil, status: :no_content
+    end
+
     private
 
     attr_accessor :tournament, :bowler, :error
@@ -96,22 +119,22 @@ module Director
     def load_bowler_and_tournament
       id = params.require(:identifier)
       @bowler = Bowler.includes(:purchases,
-                                :ledger_entries,
-                                :additional_question_responses,
-                                :team,
-                                :person,
-                                :free_entry,
-                                doubles_partner: :person,
-                                tournament: [:additional_questions],
+        :ledger_entries,
+        :additional_question_responses,
+        :team,
+        :person,
+        :free_entry,
+        doubles_partner: :person,
+        tournament: [:additional_questions],
       ).find_by(identifier: id)
       @tournament = @bowler.tournament if @bowler.present?
     end
 
     def bowler_params
       params.require(:bowler).permit(team: %i(identifier),
-                                     person_attributes: PERSON_ATTRS,
-                                     additional_question_responses: %i(name response),
-                                     verified_data: %i(verified_average handicap igbo_member),
+        person_attributes: PERSON_ATTRS,
+        additional_question_responses: %i(name response),
+        verified_data: %i(verified_average handicap igbo_member),
       )
             .to_h.with_indifferent_access
     end
@@ -161,7 +184,7 @@ module Director
       bowler_data[:additional_question_responses].each do |aqr_data|
         next unless aqr_data[:response].present?
 
-        aqr = bowler.additional_question_responses.joins(:extended_form_field).where(extended_form_field: {name: aqr_data[:name]}).first
+        aqr = bowler.additional_question_responses.joins(:extended_form_field).where(extended_form_field: { name: aqr_data[:name] }).first
 
         unless aqr.present?
           self.error = "Unrecognized additional question: #{aqr_data[:name]}"

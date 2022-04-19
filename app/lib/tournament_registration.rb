@@ -205,6 +205,25 @@ module TournamentRegistration
     recipients.each { |r| RegistrationConfirmationNotifierJob.perform_async(bowler.id, r) }
   end
 
+  def self.send_receipt_email(bowler, paypal_order_identifier)
+    tournament = bowler.tournament
+    if Rails.env.development? && !tournament.config[:email_in_dev]
+      Rails.logger.info "========= Not sending confirmation email, dev config says not to."
+      return
+    end
+    recipient = if Rails.env.production?
+                  tournament.active? ? bowler.email : tournament.contacts.treasurer.first
+                elsif Rails.env.test?
+                  MailerJob::FROM
+                elsif tournament.config[:email_in_dev]
+                  MailerJob::FROM
+                end
+
+    if recipient.present?
+      PaymentReceiptNotifierJob.perform_async(paypal_order_identifier, recipient)
+    end
+  end
+
   def self.notify_registration_contacts(bowler)
     tournament = bowler.tournament
     contacts = tournament.contacts.registration_notifiable.individually

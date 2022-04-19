@@ -444,4 +444,47 @@ describe Director::BowlersController, type: :request do
       end
     end
   end
+
+  describe '#resend_email' do
+    subject { post uri, headers: auth_headers, params: params, as: :json }
+
+    let(:uri) { "/director/bowlers/#{bowler_identifier}/resend_email" }
+
+    let(:tournament) { create :tournament, :active }
+    let(:recipient_email) { 'the_bowler@the.correct.domain' }
+    let(:bowler) { create :bowler, tournament: tournament, person: create(:person, email: recipient_email) }
+    let(:bowler_identifier) { bowler.identifier }
+
+    let(:email_type) { 'registration' }
+    let(:order) { nil }
+
+    let(:params) do
+      {
+        type: email_type,
+        order_identifier: order&.identifier,
+      }
+    end
+
+    include_examples 'an authorized action'
+
+    it 'Succeeds with No Content' do
+      subject
+      expect(response).to have_http_status(:no_content)
+    end
+
+    it 'sends a confirmation email' do
+      expect(TournamentRegistration).to receive(:send_confirmation_email).with(bowler)
+      subject
+    end
+
+    context 'a payment receipt email' do
+      let(:email_type) { 'payment_receipt' }
+      let(:order) { create :paypal_order }
+
+      it 'sends a receipt email' do
+        expect(TournamentRegistration).to receive(:send_receipt_email).with(bowler, order.identifier)
+        subject
+      end
+    end
+  end
 end

@@ -61,7 +61,7 @@ class PurchasesController < ApplicationController
       bowler.ledger_entries << LedgerEntry.new(credit: total_credit, source: :paypal, identifier: details[:paypal_details][:id])
     end
 
-    send_receipt_email(bowler, ppo.identifier)
+    TournamentRegistration.send_receipt_email(bowler, ppo.identifier)
     send_payment_notification(bowler, ppo.identifier, total_credit, paid_at)
 
     if (new_purchases.empty?)
@@ -85,19 +85,6 @@ class PurchasesController < ApplicationController
     @tournament = bowler&.tournament
   end
 
-  def send_receipt_email(bowler, paypal_order_identifier)
-    recipient = if Rails.env.production?
-                  tournament.active? ? bowler.email : tournament.contacts.treasurer.first
-                elsif tournament.config[:email_in_dev]
-                  MailerJob::FROM
-                end
-
-    if recipient.present?
-      PaymentReceiptNotifierJob.perform_async(paypal_order_identifier, recipient)
-    end
-  end
-
-  # def perform(bowler_id, payment_identifier, amount, received_at, recipient_email)
   def send_payment_notification(bowler, payment_identifier, amount, received_at = Time.zone.now)
     tournament = bowler.tournament
     contacts = tournament.contacts.payment_notifiable.individually
