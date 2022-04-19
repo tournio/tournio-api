@@ -42,6 +42,7 @@ Rails.application.routes.draw do
       resources :config_items, only: %i(update), shallow: true
       resources :purchasable_items, only: %i(create update destroy), param: :identifier, shallow: true
       resources :contacts, only: %i(create update), shallow: true
+      resources :shifts, only: %i(create update destroy), shallow: true
     end
   end
 

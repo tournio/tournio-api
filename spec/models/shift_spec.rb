@@ -7,6 +7,7 @@
 #  confirmed     :integer          default(0), not null
 #  description   :string           not null
 #  display_order :integer          default(1), not null
+#  identifier    :string           not null
 #  name          :string           not null
 #  requested     :integer          default(0), not null
 #  created_at    :datetime         not null
@@ -15,6 +16,7 @@
 #
 # Indexes
 #
+#  index_shifts_on_identifier     (identifier) UNIQUE
 #  index_shifts_on_tournament_id  (tournament_id)
 #
 require 'rails_helper'
