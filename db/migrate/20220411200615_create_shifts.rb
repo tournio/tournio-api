@@ -1,6 +1,7 @@
 class CreateShifts < ActiveRecord::Migration[7.0]
   def change
     create_table :shifts do |t|
+      t.string :identifier, null: false
       t.string :name, null: false
       t.string :description, null: false
       t.integer :display_order, null: false, default: 1
@@ -10,6 +11,10 @@ class CreateShifts < ActiveRecord::Migration[7.0]
       t.references :tournament, null: false
 
       t.timestamps
+
+      t.index :identifier, unique: true
     end
+
+    # create_index :shifts, :identifier, unique: true
   end
 end
