@@ -23,9 +23,15 @@ class Shift < ApplicationRecord
   belongs_to :tournament
   has_many :teams, through: :shift_teams
 
+  validates :capacity, comparison: { greater_than_or_equal_to: :confirmed }
+
   scope :available, -> { where('confirmed < capacity') }
 
   before_create :generate_identifier, if: -> { identifier.blank? }
+
+  def to_param
+    identifier
+  end
 
   private
 
