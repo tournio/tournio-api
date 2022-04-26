@@ -13,6 +13,7 @@ class TeamBlueprint < Blueprinter::Base
     field :size do |t, _|
       t.bowlers.count
     end
+    association :shift, blueprint: ShiftBlueprint
   end
 
   view :detail do
@@ -31,6 +32,12 @@ class TeamBlueprint < Blueprinter::Base
     field :size do |t, _|
       t.bowlers.count
     end
+    field :shift do |t, _|
+      t.shift.name
+    end
+    field :shift_confirmed do |t, _|
+      t.shift.confirmed?
+    end
   end
 
   view :director_detail do
@@ -39,5 +46,7 @@ class TeamBlueprint < Blueprinter::Base
     association :bowlers, blueprint: BowlerBlueprint, view: :director_team_detail do |team, _|
       team.bowlers.order(position: :asc)
     end
+
+    association :shift, blueprint: ShiftBlueprint
   end
 end
