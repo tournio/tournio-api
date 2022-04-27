@@ -29,7 +29,7 @@ t.config_items += [
   ),
   ConfigItem.new(
     key: 'website',
-    value: 'http://lvshowgirl.net/',
+    value: 'https://www.lvshowgirl.net/',
   ),
   ConfigItem.new(
     key: 'email_in_dev',
@@ -40,18 +40,18 @@ t.config_items += [
 t.contacts += [
   Contact.new(
     name: 'Randy Ulrich',
-    email: 'codirector1@lvshowgirl.net',
+    email: 'director1@lvshowgirl.net',
     role: :director,
   ),
   Contact.new(
     name: 'Vanessa Quigley',
-    email: 'treasurer@lvshowgirl.net',
+    email: 'treasurer2@lvshowgirl.net',
     role: :treasurer,
     notify_on_payment: true,
   ),
   Contact.new(
     name: 'Mikey Bridges',
-    email: 'secretary@lvshowgirl.net',
+    email: 'secretary2@lvshowgirl.net',
     role: :secretary,
     notify_on_registration: true,
   ),
