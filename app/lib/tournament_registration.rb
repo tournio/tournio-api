@@ -240,6 +240,10 @@ module TournamentRegistration
       (purchase_or_item.configuration['order'] || 0)
   end
 
+  def self.try_confirming_shift(team)
+
+  end
+
   # Private methods
 
   def self.test_mode_notification_recipients(tournament)
