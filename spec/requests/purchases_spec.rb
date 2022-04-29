@@ -50,7 +50,10 @@ describe PurchasesController, type: :request do
       let(:purchase) { Purchase.new(purchasable_item: entry_fee_item) }
 
       # When a bowler registers, they get a Purchase for the entry fee
-      before { bowler.purchases << purchase }
+      before do
+        bowler.purchases << purchase
+        allow(TournamentRegistration).to receive(:try_confirming_shift)
+      end
 
       it 'returns a Created status code' do
         subject
@@ -90,6 +93,11 @@ describe PurchasesController, type: :request do
 
       it 'sends a receipt email' do
         expect(PaymentReceiptNotifierJob).to receive(:perform_async)
+        subject
+      end
+
+      it "tries to confirm the bowler's team's requested shift" do
+        expect(TournamentRegistration).to receive(:try_confirming_shift)
         subject
       end
 

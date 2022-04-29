@@ -209,7 +209,7 @@ ActiveRecord::Schema[7.0].define(version: 2022_04_11_202331) do
     t.index ["tournament_id"], name: "index_shifts_on_tournament_id"
   end
 
-  create_table "shifts_teams", id: false, force: :cascade do |t|
+  create_table "shifts_teams", force: :cascade do |t|
     t.bigint "shift_id", null: false
     t.bigint "team_id", null: false
     t.string "aasm_state", null: false

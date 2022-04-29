@@ -241,7 +241,13 @@ module TournamentRegistration
   end
 
   def self.try_confirming_shift(team)
+    return if team.shift_team.confirmed?
+    return unless team.bowlers.count == team.tournament.team_size
+    unpaid_fees = team.bowlers.collect { |bowler| bowler.purchases.ledger.unpaid.any? }.flatten
+    return if unpaid_fees.any?
+    return if team.shift.confirmed >= team.shift.capacity
 
+    confirm_shift(team)
   end
 
   # Private methods
@@ -252,6 +258,12 @@ module TournamentRegistration
 
   def self.notify_bowler?(tournament)
     Rails.env.production? && tournament.active?
+  end
+
+  def self.confirm_shift(team)
+    team.shift_team.confirm!
+
+    #TODO Send an email to bowlers about confirmation
   end
 
   private_class_method :notify_bowler?

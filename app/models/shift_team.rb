@@ -2,6 +2,7 @@
 #
 # Table name: shifts_teams
 #
+#  id           :bigint           not null, primary key
 #  aasm_state   :string           not null
 #  confirmed_at :datetime
 #  created_at   :datetime         not null
