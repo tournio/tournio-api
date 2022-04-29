@@ -32,6 +32,10 @@ t.config_items += [
     value: 'https://www.lvshowgirl.net/',
   ),
   ConfigItem.new(
+    key: 'paypal_client_id',
+    value: 'sb',
+  ),
+  ConfigItem.new(
     key: 'email_in_dev',
     value: 'false',
   ),
