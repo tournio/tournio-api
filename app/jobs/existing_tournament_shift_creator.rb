@@ -1,0 +1,2 @@
+class ExistingTournamentShiftCreator
+end
