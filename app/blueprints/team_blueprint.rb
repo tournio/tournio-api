@@ -33,10 +33,10 @@ class TeamBlueprint < Blueprinter::Base
       t.bowlers.count
     end
     field :shift do |t, _|
-      t.shift.name
+      t.shift&.name
     end
     field :shift_confirmed do |t, _|
-      t.shift_team.confirmed?
+      t.shift_team&.confirmed?
     end
   end
 

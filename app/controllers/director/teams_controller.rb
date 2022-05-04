@@ -115,10 +115,18 @@ module Director
     end
 
     def edit_team_params
-      params.require(:team).permit(
+      permitted = params.require(:team).permit(
         :name,
+        :shift, # this is a shift identifier
         bowlers_attributes: %i[id position doubles_partner_id]
       ).to_h.with_indifferent_access
+
+      desired_shift = tournament.shifts.find_by(identifier: permitted[:shift])
+      unless desired_shift.nil?
+        permitted[:shift_team_attributes] = { shift_id: desired_shift.id }
+      end
+      permitted.delete(:shift)
+      permitted
     end
 
     def positions_valid?(proposed_values)
