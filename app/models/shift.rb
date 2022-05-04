@@ -21,6 +21,7 @@
 #
 class Shift < ApplicationRecord
   belongs_to :tournament
+  has_many :shift_teams, dependent: :destroy
   has_many :teams, through: :shift_teams
 
   validates :capacity, comparison: { greater_than_or_equal_to: :confirmed }
@@ -31,6 +32,10 @@ class Shift < ApplicationRecord
 
   def to_param
     identifier
+  end
+
+  def reset_counts
+    update(confirmed: 0, requested: 0)
   end
 
   private

@@ -62,7 +62,7 @@ module Director
       try_updating_details
       try_updating_additional_question_responses
       try_reassigning
-      # try_linking_free_entry
+
 
       if error.present?
         render json: { error: error }, status: :bad_request
@@ -155,6 +155,7 @@ module Director
       end
 
       DirectorUtilities.reassign_bowler(bowler: bowler, to_team: new_team)
+      TournamentRegistration.try_confirming_shift(new_team)
     end
 
     def try_updating_details

@@ -36,7 +36,7 @@ class TeamBlueprint < Blueprinter::Base
       t.shift.name
     end
     field :shift_confirmed do |t, _|
-      t.shift.confirmed?
+      t.shift_team.confirmed?
     end
   end
 

@@ -28,7 +28,15 @@ class ShiftTeam < ApplicationRecord
     shift.update(requested: shift.requested + 1)
   end
 
-  aasm do
+  before_destroy do
+    if confirmed_at.present?
+      shift.update(confirmed: shift.confirmed - 1)
+    else
+      shift.update(requested: shift.requested - 1)
+    end
+  end
+
+  aasm timestamps: true do
     state :requested, initial: true
     state :confirmed
 
@@ -36,7 +44,7 @@ class ShiftTeam < ApplicationRecord
       transitions from: :requested, to: :confirmed
 
       after do
-        shift.update(confirmed: shift.confirmed + 1)
+        shift.update(confirmed: shift.confirmed + 1, requested: shift.requested - 1)
       end
     end
   end

@@ -69,6 +69,8 @@ module Director
       authorize free_entry.tournament, :update?
 
       TournamentRegistration.confirm_free_entry(free_entry, current_user&.email)
+      TournamentRegistration.try_confirming_shift(free_entry.bowler&.team)
+
       render json: FreeEntryBlueprint.render(free_entry.reload, view: :director_list), status: 200
     rescue ActiveRecord::RecordNotFound
       skip_authorization
@@ -98,6 +100,7 @@ module Director
       free_entry.update(bowler_id: bowler.id)
       if params[:confirm].present?
         TournamentRegistration.confirm_free_entry(free_entry, current_user&.email)
+        TournamentRegistration.try_confirming_shift(bowler&.team)
       end
 
       render json: FreeEntryBlueprint.render(free_entry), status: :ok
