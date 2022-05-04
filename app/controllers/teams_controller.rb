@@ -63,7 +63,7 @@ class TeamsController < ApplicationController
       return
     end
     teams = params[:incomplete] ? tournament.available_to_join : tournament.teams.order('LOWER(name)')
-    sleep(3) if Rails.env.development?
+    sleep(1) if Rails.env.development?
     render json: TeamBlueprint.render(teams, view: :list)
   end
 
@@ -74,7 +74,7 @@ class TeamsController < ApplicationController
       return
     end
     team.bowlers.includes(:person, :ledger_entries).order(:position)
-    sleep(3) if Rails.env.development?
+    sleep(1) if Rails.env.development?
     render json: TeamBlueprint.render(team, view: :detail)
   end
 

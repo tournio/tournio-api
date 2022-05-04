@@ -32,7 +32,7 @@ module Director
       end
       authorize tournament, :show?
       bowlers = policy_scope(tournament.bowlers).includes(:person, :free_entry, :team).order('people.last_name')
-      sleep(3) if Rails.env.development?
+      sleep(1) if Rails.env.development?
       render json: BowlerBlueprint.render(bowlers, view: :director_list), status: :ok
     end
 

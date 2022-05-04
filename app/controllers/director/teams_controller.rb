@@ -17,7 +17,7 @@ module Director
               else
                 policy_scope(tournament.teams).order('created_at asc')
               end
-      sleep(3) if Rails.env.development?
+      sleep(1) if Rails.env.development?
       render json: TeamBlueprint.render(teams, view: :director_list), status: :ok
     end
 
@@ -29,7 +29,7 @@ module Director
         return
       end
       authorize tournament, :show?
-      sleep(3) if Rails.env.development?
+      sleep(1) if Rails.env.development?
       render json: TeamBlueprint.render(team, view: :director_detail)
     end
 

@@ -13,7 +13,7 @@ module Director
                       policy_scope(Tournament).includes(:config_items).order(name: :asc)
                     end
       authorize(Tournament)
-      sleep(3) if Rails.env.development?
+      sleep(1) if Rails.env.development?
       render json: TournamentBlueprint.render(tournaments, view: :director_list)
     end
 
