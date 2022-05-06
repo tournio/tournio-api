@@ -10,7 +10,7 @@ module Director
 
       authorize tournament, :update?
 
-      if tournament.active?
+      if tournament.active? && ci.key != 'display_capacity'
         render json: {error: 'Cannot modify configuration of an active tournament'}, status: :forbidden
         return
       end

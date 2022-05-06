@@ -43,6 +43,23 @@ describe Director::ConfigItemsController, type: :request do
         subject
         expect(response).to have_http_status(:forbidden)
       end
+
+      context 'unless the item is allowed to be changed while the tournament is active' do
+        let(:config_item) { create :config_item, :location, tournament: tournament, key: 'display_capacity' }
+        let(:params) do
+          {
+            config_item: {
+              value: true,
+            }
+          }
+        end
+
+        it 'succeeds with a 200 OK' do
+          subject
+          expect(response).to have_http_status(:ok)
+        end
+
+      end
     end
 
     context 'as an unpermitted user' do
