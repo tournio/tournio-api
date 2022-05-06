@@ -4,6 +4,7 @@ class CreateShifts < ActiveRecord::Migration[7.0]
       t.string :identifier, null: false
       t.string :name, null: false
       t.string :description, null: false
+      # t.jsonb :details, default: []
       t.integer :display_order, null: false, default: 1
       t.integer :capacity, null: false, default: 40
       t.integer :requested, null: false, default: 0

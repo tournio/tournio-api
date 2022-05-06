@@ -10,7 +10,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema[7.0].define(version: 2022_04_11_202331) do
+ActiveRecord::Schema[7.0].define(version: 2022_05_06_010513) do
   # These are extensions that must be enabled in order to support this database
   enable_extension "plpgsql"
 
@@ -205,6 +205,7 @@ ActiveRecord::Schema[7.0].define(version: 2022_04_11_202331) do
     t.bigint "tournament_id", null: false
     t.datetime "created_at", null: false
     t.datetime "updated_at", null: false
+    t.jsonb "details", default: []
     t.index ["identifier"], name: "index_shifts_on_identifier", unique: true
     t.index ["tournament_id"], name: "index_shifts_on_tournament_id"
   end
