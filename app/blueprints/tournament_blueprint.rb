@@ -27,6 +27,8 @@ class TournamentBlueprint < Blueprinter::Base
 
     association :contacts, blueprint: ContactBlueprint
     association :shifts, blueprint: ShiftBlueprint
+    association :config_items, blueprint: ConfigItemBlueprint
+    transform ConfigItemsFilter
 
     field :additional_questions do |t, _|
       t.additional_questions.order(:order).each_with_object({}) { |aq, obj| obj[aq.name] = AdditionalQuestionBlueprint.render_as_hash(aq) }
