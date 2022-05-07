@@ -257,6 +257,77 @@ describe Director::TeamsController, type: :request do
       expect(json['name']).to eq(new_name)
     end
 
+    context 'Changing the chosen shift' do
+      let(:shift1) { create :shift, tournament: tournament, requested: 20, confirmed: 20, capacity: 100 }
+      let(:shift2) { create :shift, tournament: tournament, requested: 30, confirmed: 30, capacity: 100 }
+      let!(:shift_team) { create :shift_team, team: team, shift: shift1 }
+      let(:params) do
+        {
+          team: {
+            name: new_name,
+            shift: shift2.identifier,
+            bowlers_attributes: attributes_array,
+          }
+        }
+      end
+
+      it 'succeeds' do
+        subject
+        expect(response).to have_http_status(:ok)
+      end
+
+      it "changes the team's shift assignment" do
+        subject
+        expect(team.reload.shift).to eq(shift2)
+      end
+
+      it "drops the requested count of shift1" do
+        expect { subject }.to change { shift1.reload.requested }.by(-4)
+      end
+
+      it "increases the requested count of shift2" do
+        expect { subject }.to change { shift2.reload.requested }.by(4)
+      end
+
+      it "doesn't change the confirmed count of shift1" do
+        expect { subject }.not_to change { shift1.reload.confirmed }
+      end
+
+      it "doesn't change the confirmed count of shift2" do
+        expect { subject }.not_to change { shift2.reload.confirmed }
+      end
+
+      context "The team's spot in the previous shift was confirmed" do
+        let!(:shift_team) { create :shift_team, team: team, shift: shift1, confirmed_at: 2.days.ago }
+
+        it 'succeeds' do
+          subject
+          expect(response).to have_http_status(:ok)
+        end
+
+        it "changes the team's shift assignment" do
+          subject
+          expect(team.reload.shift).to eq(shift2)
+        end
+
+        it "drops the confirmed count of shift1" do
+          expect { subject }.to change { shift1.reload.confirmed }.by(-4)
+        end
+
+        it "increases the confirmed count of shift2" do
+          expect { subject }.to change { shift2.reload.confirmed }.by(4)
+        end
+
+        it "doesn't change the requested count of shift1" do
+          expect { subject }.not_to change { shift1.reload.requested }
+        end
+
+        it "doesn't change the requested count of shift2" do
+          expect { subject }.not_to change { shift2.reload.requested }
+        end
+      end
+    end
+
     context 'as an unpermitted user' do
       let(:requesting_user) { create(:user, :unpermitted) }
 
@@ -342,6 +413,15 @@ describe Director::TeamsController, type: :request do
     it 'succeeds with a 204 No Content' do
       subject
       expect(response).to have_http_status(:no_content)
+    end
+
+    context 'when the team is on a shift' do
+      let(:shift) { create :shift, :high_demand, tournament: tournament }
+      let!(:shift_team) { create :shift_team, team: team, shift: shift }
+
+      it 'drops the shift requested count by the team size' do
+        expect { subject }.to change { shift.reload.requested }.by(-4)
+      end
     end
 
     context 'as an unpermitted user' do

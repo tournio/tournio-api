@@ -70,9 +70,33 @@ module Director
         return
       end
 
+      confirmed_change = 0
+      requested_change = 0
+      previous_shift = nil
+      new_shift = nil
+      if new_values[:shift_team_attributes].present?
+        previous_shift = team.shift
+        new_shift = Shift.find(new_values[:shift_team_attributes][:shift_id])
+        if previous_shift != new_shift
+          if team.shift_team.confirmed_at.present?
+            confirmed_change = team.bowlers.count
+          else
+            requested_change = team.bowlers.count
+          end
+        end
+      end
       unless team.update(new_values)
         render json: { errors: team.errors.full_messages }, status: :bad_request
         return
+      end
+
+      if confirmed_change > 0
+        previous_shift.update(confirmed: previous_shift.confirmed - confirmed_change)
+        new_shift.update(confirmed: new_shift.confirmed + confirmed_change)
+      end
+      if requested_change > 0
+        previous_shift.update(requested: previous_shift.confirmed - requested_change)
+        new_shift.update(requested: new_shift.confirmed + requested_change)
       end
 
       render json: TeamBlueprint.render(team, view: :director_detail), status: :ok
@@ -87,6 +111,16 @@ module Director
       end
 
       authorize tournament, :update?
+
+      if team.shift.present?
+        size = team.bowlers.count
+        if team.shift_team.confirmed_at.present?
+          team.shift.update(confirmed: team.shift.confirmed - size)
+        else
+          team.shift.update(requested: team.shift.requested - size)
+        end
+      end
+
       unless team.destroy
         render json: nil, status: :bad_request
         return

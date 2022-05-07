@@ -81,7 +81,18 @@ module Director
       end
 
       authorize tournament, :update?
+      team = bowler.team
+
       bowler.destroy
+
+      if team.shift.present?
+        if team.shift_team.confirmed_at.present?
+          team.shift.update(confirmed: team.shift.confirmed - 1)
+        else
+          team.shift.update(requested: team.shift.requested - 1)
+        end
+      end
+
       render json: nil, status: :no_content
     end
 

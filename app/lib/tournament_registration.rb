@@ -97,6 +97,12 @@ module TournamentRegistration
     add_early_discount_to_ledger(bowler)
     add_late_fees_to_ledger(bowler)
     complete_doubles_link(bowler) if bowler.doubles_partner_id.present?
+
+    if (bowler.team.shift.present?)
+      shift = bowler.team.shift
+      shift.update(requested: shift.requested + 1)
+    end
+
     send_confirmation_email(bowler)
     notify_registration_contacts(bowler)
   end
@@ -241,6 +247,7 @@ module TournamentRegistration
   end
 
   def self.try_confirming_shift(team)
+    return unless team.shift.present?
     return if team.shift_team.confirmed?
     return unless team.bowlers.count == team.tournament.team_size
     unpaid_fees = team.bowlers.collect { |bowler| bowler.purchases.ledger.unpaid.any? }.flatten

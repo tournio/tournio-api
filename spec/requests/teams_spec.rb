@@ -54,8 +54,8 @@ describe TeamsController, type: :request do
         expect(team.shift).to eq(shift)
       end
 
-      it "bumps the shift's requested attribute" do
-        expect { subject }.to change { shift.reload.requested }.by(1)
+      it "bumps the shift's requested attribute by 4" do
+        expect { subject }.to change { shift.reload.requested }.by(4)
       end
 
       it "does not change the shift's confirmed attribute" do
@@ -95,7 +95,7 @@ describe TeamsController, type: :request do
       end
 
       it "bumps the shift's requested attribute" do
-        expect { subject }.to change { shift.reload.requested }.by(1)
+        expect { subject }.to change { shift.reload.requested }.by(3)
       end
 
       it "does not change the shift's confirmed attribute" do

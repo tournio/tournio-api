@@ -24,18 +24,6 @@ class ShiftTeam < ApplicationRecord
   belongs_to :shift
   belongs_to :team
 
-  after_create do
-    shift.update(requested: shift.requested + 1)
-  end
-
-  before_destroy do
-    if confirmed_at.present?
-      shift.update(confirmed: shift.confirmed - 1)
-    else
-      shift.update(requested: shift.requested - 1)
-    end
-  end
-
   aasm timestamps: true do
     state :requested, initial: true
     state :confirmed
@@ -44,7 +32,8 @@ class ShiftTeam < ApplicationRecord
       transitions from: :requested, to: :confirmed
 
       after do
-        shift.update(confirmed: shift.confirmed + 1, requested: shift.requested - 1)
+        change = team.bowlers.count
+        shift.update(confirmed: shift.confirmed + change, requested: shift.requested - change)
       end
     end
   end

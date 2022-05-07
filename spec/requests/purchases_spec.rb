@@ -21,7 +21,8 @@ describe PurchasesController, type: :request do
       }
     end
     let(:tournament) { create :tournament, :active, :accepting_payments }
-    let(:bowler) { create(:bowler, person: create(:person), tournament: tournament) }
+    let(:team) { create :team, tournament: tournament }
+    let(:bowler) { create(:bowler, person: create(:person), tournament: tournament, team: team) }
     let!(:entry_fee_item) { create(:purchasable_item, :entry_fee, value: entry_fee_amount, tournament: tournament) }
     let!(:early_discount_item) { create(:purchasable_item, :early_discount, value: early_discount_amount, tournament: tournament, configuration: { valid_until: 1.week.from_now }) }
     let!(:late_fee_item) { create(:purchasable_item, :late_fee, value: late_fee_amount, tournament: tournament, configuration: { applies_at: 2.weeks.ago }) }

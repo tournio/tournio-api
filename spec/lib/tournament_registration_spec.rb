@@ -131,7 +131,8 @@ RSpec.describe TournamentRegistration do
     subject { subject_class.register_bowler(bowler) }
 
     let(:tournament) { create :tournament, :active }
-    let(:bowler) { create(:bowler, person: create(:person), tournament: tournament) }
+    let(:team) { create :team, tournament: tournament }
+    let(:bowler) { create(:bowler, person: create(:person), tournament: tournament, team: team) }
 
     before do
       allow(subject_class).to receive(:purchase_entry_fee)
@@ -156,6 +157,20 @@ RSpec.describe TournamentRegistration do
     it 'queues up an email notification to the bowler' do
       expect(subject_class).to receive(:send_confirmation_email).with(bowler).once
       subject
+    end
+
+    context 'When a team is requesting a shift' do
+      let(:team) { create :team, tournament: tournament }
+      let(:shift) { create :shift, tournament: tournament }
+      let!(:shift_team) { create :shift_team, team: team, shift: shift }
+
+      before do
+        bowler.update(team: team)
+      end
+
+      it 'increases the shift requested count by 1' do
+        expect { subject }.to change { shift.reload.requested }.by(1)
+      end
     end
   end
 
@@ -964,7 +979,7 @@ RSpec.describe TournamentRegistration do
     end
 
     it "bumps the shift's confirmed count" do
-      expect { subject }.to change { shift.confirmed }.by(1)
+      expect { subject }.to change { shift.confirmed }.by(4)
     end
   end
 end
