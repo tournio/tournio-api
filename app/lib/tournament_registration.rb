@@ -214,7 +214,7 @@ module TournamentRegistration
   def self.send_receipt_email(bowler, paypal_order_identifier)
     tournament = bowler.tournament
     if Rails.env.development? && !tournament.config[:email_in_dev]
-      Rails.logger.info "========= Not sending confirmation email, dev config says not to."
+      Rails.logger.info "========= Not sending receipt email, dev config says not to."
       return
     end
     recipient = if Rails.env.production?
@@ -232,6 +232,10 @@ module TournamentRegistration
 
   def self.notify_registration_contacts(bowler)
     tournament = bowler.tournament
+    if Rails.env.development? && !tournament.config[:email_in_dev]
+      Rails.logger.info "========= Not sending new-registration email, dev config says not to."
+      return
+    end
     contacts = tournament.contacts.registration_notifiable.individually
     contacts.each do |c|
       email = Rails.env.production? ? c.email : MailerJob::FROM

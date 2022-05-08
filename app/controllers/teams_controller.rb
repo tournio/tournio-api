@@ -116,11 +116,14 @@ class TeamsController < ApplicationController
     cleaned_up['bowlers_attributes'].map! { |bowler_attrs| clean_up_bowler_data(bowler_attrs) }
 
     # transform shift param into the Rails association style
-    shift = tournament.shifts.find_by(identifier: permitted_params['shift']['identifier'])
-    unless shift.nil?
-      cleaned_up[:shift_team_attributes] = { shift_id: shift.id }
+    unless permitted_params['shift'].nil?
+      shift = tournament.shifts.find_by(identifier: permitted_params['shift']['identifier'])
+      unless shift.nil?
+        cleaned_up[:shift_team_attributes] = { shift_id: shift.id }
+      end
+      cleaned_up.delete(:shift)
     end
-    cleaned_up.delete(:shift)
+
     cleaned_up
   end
 
