@@ -72,13 +72,17 @@ module Director
 
       confirmed_change = 0
       requested_change = 0
+      confirmed_at = nil
       previous_shift = nil
       new_shift = nil
+      shift_change = false
       if new_values[:shift_team_attributes].present?
         previous_shift = team.shift
         new_shift = Shift.find(new_values[:shift_team_attributes][:shift_id])
         if previous_shift != new_shift
+          shift_change = true
           if team.shift_team.confirmed_at.present?
+            confirmed_at = team.shift_team.confirmed_at
             confirmed_change = team.bowlers.count
           else
             requested_change = team.bowlers.count
@@ -90,16 +94,21 @@ module Director
         return
       end
 
-      if confirmed_change > 0
-        previous_shift.update(confirmed: previous_shift.confirmed - confirmed_change)
-        new_shift.update(confirmed: new_shift.confirmed + confirmed_change)
-      end
-      if requested_change > 0
-        previous_shift.update(requested: previous_shift.confirmed - requested_change)
-        new_shift.update(requested: new_shift.confirmed + requested_change)
+      if shift_change # we've changed shifts
+        if confirmed_at.present?
+          team.reload.shift_team.update(confirmed_at: confirmed_at, aasm_state: :confirmed)
+        end
+        previous_shift.update(
+          confirmed: previous_shift.confirmed - confirmed_change,
+          requested: previous_shift.requested - requested_change
+        )
+        new_shift.update(
+          confirmed: new_shift.confirmed + confirmed_change,
+          requested: new_shift.requested + requested_change
+        )
       end
 
-      render json: TeamBlueprint.render(team, view: :director_detail), status: :ok
+      render json: TeamBlueprint.render(team.reload, view: :director_detail), status: :ok
     end
 
     def destroy

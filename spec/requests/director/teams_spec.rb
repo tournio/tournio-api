@@ -310,6 +310,18 @@ describe Director::TeamsController, type: :request do
           expect(team.reload.shift).to eq(shift2)
         end
 
+        it "copies over the confirmed_at date from the previous shift to the new one" do
+          prev_confirmed_at = shift_team.confirmed_at
+          subject
+          new_confirmed_at = team.reload.shift_team.confirmed_at
+          expect(new_confirmed_at).to eq(prev_confirmed_at)
+        end
+
+        it "ensures the state of the new shift_team is confirmed" do
+          subject
+          expect(team.reload.shift_team.confirmed?).to be_truthy
+        end
+
         it "drops the confirmed count of shift1" do
           expect { subject }.to change { shift1.reload.confirmed }.by(-4)
         end
