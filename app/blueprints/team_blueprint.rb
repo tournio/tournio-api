@@ -22,6 +22,18 @@ class TeamBlueprint < Blueprinter::Base
     association :bowlers, blueprint: BowlerBlueprint do |team, _|
       team.bowlers.order(position: :asc)
     end
+
+    field :shift_info do |team, _|
+      shift = team.shift
+      if shift.present?
+        {
+          full: shift.confirmed >= shift.capacity,
+          confirmed: team.shift_team.confirmed_at.present?,
+        }
+      else
+        {}
+      end
+    end
   end
 
   view :director_list do
