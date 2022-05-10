@@ -32,7 +32,11 @@ Rails.application.routes.draw do
           post 'resend_email'
         end
       end
-      resources :teams, only: %i(index create show update destroy), param: :identifier, shallow: true
+      resources :teams, only: %i(index create show update destroy), param: :identifier, shallow: true do
+        member do
+          post 'confirm_shift'
+        end
+      end
       resources :free_entries, only: %i(index create destroy update), shallow: true do
         member do
           post 'confirm'

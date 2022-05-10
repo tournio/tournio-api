@@ -474,4 +474,72 @@ describe Director::TeamsController, type: :request do
       end
     end
   end
+
+  describe '#confirm_shift' do
+    subject { post uri, headers: auth_headers, as: :json }
+
+    let(:uri) { "/director/teams/#{team_identifier}/confirm_shift" }
+
+    let(:tournament) { create :tournament, :active }
+    let(:shift) { create :shift, tournament: tournament, requested: 20, confirmed: 20, capacity: 100 }
+    let(:team) { create :team, :standard_full_team, tournament: tournament }
+    let!(:shift_team) { create :shift_team, team: team, shift: shift }
+    let(:team_identifier) { team.identifier }
+
+    include_examples 'an authorized action'
+
+    it 'succeeds with a 200 OK' do
+      subject
+      expect(response).to have_http_status(:ok)
+    end
+
+    it 'marks the shift_team as confirmed' do
+      subject
+      expect(shift_team.reload.confirmed?).to be_truthy
+    end
+
+    it 'includes the updated team in the response' do
+      subject
+      expect(json['shift_confirmed']).to be_truthy
+    end
+
+    context 'as an unpermitted user' do
+      let(:requesting_user) { create(:user, :unpermitted) }
+
+      it 'shall not pass' do
+        subject
+        expect(response).to have_http_status(:unauthorized)
+      end
+    end
+
+    context 'as a director' do
+      let(:requesting_user) { create(:user, :director) }
+
+      it 'shall not pass' do
+        subject
+        expect(response).to have_http_status(:unauthorized)
+      end
+
+      context 'associated with this tournament' do
+        let(:requesting_user) { create :user, :director, tournaments: [tournament] }
+
+        it 'shall pass' do
+          subject
+          expect(response).to have_http_status(:ok)
+        end
+      end
+    end
+
+    context 'error scenarios' do
+      context 'an unrecognized team identifier' do
+        let(:team_identifier) { 'say-what-now' }
+
+        it 'yields a 404 Not Found' do
+          subject
+          expect(response).to have_http_status(:not_found)
+        end
+      end
+
+    end
+  end
 end

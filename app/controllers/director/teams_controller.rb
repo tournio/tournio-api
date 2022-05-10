@@ -111,6 +111,20 @@ module Director
       render json: TeamBlueprint.render(team.reload, view: :director_detail), status: :ok
     end
 
+    def confirm_shift
+      load_team_and_tournament
+      unless team.present? && tournament.present?
+        skip_authorization
+        render json: nil, status: :not_found
+        return
+      end
+
+      authorize tournament, :update?
+      TournamentRegistration.try_confirming_shift(team)
+
+      render json: TeamBlueprint.render(team.reload, view: :director_detail), status: :ok
+    end
+
     def destroy
       load_team_and_tournament
       unless team.present? && tournament.present?
