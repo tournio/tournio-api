@@ -98,9 +98,13 @@ module TournamentRegistration
     add_late_fees_to_ledger(bowler)
     complete_doubles_link(bowler) if bowler.doubles_partner_id.present?
 
-    if (bowler.team.shift.present?)
+    if bowler.team.shift.present?
       shift = bowler.team.shift
-      shift.update(requested: shift.requested + 1)
+      if bowler.team.shift_team.confirmed?
+        shift.update(confirmed: shift.confirmed + 1)
+      else
+        shift.update(requested: shift.requested + 1)
+      end
     end
 
     send_confirmation_email(bowler)
