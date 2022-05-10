@@ -12,19 +12,23 @@ class ExistingTournamentShiftCreator
   def perform(tournament_id)
     self.tournament = Tournament.includes(:teams).find(tournament_id)
 
-    create_shift
     associate_teams_with_shift
-  end
-
-  def create_shift
-
+    confirm_full_and_paid_teams
   end
 
   def associate_teams_with_shift
-
+    shift = tournament.shifts.first
+    tournament.teams.each do |team|
+      unless team.shift.present?
+        ShiftTeam.create(team: team, shift: shift)
+        shift.update(requested: shift.requested + team.bowlers.count)
+      end
+    end
   end
 
-  def try_confirming_team_shift
-
+  def confirm_full_and_paid_teams
+    tournament.teams.reload.each do |team|
+      TournamentRegistration.try_confirming_shift(team)
+    end
   end
 end
