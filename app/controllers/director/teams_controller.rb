@@ -120,7 +120,7 @@ module Director
       end
 
       authorize tournament, :update?
-      TournamentRegistration.try_confirming_shift(team)
+      TournamentRegistration.confirm_shift(team)
 
       render json: TeamBlueprint.render(team.reload, view: :director_detail), status: :ok
     end

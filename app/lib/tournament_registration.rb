@@ -261,6 +261,12 @@ module TournamentRegistration
     confirm_shift(team)
   end
 
+  def self.confirm_shift(team)
+    team.shift_team.confirm!
+
+    #TODO Send an email to bowlers about confirmation
+  end
+
   # Private methods
 
   def self.test_mode_notification_recipients(tournament)
@@ -269,12 +275,6 @@ module TournamentRegistration
 
   def self.notify_bowler?(tournament)
     Rails.env.production? && tournament.active?
-  end
-
-  def self.confirm_shift(team)
-    team.shift_team.confirm!
-
-    #TODO Send an email to bowlers about confirmation
   end
 
   private_class_method :notify_bowler?
