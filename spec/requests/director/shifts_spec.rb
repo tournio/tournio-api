@@ -154,6 +154,31 @@ describe Director::ShiftsController, type: :request do
       end
     end
 
+    context 'updating a details properties' do
+      let(:shift_params) do
+        {
+          details: {
+            permit_new_teams: false,
+            permit_solo: false,
+            permit_joins: true,
+            events: [{:day=>"Friday", :time=>"9pm-midnight", :event=>"Team"}, {:day=>"Saturday", :time=>"4-10pm", :event=>"Singles/Doubles"}],
+          }
+        }
+      end
+
+      it 'succeeds' do
+        subject
+        expect(response).to have_http_status(:ok)
+      end
+
+      it "updates the details properties" do
+        subject
+        expect(shift.reload.details['permit_new_teams']).to be_falsey
+        expect(shift.reload.details['permit_solo']).to be_falsey
+        expect(shift.reload.details['permit_joins']).to be_truthy
+      end
+    end
+
     context 'as an unpermitted user' do
       let(:requesting_user) { create(:user, :unpermitted) }
 

@@ -1,12 +1,12 @@
 class CreateShifts < ActiveRecord::Migration[7.0]
   def change
     create_table :shifts do |t|
-      t.string :identifier, null: false
-      t.string :name, null: false
-      t.string :description, null: false
-      # t.jsonb :details, default: []
+      t.string :identifier, null: false, unique: true
+      t.string :name
+      t.string :description
+      t.jsonb :details, default: {events: [], permit_new_teams: true, permit_solo: true, permit_joins: true}
       t.integer :display_order, null: false, default: 1
-      t.integer :capacity, null: false, default: 40
+      t.integer :capacity, null: false, default: 128
       t.integer :requested, null: false, default: 0
       t.integer :confirmed, null: false, default: 0
       t.references :tournament, null: false
@@ -15,6 +15,5 @@ class CreateShifts < ActiveRecord::Migration[7.0]
 
       t.index :identifier, unique: true
     end
-    create_index :shifts, :identifier, unique: true
   end
 end

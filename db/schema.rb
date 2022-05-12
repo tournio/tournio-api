@@ -10,7 +10,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema[7.0].define(version: 2022_05_06_010513) do
+ActiveRecord::Schema[7.0].define(version: 2022_04_11_202331) do
   # These are extensions that must be enabled in order to support this database
   enable_extension "plpgsql"
 
@@ -196,16 +196,16 @@ ActiveRecord::Schema[7.0].define(version: 2022_05_06_010513) do
 
   create_table "shifts", force: :cascade do |t|
     t.string "identifier", null: false
-    t.string "name", null: false
-    t.string "description", null: false
+    t.string "name"
+    t.string "description"
+    t.jsonb "details", default: {"events"=>[], "permit_solo"=>true, "permit_joins"=>true, "permit_new_teams"=>true}
     t.integer "display_order", default: 1, null: false
-    t.integer "capacity", default: 40, null: false
+    t.integer "capacity", default: 128, null: false
     t.integer "requested", default: 0, null: false
     t.integer "confirmed", default: 0, null: false
     t.bigint "tournament_id", null: false
     t.datetime "created_at", null: false
     t.datetime "updated_at", null: false
-    t.jsonb "details", default: []
     t.index ["identifier"], name: "index_shifts_on_identifier", unique: true
     t.index ["tournament_id"], name: "index_shifts_on_tournament_id"
   end

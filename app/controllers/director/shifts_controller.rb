@@ -53,7 +53,7 @@ module Director
       skip_authorization
       render json: nil, status: :not_found
     rescue ActiveRecord::RecordInvalid
-      render json: { error: 'Cannot make capacity less than the number of confirmed teams' }, status: :conflict
+      render json: { error: 'Cannot make capacity less than the number of confirmed bowlers' }, status: :conflict
     end
 
     private
@@ -61,7 +61,10 @@ module Director
     attr_accessor :tournament, :shift
 
     def shift_params
-      params.permit(:tournament_identifier, :identifier, shift: %i(capacity description name display_order)).require(:shift)
+      params.permit(:tournament_identifier,
+        :identifier,
+        shift: %i(capacity description name display_order).concat([details: %i(permit_new_teams permit_solo permit_joins).concat([events: []])])
+      ).require(:shift)
     end
   end
 end

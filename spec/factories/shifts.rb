@@ -3,13 +3,13 @@
 # Table name: shifts
 #
 #  id            :bigint           not null, primary key
-#  capacity      :integer          default(40), not null
+#  capacity      :integer          default(128), not null
 #  confirmed     :integer          default(0), not null
-#  description   :string           not null
+#  description   :string
 #  details       :jsonb
 #  display_order :integer          default(1), not null
 #  identifier    :string           not null
-#  name          :string           not null
+#  name          :string
 #  requested     :integer          default(0), not null
 #  created_at    :datetime         not null
 #  updated_at    :datetime         not null
