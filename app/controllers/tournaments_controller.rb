@@ -1,7 +1,7 @@
 class TournamentsController < ApplicationController
   def index
     tournaments = Tournament.includes(:config_items).available.order(name: :asc)
-    sleep(3) if Rails.env.development?
+    sleep(1) if Rails.env.development?
     render json: TournamentBlueprint.render(tournaments, view: :list)
   end
 
@@ -11,7 +11,7 @@ class TournamentsController < ApplicationController
       render json: nil, status: 404
       return
     end
-    sleep(3) if Rails.env.development?
+    sleep(1) if Rails.env.development?
     render json: TournamentBlueprint.render(@tournament, view: :detail)
   end
 

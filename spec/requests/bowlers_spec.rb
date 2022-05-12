@@ -43,6 +43,31 @@ describe BowlersController, type: :request do
           subject
           expect(json).to have_key('identifier')
         end
+
+        context 'a team on a shift' do
+          let(:shift) { create :shift, :high_demand, tournament: tournament }
+          let!(:shift_team) { create :shift_team, shift: shift, team: team }
+
+          it 'bumps the requested count by one' do
+            expect { subject }.to change { shift.reload.requested }.by(1)
+          end
+
+          it 'does not bump the confirmed count' do
+            expect { subject }.not_to change { shift.reload.confirmed }
+          end
+
+          context 'the team is confirmed on the shift' do
+            let!(:shift_team) { create :shift_team, shift: shift, team: team, aasm_state: :confirmed, confirmed_at: 3.days.ago }
+
+            it 'bumps the confirmed count by one' do
+              expect { subject }.to change { shift.reload.confirmed }.by(1)
+            end
+
+            it 'does not bump the confirmed count' do
+              expect { subject }.not_to change { shift.reload.requested }
+            end
+          end
+        end
       end
 
       context 'with a full team' do

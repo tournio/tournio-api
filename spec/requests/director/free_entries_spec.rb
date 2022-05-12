@@ -169,7 +169,8 @@ describe Director::FreeEntriesController, type: :request do
     let(:tournament) { create :tournament, :active }
     let(:free_entry) { create :free_entry, tournament: tournament }
     let(:free_entry_id) { free_entry.id }
-    let(:bowler) { create :bowler, tournament: tournament }
+    let(:team) { create :team, tournament: tournament }
+    let(:bowler) { create :bowler, tournament: tournament, team: team }
     let(:bowler_identifier) { bowler.identifier }
 
     let(:params) do
@@ -301,7 +302,9 @@ describe Director::FreeEntriesController, type: :request do
     let(:uri) { "/director/free_entries/#{free_entry_id}/confirm" }
 
     let(:tournament) { create :tournament, :active }
-    let(:free_entry) { create :free_entry, tournament: tournament, bowler: (create :bowler, tournament: tournament) }
+    let(:team) { create :team, tournament: tournament }
+    let(:bowler) { create :bowler, tournament: tournament, team: team }
+    let(:free_entry) { create :free_entry, tournament: tournament, bowler: bowler }
     let(:free_entry_id) { free_entry.id }
 
     include_examples 'an authorized action'

@@ -32,7 +32,7 @@ module Director
       end
       authorize tournament, :show?
       bowlers = policy_scope(tournament.bowlers).includes(:person, :free_entry, :team).order('people.last_name')
-      sleep(3) if Rails.env.development?
+      sleep(1) if Rails.env.development?
       render json: BowlerBlueprint.render(bowlers, view: :director_list), status: :ok
     end
 
@@ -62,7 +62,7 @@ module Director
       try_updating_details
       try_updating_additional_question_responses
       try_reassigning
-      # try_linking_free_entry
+
 
       if error.present?
         render json: { error: error }, status: :bad_request
@@ -81,7 +81,18 @@ module Director
       end
 
       authorize tournament, :update?
+      team = bowler.team
+
       bowler.destroy
+
+      if team.shift.present?
+        if team.shift_team.confirmed_at.present?
+          team.shift.update(confirmed: team.shift.confirmed - 1)
+        else
+          team.shift.update(requested: team.shift.requested - 1)
+        end
+      end
+
       render json: nil, status: :no_content
     end
 
@@ -155,6 +166,7 @@ module Director
       end
 
       DirectorUtilities.reassign_bowler(bowler: bowler, to_team: new_team)
+      TournamentRegistration.try_confirming_shift(new_team)
     end
 
     def try_updating_details

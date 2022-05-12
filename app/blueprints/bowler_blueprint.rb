@@ -37,6 +37,18 @@ class BowlerBlueprint < Blueprinter::Base
     association :paid_purchases, blueprint: PurchaseBlueprint do |bowler, _|
       bowler.purchases.includes(:purchasable_item).paid.order(paid_at: :asc)
     end
+
+    field :shift_info do |b, _|
+      shift = b.shift
+      if shift.present?
+        {
+          full: shift.confirmed >= shift.capacity,
+          confirmed: b.team.shift_team.confirmed_at.present?,
+        }
+      else
+        {}
+      end
+    end
   end
 
   view :director_list do
@@ -77,18 +89,18 @@ class BowlerBlueprint < Blueprinter::Base
 
   view :director_detail do
     fields :address1,
-           :address2,
-           :birth_day,
-           :birth_month,
-           :city,
-           :country,
-           :email,
-           :nickname,
-           :phone,
-           :postal_code,
-           :state,
-           :igbo_id,
-           :usbc_id
+      :address2,
+      :birth_day,
+      :birth_month,
+      :city,
+      :country,
+      :email,
+      :nickname,
+      :phone,
+      :postal_code,
+      :state,
+      :igbo_id,
+      :usbc_id
 
     field :display_name do |bowler, _|
       TournamentRegistration.bowler_full_name(bowler)

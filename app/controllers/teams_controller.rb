@@ -25,13 +25,13 @@ class TeamsController < ApplicationController
   BOWLER_ATTRS = [
     :position,
     :doubles_partner_num,
-
     person_attributes: PERSON_ATTRS,
     additional_question_responses: ADDITIONAL_QUESTION_RESPONSES_ATTRS,
   ].freeze
   TEAM_ATTRS = [
     :name,
     bowlers_attributes: BOWLER_ATTRS,
+    shift: [:identifier],
   ].freeze
 
   #####################
@@ -63,7 +63,7 @@ class TeamsController < ApplicationController
       return
     end
     teams = params[:incomplete] ? tournament.available_to_join : tournament.teams.order('LOWER(name)')
-    sleep(3) if Rails.env.development?
+    sleep(1) if Rails.env.development?
     render json: TeamBlueprint.render(teams, view: :list)
   end
 
@@ -74,7 +74,7 @@ class TeamsController < ApplicationController
       return
     end
     team.bowlers.includes(:person, :ledger_entries).order(:position)
-    sleep(3) if Rails.env.development?
+    sleep(1) if Rails.env.development?
     render json: TeamBlueprint.render(team, view: :detail)
   end
 
@@ -110,12 +110,20 @@ class TeamsController < ApplicationController
     team
   end
 
-  # Remove keys whose values are blank
-  # Remove associations whose values are blank
   def clean_up_form_data(permitted_params)
     cleaned_up = permitted_params.dup
     # cleaned_up['bowlers_attributes'].transform_keys!(&:to_i)
     cleaned_up['bowlers_attributes'].map! { |bowler_attrs| clean_up_bowler_data(bowler_attrs) }
+
+    # transform shift param into the Rails association style
+    unless permitted_params['shift'].nil?
+      shift = tournament.shifts.find_by(identifier: permitted_params['shift']['identifier'])
+      unless shift.nil?
+        cleaned_up[:shift_team_attributes] = { shift_id: shift.id }
+      end
+      cleaned_up.delete(:shift)
+    end
+
     cleaned_up
   end
 

@@ -1,7 +1,7 @@
 # frozen_string_literal: true
 
 tournament = Tournament.create!(
-  name: 'Demo Tournament',
+  name: 'Demo Tournament With Shifts',
   year: 2022,
   start_date: '2022-09-23',
 )
@@ -21,7 +21,7 @@ tournament.config_items += [
   ),
   ConfigItem.new(
     key: 'image_path',
-    value: '/images/retro_pins.jpg',
+    value: '/images/retro_bowl.jpg',
   ),
   ConfigItem.new(
     key: 'team_size',
@@ -57,9 +57,17 @@ tournament.contacts << Contact.new(
   role: :treasurer,
 )
 
-tournament.shifts << Shift.new(
-  capacity: 40,
-  name: 'Main',
-  description: 'Singles on Friday 6-9pm, Doubles/Team Saturday 11am-5pm',
-  display_order: 1,
-)
+tournament.shifts += [
+  Shift.new(
+    capacity: 24,
+    name: 'Early',
+    description: 'Singles on Friday 5-9pm, Doubles/Team on Saturday 9am-3pm',
+    display_order: 1,
+  ),
+  Shift.new(
+    capacity: 24,
+    name: 'Late',
+    description: 'Singles on Friday 9:30pm-midnight, Doubles/Team Saturday 4-10pm',
+    display_order: 2,
+  ),
+]

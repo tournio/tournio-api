@@ -97,6 +97,16 @@ module TournamentRegistration
     add_early_discount_to_ledger(bowler)
     add_late_fees_to_ledger(bowler)
     complete_doubles_link(bowler) if bowler.doubles_partner_id.present?
+
+    if bowler.team.shift.present?
+      shift = bowler.team.shift
+      if bowler.team.shift_team.confirmed?
+        shift.update(confirmed: shift.confirmed + 1)
+      else
+        shift.update(requested: shift.requested + 1)
+      end
+    end
+
     send_confirmation_email(bowler)
     notify_registration_contacts(bowler)
   end
@@ -208,11 +218,11 @@ module TournamentRegistration
   def self.send_receipt_email(bowler, paypal_order_identifier)
     tournament = bowler.tournament
     if Rails.env.development? && !tournament.config[:email_in_dev]
-      Rails.logger.info "========= Not sending confirmation email, dev config says not to."
+      Rails.logger.info "========= Not sending receipt email, dev config says not to."
       return
     end
     recipient = if Rails.env.production?
-                  tournament.active? ? bowler.email : tournament.contacts.treasurer.first
+                  tournament.active? ? bowler.email : tournament.contacts.treasurer.first || tournament.contacts.payment_notifiable.first
                 elsif Rails.env.test?
                   MailerJob::FROM
                 elsif tournament.config[:email_in_dev]
@@ -226,6 +236,10 @@ module TournamentRegistration
 
   def self.notify_registration_contacts(bowler)
     tournament = bowler.tournament
+    if Rails.env.development? && !tournament.config[:email_in_dev]
+      Rails.logger.info "========= Not sending new-registration email, dev config says not to."
+      return
+    end
     contacts = tournament.contacts.registration_notifiable.individually
     contacts.each do |c|
       email = Rails.env.production? ? c.email : MailerJob::FROM
@@ -238,6 +252,23 @@ module TournamentRegistration
       PURCHASABLE_ITEM_SORTING[:determination][purchase_or_item.determination.to_sym] +
       (PURCHASABLE_ITEM_SORTING[:refinement][purchase_or_item&.refinement&.to_sym] || 0) +
       (purchase_or_item.configuration['order'] || 0)
+  end
+
+  def self.try_confirming_shift(team)
+    return unless team.shift.present?
+    return if team.shift_team.confirmed?
+    return unless team.bowlers.count == team.tournament.team_size
+    unpaid_fees = team.bowlers.collect { |bowler| bowler.purchases.ledger.unpaid.any? }.flatten
+    return if unpaid_fees.any?
+    return if team.shift.confirmed >= team.shift.capacity
+
+    confirm_shift(team)
+  end
+
+  def self.confirm_shift(team)
+    team.shift_team.confirm!
+
+    #TODO Send an email to bowlers about confirmation
   end
 
   # Private methods

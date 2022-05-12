@@ -21,7 +21,8 @@ describe PurchasesController, type: :request do
       }
     end
     let(:tournament) { create :tournament, :active, :accepting_payments }
-    let(:bowler) { create(:bowler, person: create(:person), tournament: tournament) }
+    let(:team) { create :team, tournament: tournament }
+    let(:bowler) { create(:bowler, person: create(:person), tournament: tournament, team: team) }
     let!(:entry_fee_item) { create(:purchasable_item, :entry_fee, value: entry_fee_amount, tournament: tournament) }
     let!(:early_discount_item) { create(:purchasable_item, :early_discount, value: early_discount_amount, tournament: tournament, configuration: { valid_until: 1.week.from_now }) }
     let!(:late_fee_item) { create(:purchasable_item, :late_fee, value: late_fee_amount, tournament: tournament, configuration: { applies_at: 2.weeks.ago }) }
@@ -50,7 +51,10 @@ describe PurchasesController, type: :request do
       let(:purchase) { Purchase.new(purchasable_item: entry_fee_item) }
 
       # When a bowler registers, they get a Purchase for the entry fee
-      before { bowler.purchases << purchase }
+      before do
+        bowler.purchases << purchase
+        allow(TournamentRegistration).to receive(:try_confirming_shift)
+      end
 
       it 'returns a Created status code' do
         subject
@@ -90,6 +94,11 @@ describe PurchasesController, type: :request do
 
       it 'sends a receipt email' do
         expect(PaymentReceiptNotifierJob).to receive(:perform_async)
+        subject
+      end
+
+      it "tries to confirm the bowler's team's requested shift" do
+        expect(TournamentRegistration).to receive(:try_confirming_shift)
         subject
       end
 

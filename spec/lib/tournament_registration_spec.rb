@@ -131,7 +131,8 @@ RSpec.describe TournamentRegistration do
     subject { subject_class.register_bowler(bowler) }
 
     let(:tournament) { create :tournament, :active }
-    let(:bowler) { create(:bowler, person: create(:person), tournament: tournament) }
+    let(:team) { create :team, tournament: tournament }
+    let(:bowler) { create(:bowler, person: create(:person), tournament: tournament, team: team) }
 
     before do
       allow(subject_class).to receive(:purchase_entry_fee)
@@ -156,6 +157,20 @@ RSpec.describe TournamentRegistration do
     it 'queues up an email notification to the bowler' do
       expect(subject_class).to receive(:send_confirmation_email).with(bowler).once
       subject
+    end
+
+    context 'When a team is requesting a shift' do
+      let(:team) { create :team, tournament: tournament }
+      let(:shift) { create :shift, tournament: tournament }
+      let!(:shift_team) { create :shift_team, team: team, shift: shift }
+
+      before do
+        bowler.update(team: team)
+      end
+
+      it 'increases the shift requested count by 1' do
+        expect { subject }.to change { shift.reload.requested }.by(1)
+      end
     end
   end
 
@@ -862,6 +877,109 @@ RSpec.describe TournamentRegistration do
       it 'returns the same sort value' do
         expect(described_class.purchasable_item_sort(purchase)).to eq(described_class.purchasable_item_sort(entry_fee_item))
       end
+    end
+  end
+
+  describe '#try_confirming_shift' do
+    subject { subject_class.try_confirming_shift(team) }
+
+    let(:tournament) { create :tournament, :active, :with_entry_fee, :two_shifts }
+    let(:entry_fee_item) { tournament.purchasable_items.entry_fee.first }
+    let(:shift) { tournament.shifts.first }
+    let(:team) { create :team, :standard_full_team, tournament: tournament }
+    let!(:shift_team) { create :shift_team, shift: shift, team: team }
+
+    before { allow(subject_class).to receive(:confirm_shift) }
+
+    context 'when at least one bowler has not paid' do
+      before do
+        team.bowlers.each do |b|
+          create :purchase, bowler: b, purchasable_item: entry_fee_item, amount: entry_fee_item.value
+        end
+      end
+
+      it 'does not confirm the shift' do
+        expect(subject_class).not_to receive(:confirm_shift)
+        subject
+      end
+    end
+
+    context 'when all bowlers have paid their entry fees' do
+      before do
+        team.bowlers.each do |b|
+          create :purchase, :paid, bowler: b, purchasable_item: entry_fee_item, amount: entry_fee_item.value
+        end
+      end
+
+      it 'confirms the shift' do
+        expect(subject_class).to receive(:confirm_shift).once
+        subject
+      end
+
+      context "but the team's shift is already confirmed" do
+        let!(:shift_team) { create :shift_team, :confirmed, shift: shift, team: team }
+
+        it 'does not confirm the shift' do
+          expect(subject_class).not_to receive(:confirm_shift)
+          subject
+        end
+      end
+
+      context "but the shift is at capacity" do
+        before { shift.update(confirmed: shift.capacity) }
+
+        it 'does not confirm the shift' do
+          expect(subject_class).not_to receive(:confirm_shift)
+          subject
+        end
+      end
+    end
+
+    context 'the team is not full' do
+      let(:team) { create :team, :standard_three_bowlers, tournament: tournament }
+
+      context 'and at least one bowler has not paid' do
+        before do
+          team.bowlers.each do |b|
+            create :purchase, bowler: b, purchasable_item: entry_fee_item, amount: entry_fee_item.value
+          end
+        end
+
+        it 'does not confirm the shift' do
+          expect(subject_class).not_to receive(:confirm_shift)
+          subject
+        end
+      end
+
+      context 'and all bowlers have paid their fees' do
+        before do
+          team.bowlers.each do |b|
+            create :purchase, :paid, bowler: b, purchasable_item: entry_fee_item, amount: entry_fee_item.value
+          end
+        end
+
+        it 'does not confirm the shift' do
+          expect(subject_class).not_to receive(:confirm_shift)
+          subject
+        end
+      end
+    end
+  end
+
+  describe '#confirm_shift' do
+    subject { subject_class.confirm_shift(team) }
+
+    let(:tournament) { create :tournament, :active, :with_entry_fee, :two_shifts }
+    let(:shift) { tournament.shifts.first }
+    let(:team) { create :team, :standard_full_team, tournament: tournament }
+    let!(:shift_team) { create :shift_team, shift: shift, team: team }
+
+    it 'changes the state' do
+      expect { subject }.to change { shift_team.confirmed? }.from(false).to(true)
+    end
+
+    it "bumps the shift's confirmed count" do
+      expect { subject }.to change { shift.confirmed }.by(4)
     end
   end
 end

@@ -32,7 +32,11 @@ Rails.application.routes.draw do
           post 'resend_email'
         end
       end
-      resources :teams, only: %i(index create show update destroy), param: :identifier, shallow: true
+      resources :teams, only: %i(index create show update destroy), param: :identifier, shallow: true do
+        member do
+          post 'confirm_shift'
+        end
+      end
       resources :free_entries, only: %i(index create destroy update), shallow: true do
         member do
           post 'confirm'
@@ -42,6 +46,7 @@ Rails.application.routes.draw do
       resources :config_items, only: %i(update), shallow: true
       resources :purchasable_items, only: %i(create update destroy), param: :identifier, shallow: true
       resources :contacts, only: %i(create update), shallow: true
+      resources :shifts, only: %i(create update destroy), param: :identifier, shallow: true
     end
   end
 
