@@ -108,10 +108,15 @@ describe TeamsController, type: :request do
         expect { subject }.not_to change { shift.reload.confirmed }
       end
 
-      it 'sets the place_with_others attribute under options' do
+      it 'the options object is not empty' do
         subject
         team = Team.last
         expect(team.options).not_to be_empty
+      end
+
+      it 'sets the place_with_others attribute under options' do
+        subject
+        team = Team.last
         expect(team.options['place_with_others']).to be_truthy
       end
 
