@@ -62,6 +62,12 @@ describe TeamsController, type: :request do
         expect { subject }.not_to change { shift.reload.confirmed }
       end
 
+      it 'does not set the place_with_others attribute under options' do
+        subject
+        team = Team.last
+        expect(team.options['place_with_others']).to be_nil
+      end
+
       it 'includes the new team in the response' do
         subject
         expect(json).to have_key('name')
@@ -100,6 +106,13 @@ describe TeamsController, type: :request do
 
       it "does not change the shift's confirmed attribute" do
         expect { subject }.not_to change { shift.reload.confirmed }
+      end
+
+      it 'sets the place_with_others attribute under options' do
+        subject
+        team = Team.last
+        expect(team.options).not_to be_empty
+        expect(team.options['place_with_others']).to be_truthy
       end
 
       it 'includes the new team in the response' do

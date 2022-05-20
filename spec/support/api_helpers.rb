@@ -337,6 +337,9 @@ module ApiHelpers
           ],
         },
       ],
+      'options' => {
+        'place_with_others' => true,
+      }
     }
   end
 

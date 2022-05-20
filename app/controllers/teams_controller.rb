@@ -32,6 +32,7 @@ class TeamsController < ApplicationController
     :name,
     bowlers_attributes: BOWLER_ATTRS,
     shift: [:identifier],
+    options: {},
   ].freeze
 
   #####################

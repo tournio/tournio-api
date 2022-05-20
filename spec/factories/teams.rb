@@ -7,6 +7,7 @@
 #  id            :bigint           not null, primary key
 #  identifier    :string           not null
 #  name          :string
+#  options       :jsonb
 #  created_at    :datetime         not null
 #  updated_at    :datetime         not null
 #  tournament_id :bigint
