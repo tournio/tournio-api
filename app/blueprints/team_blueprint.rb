@@ -50,6 +50,9 @@ class TeamBlueprint < Blueprinter::Base
     field :shift_confirmed do |t, _|
       t.shift_team&.confirmed?
     end
+    field :place_with_others do |t, _|
+      t.options['place_with_others'].nil? ? 'n/a' : t.options['place_with_others']
+    end
   end
 
   view :director_detail do
