@@ -1,27 +1,27 @@
 # frozen_string_literal: true
 
 tournament = Tournament.create!(
-  name: 'Demo Tournament',
+  name: 'Show Me St. Louis Classic',
   year: 2022,
-  start_date: '2022-09-23',
+  start_date: '2022-09-02',
 )
 
 tournament.config_items += [
   ConfigItem.new(
     key: 'location',
-    value: 'Anywhere, USA',
+    value: 'St. Louis, MO',
   ),
   ConfigItem.new(
     key: 'entry_deadline',
-    value: '2022-09-09T23:59:59-06:00',
+    value: '2022-08-24T23:59:59-05:00',
   ),
   ConfigItem.new(
     key: 'time_zone',
-    value: 'America/Denver',
+    value: 'America/Chicago',
   ),
   ConfigItem.new(
     key: 'image_path',
-    value: '/images/retro_pins.jpg',
+    value: '/images/showme.webp',
   ),
   ConfigItem.new(
     key: 'team_size',
@@ -29,15 +29,11 @@ tournament.config_items += [
   ),
   ConfigItem.new(
     key: 'website',
-    value: 'http://www.igbo-reg.com',
+    value: 'https://showmeclassic.com/',
   ),
   ConfigItem.new(
     key: 'paypal_client_id',
     value: 'sb',
-  ),
-  ConfigItem.new(
-    key: 'email_in_dev',
-    value: 'false',
   ),
   ConfigItem.new(
     key: 'display_capacity',
@@ -45,25 +41,26 @@ tournament.config_items += [
   ),
 ]
 
+if (Rails.env.development?)
+  tournament.config_items << ConfigItem.new(key: 'email_in_dev', value: 'false')
+end
+
 tournament.contacts << Contact.new(
-  name: 'Kylie Minogue',
-  email: 'director@example.org',
+  name: 'Rich Bax',
+  email: 'richardjbax@yahoo.com',
   role: :director,
 )
 tournament.contacts << Contact.new(
-  name: 'Dorothy Gale',
-  email: 'secretary@example.org',
+  name: 'Stephen Bodine',
+  email: 'stlouisguy99@sbcglobal.net',
   role: :secretary,
+  notify_on_registration: true,
+  notification_preference: :daily_summary,
 )
 tournament.contacts << Contact.new(
-  name: 'Stevie Nicks',
-  email: 'treasurer@example.org',
+  name: 'Jennifer Herbert',
+  email: 'jennifer@adcreations.com',
   role: :treasurer,
-)
-
-tournament.shifts << Shift.new(
-  capacity: 120,
-  name: 'Main',
-  description: 'Singles on Friday 6-9pm, Doubles/Team Saturday 11am-5pm',
-  display_order: 1,
+  notify_on_payment: true,
+  notification_preference: :daily_summary,
 )

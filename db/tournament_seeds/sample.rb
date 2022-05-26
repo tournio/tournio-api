@@ -39,6 +39,10 @@ tournament.config_items += [
     key: 'email_in_dev',
     value: 'false',
   ),
+  ConfigItem.new(
+    key: 'display_capacity',
+    value: 'false',
+  ),
 ]
 
 tournament.contacts << Contact.new(
