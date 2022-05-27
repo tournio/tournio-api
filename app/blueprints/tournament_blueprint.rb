@@ -82,7 +82,6 @@ class TournamentBlueprint < Blueprinter::Base
     association :config_items, blueprint: ConfigItemBlueprint
     transform ConfigItemsFilter
     association :contacts, blueprint: ContactBlueprint
-    association :purchasable_items, blueprint: PurchasableItemBlueprint
     association :testing_environment, blueprint: TestingEnvironmentBlueprint
     association :shifts, blueprint: ShiftBlueprint
     association :stripe_account, blueprint: StripeAccountBlueprint
@@ -128,6 +127,14 @@ class TournamentBlueprint < Blueprinter::Base
     field :free_entry_count do |t, _|
       t.free_entries.count
     end
+
+    field :purchasable_items do |t, _|
+      if t.active?
+        organized_purchasable_items(tournament: t)
+      else
+        PurchasableItemBlueprint.render_as_hash(t.purchasable_items)
+      end
+    end
   end
 
   private
@@ -136,5 +143,30 @@ class TournamentBlueprint < Blueprinter::Base
     return unless datetime.present?
     time_zone = tournament.config[:time_zone]
     datetime.in_time_zone(time_zone).strftime('%b %-d, %Y %l:%M%P %Z')
+  end
+
+  def self.organized_purchasable_items(tournament:)
+    ledger_items = tournament.purchasable_items.ledger
+    division_items = tournament.purchasable_items.division
+    other_bowling_items = tournament.purchasable_items.bowling.where(refinement: nil).order(name: :asc)
+    banquet = tournament.purchasable_items.banquet.order(name: :asc)
+    product = tournament.purchasable_items.product.order(name: :asc)
+
+    determination_order = {
+      entry_fee: 0,
+      early_discount: 1,
+      late_fee: 2,
+      discount_expiration: 3,
+      single_use: 4,
+      multi_use: 5,
+    }
+
+    {
+      ledger: PurchasableItemBlueprint.render_as_hash(ledger_items.sort_by { |li| determination_order[li.determination.to_sym] }),
+      division: PurchasableItemBlueprint.render_as_hash(division_items.sort_by { |di| di.configuration['division'] }),
+      bowling: PurchasableItemBlueprint.render_as_hash(other_bowling_items),
+      banquet: PurchasableItemBlueprint.render_as_hash(banquet),
+      product: PurchasableItemBlueprint.render_as_hash(product),
+    }
   end
 end
