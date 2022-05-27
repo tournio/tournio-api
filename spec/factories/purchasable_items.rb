@@ -74,6 +74,7 @@ FactoryBot.define do
         {
           division: 'A',
           note: 'Averages 209 and up',
+          order: '',
         }
       end
     end

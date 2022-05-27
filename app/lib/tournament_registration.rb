@@ -251,7 +251,7 @@ module TournamentRegistration
     PURCHASABLE_ITEM_SORTING[:category][purchase_or_item.category.to_sym] +
       PURCHASABLE_ITEM_SORTING[:determination][purchase_or_item.determination.to_sym] +
       (PURCHASABLE_ITEM_SORTING[:refinement][purchase_or_item&.refinement&.to_sym] || 0) +
-      (purchase_or_item.configuration['order'] || 0)
+      (purchase_or_item.configuration['order'].to_i || 0)
   end
 
   def self.try_confirming_shift(team)
