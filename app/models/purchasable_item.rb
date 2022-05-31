@@ -41,6 +41,10 @@ class PurchasableItem < ApplicationRecord
     single_use: 'single_use',
     multi_use: 'multi_use',
 
+    bundle_discount: 'bundle_discount', # a ledger item
+
+    event: 'event', # a selectable bowling event when bowlers can choose events, like singles or baker doubles
+
     # this allows directors to cancel out an early-registration discount when
     # a bowler has failed to complete their registration, e.g., pay fees, before
     # the deadline.
