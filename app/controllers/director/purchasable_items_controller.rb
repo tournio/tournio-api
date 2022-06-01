@@ -79,8 +79,24 @@ module Director
     end
 
     def purchasable_item_create_params
-      params.permit(:tournament_identifier, purchasable_items: [:value, :name, :category, :determination, :refinement, configuration: %i(order applies_at valid_until division note denomination)])
-            .require(:purchasable_items)
+      params.permit(:tournament_identifier,
+        purchasable_items: [
+          :value,
+          :name,
+          :category,
+          :determination,
+          :refinement,
+          configuration: [
+            :order,
+            :applies_at,
+            :valid_until,
+            :division,
+            :note,
+            :denomination,
+            events: [],
+          ]
+        ]
+      ).require(:purchasable_items)
             .map! { |pi_hash| pi_hash.merge(tournament_id: tournament.id) }
     end
   end

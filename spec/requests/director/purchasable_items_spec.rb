@@ -204,6 +204,27 @@ describe Director::PurchasableItemsController, type: :request do
           end
         end
       end
+
+      context 'an event bundle discount' do
+        let(:determination) { 'bundle_discount' }
+        let(:event1) { create :purchasable_item, :bowling_event, tournament: tournament }
+        let(:event2) { create :purchasable_item, :bowling_event, tournament: tournament }
+        let(:configuration_param) do
+          {
+            events: [event1.identifier, event2.identifier],
+          }
+        end
+
+        it 'succeeds' do
+          subject
+          expect(response).to have_http_status(:created)
+        end
+
+        it 'includes the events in the created item' do
+          subject
+          expect(json[0]['configuration']['events']).to match_array([event1.identifier, event2.identifier])
+        end
+      end
     end
 
     context 'a banquet item' do

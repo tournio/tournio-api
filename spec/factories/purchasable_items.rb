@@ -79,6 +79,18 @@ FactoryBot.define do
       end
     end
 
+    trait :bowling_event do
+      category { :bowling }
+      determination { :event }
+      name { 'A fundamental event' }
+      value { 100 }
+      configuration do
+        {
+          order: 1,
+        }
+      end
+    end
+
     trait :optional_event do
       category { :bowling }
       determination { :single_use }
@@ -106,6 +118,19 @@ FactoryBot.define do
           denomination: '100 tickets',
           order: 1,
         }
+      end
+    end
+
+    trait :event_bundle_discount do
+      category { :ledger }
+      determination { :bundle_discount }
+      name { 'Event Bundle' }
+      value { -20 }
+      after(:create) do |pi, _|
+        e1 = create :purchasable_item, :bowling_event, tournament: pi.tournament
+        e2 = create :purchasable_item, :bowling_event, tournament: pi.tournament
+        pi.configuration['events'] = [e1.identifier, e2.identifier]
+        pi.save
       end
     end
   end
