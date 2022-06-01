@@ -45,6 +45,9 @@ module Director
       end
 
       pi.update(purchasable_item_update_params)
+      if pi.errors
+        Rails.logger.info pi.errors.inspect
+      end
 
       render json: PurchasableItemBlueprint.render(pi.reload), status: :ok
     rescue ActiveRecord::RecordNotFound
@@ -75,7 +78,18 @@ module Director
     attr_accessor :tournament, :items
 
     def purchasable_item_update_params
-      params.require(:purchasable_item).permit(:value, configuration: %i(order applies_at valid_until division note denomination)).to_h.symbolize_keys
+      params.require(:purchasable_item).permit(
+        :value,
+        configuration: [
+          :order,
+          :applies_at,
+          :valid_until,
+          :division,
+          :note,
+          :denomination,
+          events: [],
+        ],
+      ).to_h.symbolize_keys
     end
 
     def purchasable_item_create_params

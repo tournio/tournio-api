@@ -59,7 +59,7 @@ class PurchasableItem < ApplicationRecord
     # add other refinements here as support them, e.g., size, classification
   }
 
-  validate :one_ledger_item_per_determination, if: proc { |pi| pi.ledger? }
+  validate :one_ledger_item_per_determination, if: proc { |pi| pi.ledger? }, on: :create
   validate :contains_applies_at, if: proc { |pi| pi.ledger? && pi.late_fee? }
   validate :contains_valid_until, if: proc { |pi| pi.ledger? && pi.early_discount? }
   validate :contains_input_label, if: proc { |pi| pi.input? }
