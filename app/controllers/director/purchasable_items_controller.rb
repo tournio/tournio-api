@@ -107,6 +107,7 @@ module Director
             :division,
             :note,
             :denomination,
+            :event,
             events: [],
           ]
         ]

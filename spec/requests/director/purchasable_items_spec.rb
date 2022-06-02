@@ -225,6 +225,33 @@ describe Director::PurchasableItemsController, type: :request do
           expect(json[0]['configuration']['events']).to match_array([event1.identifier, event2.identifier])
         end
       end
+
+      context 'an event-linked late fee' do
+        let(:determination) { 'late_fee' }
+        let(:refinement) { 'event_linked' }
+        let(:event) { create :purchasable_item, :bowling_event, tournament: tournament }
+        let(:configuration_param) do
+          {
+            event: event.identifier,
+            applies_at: 2.weeks.from_now.strftime("%FT%T%:z")
+          }
+        end
+
+        it 'succeeds' do
+          subject
+          expect(response).to have_http_status(:created)
+        end
+
+        it 'includes the event in the created item' do
+          subject
+          expect(json[0]['configuration']['event']).to eq(event.identifier)
+        end
+
+        it 'includes the applies_at in the created item' do
+          subject
+          expect(json[0]['configuration']).to have_key('applies_at')
+        end
+      end
     end
 
     context 'a banquet item' do

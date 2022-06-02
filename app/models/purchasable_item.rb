@@ -28,7 +28,7 @@ class PurchasableItem < ApplicationRecord
 
   enum category: {
     bowling: 'bowling', # optional bowling events
-    ledger: 'ledger',   # mandatory items, e.g., registration, late fee, early discount
+    ledger: 'ledger', # mandatory items, e.g., registration, late fee, early discount
     banquet: 'banquet', # uh, banquet
     product: 'product', #  Thing like raffle ticket bundles, shirts, and other merchandise
     # add other categories here as we support them, e.g., program
@@ -41,9 +41,8 @@ class PurchasableItem < ApplicationRecord
     single_use: 'single_use',
     multi_use: 'multi_use',
 
-    bundle_discount: 'bundle_discount', # a ledger item
-
     event: 'event', # a selectable bowling event when bowlers can choose events, like singles or baker doubles
+    bundle_discount: 'bundle_discount', # a ledger item
 
     # this allows directors to cancel out an early-registration discount when
     # a bowler has failed to complete their registration, e.g., pay fees, before
@@ -56,6 +55,7 @@ class PurchasableItem < ApplicationRecord
     input: 'input',
     division: 'division',
     denomination: 'denomination',
+    event_linked: 'event_linked', # on a ledger late_fee item, linked with an event (when event selection is permitted)
     # add other refinements here as support them, e.g., size, classification
   }
 
@@ -74,8 +74,14 @@ class PurchasableItem < ApplicationRecord
   # Validation methods
   ###################################
 
+  # does not apply to event-linked late fees, since there can be one for each defined event
+  # hence the "refinement: nil" condition
   def one_ledger_item_per_determination
-    unless PurchasableItem.where(tournament_id: tournament_id, category: 'ledger', determination: determination).empty?
+    unless PurchasableItem.where(
+      tournament_id: tournament_id,
+      category: 'ledger',
+      determination: determination,
+      refinement: nil).empty?
       errors.add(:determination, 'already present')
       return
     end

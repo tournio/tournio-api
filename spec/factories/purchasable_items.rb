@@ -133,5 +133,24 @@ FactoryBot.define do
         pi.save
       end
     end
+
+    trait :event_late_fee do
+      category { :ledger }
+      determination { :late_fee }
+      refinement { :event_linked }
+      name { 'Late registration fee for an event'}
+      user_selectable { false }
+      configuration do
+        {
+          applies_at: 2.weeks.from_now,
+        }
+      end
+      after(:create) do |pi, _|
+        e = create :purchasable_item, :bowling_event, tournament: pi.tournament
+        pi.configuration['event'] = e.identifier
+        pi.save
+      end
+    end
+
   end
 end
