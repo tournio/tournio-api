@@ -26,10 +26,13 @@ class Shift < ApplicationRecord
   has_many :teams, through: :shift_teams
 
   validates :capacity, comparison: { greater_than_or_equal_to: :confirmed }
+  validate :no_unknown_detail_properties
 
   scope :available, -> { where('confirmed < capacity') }
 
   before_create :generate_identifier, if: -> { identifier.blank? }
+
+  SUPPORTED_DETAILS = %w(events permit_new_teams permit_solo permit_joins permit_partnering)
 
   def to_param
     identifier
@@ -43,5 +46,14 @@ class Shift < ApplicationRecord
 
   def generate_identifier
     self.identifier = SecureRandom.uuid
+  end
+
+  def no_unknown_detail_properties
+    return unless details.present?
+    detail_keys = details.keys
+    diff = detail_keys - SUPPORTED_DETAILS
+    unless diff.empty?
+      errors.add(:details, "includes unrecognized properties: #{diff.join(', ')}")
+    end
   end
 end
