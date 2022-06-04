@@ -27,4 +27,8 @@ class ShiftBlueprint < Blueprinter::Base
   field :permit_joins do |s, _|
     s.details['permit_joins']
   end
+
+  field :permit_partnering do |s, _|
+    s.details['permit_partnering']
+  end
 end

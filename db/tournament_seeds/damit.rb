@@ -40,10 +40,6 @@ tournament.config_items += [
     key: 'event_selection',
     value: 'true',
   ),
-  ConfigItem.new(
-    key: 'registration',
-    value: 'individual,partner',
-  ),
 ]
 
 if (Rails.env.development?)
