@@ -177,14 +177,9 @@ RSpec.describe TournamentRegistration do
   describe '#purchase_entry_fee' do
     subject { subject_class.purchase_entry_fee(bowler) }
 
-    let(:tournament) { create :tournament, :active }
-    let(:entry_fee) { 100 }
+    let(:tournament) { create :tournament, :active, :with_entry_fee }
     let(:bowler) { create(:bowler, person: create(:person), tournament: tournament) }
-
-    before do
-      allow(tournament).to receive(:entry_fee).and_return(entry_fee)
-      create(:purchasable_item, :entry_fee, value: entry_fee, tournament: tournament)
-    end
+    let(:entry_fee_item) { tournament.purchasable_items.entry_fee.first }
 
     it 'creates a ledger item for the tournament entry fee' do
       expect { subject }.to change(LedgerEntry, :count).by(1)
@@ -197,7 +192,7 @@ RSpec.describe TournamentRegistration do
     it 'creates it as a debit' do
       subject
       debit_sum = bowler.ledger_entries.reload.sum(&:debit).to_i
-      expect(debit_sum).to eq(entry_fee)
+      expect(debit_sum).to eq(entry_fee_item.value)
     end
 
     it 'creates no credit entries' do
@@ -219,6 +214,18 @@ RSpec.describe TournamentRegistration do
       subject
       purchase = bowler.purchases.reload.first
       expect(purchase.purchasable_item.determination).to eq('entry_fee')
+    end
+
+    context 'when there is no entry fee purchasable item, e.g., with event selection enabled' do
+      let(:tournament) { create :tournament, :active }
+
+      it 'does not create a Purchase for the bowler' do
+        expect { subject }.not_to change(bowler.purchases, :count)
+      end
+
+      it 'does not create a ledger item for a tournament entry fee' do
+        expect { subject }.not_to change(LedgerEntry, :count)
+      end
     end
   end
 

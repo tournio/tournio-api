@@ -9,9 +9,8 @@ describe BowlersController, type: :request do
   end
 
   describe '#create' do
-    subject { post uri, params: joining_bowler_params, as: :json }
+    subject { post uri, params: bowler_params, as: :json }
 
-    let(:uri) { "/teams/#{team.identifier}/bowlers" }
     let(:tournament) { create :tournament, :active, :with_entry_fee }
 
     before do
@@ -24,73 +23,126 @@ describe BowlersController, type: :request do
       create(:additional_question, extended_form_field: standings, tournament: tournament)
     end
 
-    context 'with valid bowler input' do
-      let(:joining_bowler_params) do
+    context 'joining a team on a standard tournament' do
+      let(:uri) { "/teams/#{team.identifier}/bowlers" }
+
+      context 'with valid bowler input' do
+        let(:bowler_params) do
+          {
+            bowler: create_bowler_test_data.merge({ position: 4 })
+          }
+        end
+
+        context 'with a partial team' do
+          let(:team) { create(:team, :standard_three_bowlers, tournament: tournament) }
+
+          it 'succeeds' do
+            subject
+            expect(response).to have_http_status(:created)
+          end
+
+          it 'includes the new team in the response' do
+            subject
+            expect(json).to have_key('identifier')
+          end
+
+          context 'a team on a shift' do
+            let(:shift) { create :shift, :high_demand, tournament: tournament }
+            let!(:shift_team) { create :shift_team, shift: shift, team: team }
+
+            it 'bumps the requested count by one' do
+              expect { subject }.to change { shift.reload.requested }.by(1)
+            end
+
+            it 'does not bump the confirmed count' do
+              expect { subject }.not_to change { shift.reload.confirmed }
+            end
+
+            context 'the team is confirmed on the shift' do
+              let!(:shift_team) { create :shift_team, shift: shift, team: team, aasm_state: :confirmed, confirmed_at: 3.days.ago }
+
+              it 'bumps the confirmed count by one' do
+                expect { subject }.to change { shift.reload.confirmed }.by(1)
+              end
+
+              it 'does not bump the confirmed count' do
+                expect { subject }.not_to change { shift.reload.requested }
+              end
+            end
+          end
+        end
+
+        context 'with a full team' do
+          let(:team) { create(:team, :standard_full_team, tournament: tournament) }
+
+          it 'fails' do
+            subject
+            expect(response).to have_http_status(:bad_request)
+          end
+        end
+      end
+
+      context 'with invalid data' do
+        let(:team) { create(:team, :standard_three_bowlers, tournament: tournament) }
+        let(:bowler_params) do
+          {
+            bowler: invalid_create_bowler_test_data.merge({position: 4})
+          }
+        end
+
+        it 'fails' do
+          subject
+          expect(response).to have_http_status(:unprocessable_entity)
+        end
+      end
+    end
+
+    context 'registering as an individual' do
+      let(:uri) { "/tournaments/#{tournament.identifier}/bowlers" }
+      let(:bowler_params) do
         {
-          bowler: joining_bowler_test_data.merge({ position: 4 })
+          bowler: create_bowler_test_data,
         }
       end
 
-      context 'with a partial team' do
-        let(:team) { create(:team, :standard_three_bowlers, tournament: tournament) }
+      it 'does not create a new team for the bowler' do
+        expect{ subject }.not_to change(Team, :count)
+      end
+
+      it 'succeeds' do
+        subject
+        expect(response).to have_http_status(:created)
+      end
+
+      it 'creates a new bowler' do
+        expect{ subject }.to change(Bowler, :count).by(1)
+      end
+
+      it 'includes the new bowler in the response' do
+        subject
+        bowler = Bowler.last
+        expect(json['identifier']).to eq(bowler.identifier)
+      end
+
+      it 'creates an entry-fee purchase for the bowler' do
+        subject
+        bowler = Bowler.last
+        expect(bowler.purchases.entry_fee).not_to be_empty
+      end
+
+      context 'a tournament with event selection' do
+        let(:tournament) { create :tournament, :active, :with_event_selection, :with_a_bowling_event }
 
         it 'succeeds' do
           subject
           expect(response).to have_http_status(:created)
         end
 
-        it 'includes the new team in the response' do
+        it 'does not create an entry-fee purchase for the bowler' do
           subject
-          expect(json).to have_key('identifier')
+          bowler = Bowler.last
+          expect(bowler.purchases.entry_fee).to be_empty
         end
-
-        context 'a team on a shift' do
-          let(:shift) { create :shift, :high_demand, tournament: tournament }
-          let!(:shift_team) { create :shift_team, shift: shift, team: team }
-
-          it 'bumps the requested count by one' do
-            expect { subject }.to change { shift.reload.requested }.by(1)
-          end
-
-          it 'does not bump the confirmed count' do
-            expect { subject }.not_to change { shift.reload.confirmed }
-          end
-
-          context 'the team is confirmed on the shift' do
-            let!(:shift_team) { create :shift_team, shift: shift, team: team, aasm_state: :confirmed, confirmed_at: 3.days.ago }
-
-            it 'bumps the confirmed count by one' do
-              expect { subject }.to change { shift.reload.confirmed }.by(1)
-            end
-
-            it 'does not bump the confirmed count' do
-              expect { subject }.not_to change { shift.reload.requested }
-            end
-          end
-        end
-      end
-
-      context 'with a full team' do
-        let(:team) { create(:team, :standard_full_team, tournament: tournament) }
-
-        it 'fails' do
-          subject
-          expect(response).to have_http_status(:bad_request)
-        end
-      end
-    end
-
-    context 'with invalid data' do
-      let(:team) { create(:team, :standard_three_bowlers, tournament: tournament) }
-      let(:joining_bowler_params) do
-        {
-          bowler: invalid_joining_bowler_test_data.merge({position: 4})
-        }
-      end
-
-      it 'fails' do
-        subject
-        expect(response).to have_http_status(:unprocessable_entity)
       end
     end
   end

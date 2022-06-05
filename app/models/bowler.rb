@@ -41,7 +41,8 @@ class Bowler < ApplicationRecord
             numericality: {
               only_integer: true,
               greater_than: 0,
-            }
+            },
+            if: -> { team.present? }
 
   delegate :address1,
            :address2,

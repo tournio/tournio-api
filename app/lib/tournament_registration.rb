@@ -98,7 +98,10 @@ module TournamentRegistration
     add_late_fees_to_ledger(bowler)
     complete_doubles_link(bowler) if bowler.doubles_partner_id.present?
 
-    if bowler.team.shift.present?
+    # TODO: individual bowlers and shift counts...
+
+    # Here if we're registering a team or if a bowler is joining a team
+    if bowler.team.present? && bowler.team&.shift.present?
       shift = bowler.team.shift
       if bowler.team.shift_team.confirmed?
         shift.update(confirmed: shift.confirmed + 1)
@@ -112,10 +115,12 @@ module TournamentRegistration
   end
 
   def self.purchase_entry_fee(bowler)
-    entry_fee = bowler.tournament.entry_fee
+    entry_fee_item = bowler.tournament.purchasable_items.entry_fee.first
+    return unless entry_fee_item.present?
+
+    entry_fee = entry_fee_item.value
     bowler.ledger_entries << LedgerEntry.new(debit: entry_fee, identifier: 'entry fee') if entry_fee.positive?
 
-    entry_fee_item = bowler.tournament.purchasable_items.entry_fee.first
     bowler.purchases << Purchase.new(purchasable_item: entry_fee_item)
   end
 

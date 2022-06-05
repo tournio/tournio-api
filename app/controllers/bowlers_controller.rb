@@ -30,20 +30,34 @@ class BowlersController < ApplicationController
   ####################################
 
   def create
+    permit_params
     load_team
+    load_tournament
 
-    if team.bowlers.count == tournament.team_size
-      render json: { message: 'This team is full.' }, status: :bad_request
+    # the tournament should be loaded either by association with the team, or finding by its identifier
+    unless tournament.present?
+      render json: nil, status: 404
       return
     end
 
     form_data = clean_up_bowler_data(bowler_params)
-    bowler = bowler_from_params(form_data)
-
+    @bowler = bowler_from_params(form_data)
     unless bowler.valid?
       Rails.logger.info(bowler.errors.inspect)
       render json: bowler.errors, status: :unprocessable_entity
       return
+    end
+
+    # now, are they joining a team, or registering solo?
+    if team.present?
+      # joining
+      if team.bowlers.count == tournament.team_size
+        render json: { message: 'This team is full.' }, status: :bad_request
+        return
+      end
+    else
+      # registering solo
+
     end
 
     bowler.save
@@ -176,7 +190,11 @@ class BowlersController < ApplicationController
 
   private
 
-  attr_reader :tournament, :team, :bowler
+  attr_reader :tournament, :team, :bowler, :parameters
+
+  def permit_params
+    @parameters = params.permit(:identifier, :team_identifier, :tournament_identifier, bowler: BOWLER_ATTRS)
+  end
 
   def load_bowler
     identifier = params.require(:identifier)
@@ -188,13 +206,19 @@ class BowlersController < ApplicationController
   end
 
   def load_team
-    identifier = params.require(:team_identifier)
-    @team = Team.find_by_identifier(identifier)
-    unless @team.present?
-      render json: nil, status: 404
-      return
+    identifier = parameters[:team_identifier]
+    if identifier.present?
+      @team = Team.find_by_identifier(identifier)
+      @tournament = team&.tournament
     end
-    @tournament = team.tournament
+  end
+
+  def load_tournament
+    return unless tournament.nil?
+    identifier = params[:tournament_identifier]
+    if identifier.present?
+      @tournament = Tournament.includes(:bowlers).find_by_identifier(identifier)
+    end
   end
 
   def rendered_purchasable_items_by_identifier
@@ -228,16 +252,16 @@ class BowlersController < ApplicationController
   # These are used only when adding a bowler to an existing team
 
   def bowler_from_params(info)
-    partner = team.bowlers.without_doubles_partner.first
-
     bowler = Bowler.new(info.merge(team: team, tournament: tournament))
-    bowler.doubles_partner = partner if partner.present?
-
+    if team.present?
+      partner = team.bowlers.without_doubles_partner.first
+      bowler.doubles_partner = partner if partner.present?
+    end
     bowler
   end
 
   def bowler_params
-    params.require(:bowler).permit(BOWLER_ATTRS).to_h.with_indifferent_access
+    parameters.require(:bowler).to_h.with_indifferent_access
   end
 
   def additional_question_responses(params)

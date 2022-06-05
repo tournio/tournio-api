@@ -47,5 +47,10 @@ FactoryBot.define do
       key { 'email_in_dev'}
       value { 'true' }
     end
+
+    trait :event_selection do
+      key { 'event_selection' }
+      value { 'true' }
+    end
   end
 end

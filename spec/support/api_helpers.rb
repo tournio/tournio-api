@@ -409,13 +409,13 @@ module ApiHelpers
     }
   end
 
-  def joining_bowler_test_data
+  def create_bowler_test_data
     {
       'person_attributes' => {
         'first_name' => 'Giacomo',
         'last_name' => 'Hale',
         'usbc_id' => '6621-43399',
-        'igbo_id' => 'YW-5457',
+        # 'igbo_id' => 'YW-5457',
         'birth_month' => '6',
         'birth_day' => '16',
         'nickname' => 'Gio',
@@ -441,7 +441,7 @@ module ApiHelpers
     }
   end
 
-  def invalid_joining_bowler_test_data
+  def invalid_create_bowler_test_data
     {
       'person_attributes' => {
         'first_name' => 'Giacomo',
