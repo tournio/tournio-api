@@ -240,7 +240,7 @@ class BowlersController < ApplicationController
   end
 
   def rendered_purchasable_items_by_identifier
-    excluded_item_names = bowler.purchases.single_use.collect { |p| p.purchasable_item.name }
+    excluded_item_names = (bowler.purchases.single_use + bowler.purchases.event).collect { |p| p.purchasable_item.name }
     items = tournament.purchasable_items.user_selectable.where.not(name: excluded_item_names)
     items.each_with_object({}) { |i, result| result[i.identifier] = PurchasableItemBlueprint.render_as_hash(i) }
   end
