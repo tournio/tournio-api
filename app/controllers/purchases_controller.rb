@@ -57,6 +57,22 @@ class PurchasesController < ApplicationController
       end
     end
 
+    # apply any relevant event bundle discounts
+    bundle_discount_items = tournament.purchasable_items.bundle_discount
+    applicable_discounts = bundle_discount_items.select do |discount|
+      identifiers.intersection(discount.configuration['events']).length == discount.configuration['events'].length
+    end
+    applicable_discounts.map do |d|
+      new_purchases << Purchase.create(bowler: bowler,
+        purchasable_item: d,
+        amount: d.value,
+        paid_at: paid_at,
+        paypal_order: ppo
+      )
+      bowler.ledger_entries << LedgerEntry.new(credit: -d.value, source: :purchase, identifier: d.name)
+    end
+    total_credit += applicable_discounts.sum(&:value)
+
     unless total_credit == 0
       bowler.ledger_entries << LedgerEntry.new(credit: total_credit, source: :paypal, identifier: details[:paypal_details][:id])
     end

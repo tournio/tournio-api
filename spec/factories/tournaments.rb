@@ -146,5 +146,6 @@ FactoryBot.define do
       after(:create) do |t, _|
         create(:purchasable_item, :bowling_event)
       end
-    end  end
+    end
+  end
 end

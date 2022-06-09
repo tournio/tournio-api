@@ -37,6 +37,8 @@ class Purchase < ApplicationRecord
   scope :single_use, -> { joins(:purchasable_item).where(purchasable_item: {determination: :single_use}) }
   scope :entry_fee, -> { joins(:purchasable_item).where(purchasable_item: {determination: :entry_fee}) }
   scope :ledger, -> { joins(:purchasable_item).where(purchasable_items: {category: :ledger}) }
+  scope :event, -> { joins(:purchasable_item).where(purchasable_item: {determination: :event}) }
+  scope :bundle_discount, -> { joins(:purchasable_item).where(purchasable_item: {category: :ledger, determination: :bundle_discount}) }
 
   private
 

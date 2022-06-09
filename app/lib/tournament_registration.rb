@@ -21,9 +21,11 @@ module TournamentRegistration
       entry_fee: 1,
       early_discount: 2,
       late_fee: 3,
-      discount_expiration: 4,
-      single_use: 5,
-      multi_use: 6,
+      bundle_discount: 4,
+      discount_expiration: 5,
+      event: 10,
+      single_use: 11,
+      multi_use: 12,
     },
     refinement: {
       division: -1,
@@ -71,7 +73,8 @@ module TournamentRegistration
   end
 
   def self.person_display_name(person)
-    "#{person.last_name}, #{person.first_name}"
+    preferred_name = person.nickname.present? ? person.nickname : person.first_name
+    "#{person.last_name}, #{preferred_name}"
   end
 
   def self.bowler_full_name(bowler)
@@ -260,7 +263,7 @@ module TournamentRegistration
   end
 
   def self.try_confirming_shift(team)
-    return unless team.shift.present?
+    return unless team.present? && team.shift.present?
     return if team.shift_team.confirmed?
     return unless team.bowlers.count == team.tournament.team_size
     unpaid_fees = team.bowlers.collect { |bowler| bowler.purchases.ledger.unpaid.any? }.flatten

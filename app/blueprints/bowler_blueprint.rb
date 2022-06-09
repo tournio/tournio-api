@@ -4,11 +4,21 @@ class BowlerBlueprint < Blueprinter::Base
   identifier :identifier
   fields :first_name, :last_name, :position
   field :nickname, name: :preferred_name
+  field :created_at, name: :date_registered, datetime_format: "%F"
+  field :full_name do |b, _|
+    TournamentRegistration.person_display_name(b.person)
+  end
 
   association :tournament, blueprint: TournamentBlueprint
 
   field :amount_due do |b, _|
     TournamentRegistration.amount_due(b).to_i
+  end
+
+  view :list do
+    field :events do |b, _|
+      PurchaseBlueprint.render(b.purchases.event)
+    end
   end
 
   view :detail do
@@ -52,6 +62,8 @@ class BowlerBlueprint < Blueprinter::Base
   end
 
   view :director_list do
+    field :email
+
     field :amount_billed do |b, _|
       billed = TournamentRegistration.amount_billed(b).to_i
       ActionController::Base.helpers.number_to_currency(billed, precision: 0)
@@ -62,14 +74,12 @@ class BowlerBlueprint < Blueprinter::Base
     end
 
     field :team_name do |b, _|
-      TournamentRegistration.team_display_name(b.team)
+      b.team.present? ? TournamentRegistration.team_display_name(b.team) : 'n/a'
     end
 
     field :team_identifier do |b, _|
-      b.team.identifier
+      b.team.present? ? b.team.identifier : 'n/a'
     end
-
-    field :created_at, name: :date_registered, datetime_format: "%F"
 
     field :igbo_member do |b, _|
       b.verified_data['igbo_member'] || false

@@ -29,6 +29,17 @@ class BowlersController < ApplicationController
 
   ####################################
 
+  def index
+    load_tournament
+
+    unless tournament.present?
+      render json: nil, status: :not_found
+      return
+    end
+
+    render json: BowlerBlueprint.render(tournament.bowlers, view: :list), status: :ok
+  end
+
   def create
     permit_params
     load_team
@@ -36,7 +47,7 @@ class BowlersController < ApplicationController
 
     # the tournament should be loaded either by association with the team, or finding by its identifier
     unless tournament.present?
-      render json: nil, status: 404
+      render json: nil, status: :not_found
       return
     end
 
@@ -163,6 +174,13 @@ class BowlersController < ApplicationController
       return
     end
 
+    # apply any relevant event bundle discounts
+    bundle_discount_items = tournament.purchasable_items.bundle_discount
+    applicable_discounts = bundle_discount_items.select do |discount|
+      identifiers.intersection(discount.configuration['events']).length == discount.configuration['events'].length
+    end
+    total_discount = applicable_discounts.sum(&:value)
+
     # items_total = purchasable_items.sum(&:value)
     items_total = items.map do |item|
       identifier = item[:identifier]
@@ -171,7 +189,7 @@ class BowlersController < ApplicationController
     end.sum
 
     # sum up the total of unpaid purchases and indicated purchasable items
-    total_to_charge = purchases_total + items_total
+    total_to_charge = purchases_total + items_total + total_discount
 
     # Disallow a purchase if there's nothing owed
     if (total_to_charge == 0)
@@ -215,7 +233,7 @@ class BowlersController < ApplicationController
 
   def load_tournament
     return unless tournament.nil?
-    identifier = params[:tournament_identifier]
+    identifier = params.permit(:tournament_identifier)[:tournament_identifier]
     if identifier.present?
       @tournament = Tournament.includes(:bowlers).find_by_identifier(identifier)
     end

@@ -6,6 +6,27 @@ require 'rails_helper'
 RSpec.describe TournamentRegistration do
   let(:subject_class) { described_class }
 
+  describe '#person_display_name' do
+    subject { subject_class.person_display_name(person) }
+
+    let(:first_name) { 'Aragorn' }
+    let(:last_name) { 'Arathorn' }
+    let(:person) { create :person, first_name: first_name, last_name: last_name }
+
+    it 'uses the first name' do
+      expect(subject).to eq("#{last_name}, #{first_name}")
+    end
+
+    context 'with a nickname specified' do
+      let(:nickname) { 'Strider' }
+      let(:person) { create :person, first_name: first_name, last_name: last_name, nickname: nickname }
+
+      it 'uses the nickname' do
+        expect(subject).to eq("#{last_name}, #{nickname}")
+      end
+    end
+  end
+
   describe '#display_date' do
     subject { subject_class.display_date(date_arg) }
 
