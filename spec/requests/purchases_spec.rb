@@ -406,6 +406,50 @@ describe PurchasesController, type: :request do
           purchases = bowler.purchases.reload
           expect(purchases.collect(&:paid_at).compact).to match_array(purchases.collect(&:paid_at))
         end
+
+        context 'already purchased one event, now purchasing the other to complete the bundle' do
+          let(:chosen_items) { [tournament.purchasable_items.event.first] }
+          let(:expected_total) { tournament.purchasable_items.event.first.value + bundle_discount_item.value }
+
+          before { create :purchase, :paid, bowler: bowler, purchasable_item: tournament.purchasable_items.event.second }
+
+          it 'creates the expected number of Purchases' do
+            expect { subject }.to change(Purchase, :count).by(2)
+          end
+
+          it 'creates a Purchase for the event' do
+            subject
+            expect(bowler.purchases.reload.event.count).to eq(2)
+          end
+
+          it 'creates a Purchase for the applied bundle discount' do
+            subject
+            expect(bowler.purchases.reload.bundle_discount.count).to eq(1)
+          end
+
+          it 'creates a ledger entry in the amount of the expected total' do
+            subject
+            le = bowler.ledger_entries.last
+            expect(le.credit).to eq(expected_total)
+          end
+
+          it 'creates a ledger entry for the event, the discount, and the payment' do
+            expect { subject }.to change { LedgerEntry.count }.by(3)
+          end
+
+          it 'links the Purchases to the paypal order' do
+            subject
+            ppo = PaypalOrder.last
+            purchases = bowler.purchases.reload.last(2)
+            purchases.each { |p| expect(p.paypal_order_id).to eq(ppo.id) }
+          end
+
+          it 'sets the paid_at attribute on each Purchase' do
+            subject
+            purchases = bowler.purchases.reload.last(2)
+            expect(purchases.collect(&:paid_at).compact).to match_array(purchases.collect(&:paid_at))
+          end
+        end
       end
     end
 

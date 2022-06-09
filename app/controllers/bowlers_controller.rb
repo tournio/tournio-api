@@ -30,6 +30,7 @@ class BowlersController < ApplicationController
   ####################################
 
   def index
+    permit_params
     load_tournament
 
     unless tournament.present?
@@ -176,8 +177,9 @@ class BowlersController < ApplicationController
 
     # apply any relevant event bundle discounts
     bundle_discount_items = tournament.purchasable_items.bundle_discount
+    previous_paid_event_item_identifiers = bowler.purchases.event.paid.map { |p| p.purchasable_item.identifier }
     applicable_discounts = bundle_discount_items.select do |discount|
-      identifiers.intersection(discount.configuration['events']).length == discount.configuration['events'].length
+      (identifiers + previous_paid_event_item_identifiers).intersection(discount.configuration['events']).length == discount.configuration['events'].length
     end
     total_discount = applicable_discounts.sum(&:value)
 
@@ -233,7 +235,7 @@ class BowlersController < ApplicationController
 
   def load_tournament
     return unless tournament.nil?
-    identifier = params.permit(:tournament_identifier)[:tournament_identifier]
+    identifier = parameters[:tournament_identifier]
     if identifier.present?
       @tournament = Tournament.includes(:bowlers).find_by_identifier(identifier)
     end

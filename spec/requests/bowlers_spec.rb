@@ -604,6 +604,23 @@ describe BowlersController, type: :request do
           subject
           expect(json['total']).to eq(expected_total)
         end
+
+        context 'already purchased one event, now purchasing the other to complete the bundle' do
+          let(:chosen_items) { [tournament.purchasable_items.event.first] }
+          let(:expected_total) { tournament.purchasable_items.event.first.value + bundle_discount_item.value }
+
+          before { create :purchase, :paid, bowler: bowler, purchasable_item: tournament.purchasable_items.event.second }
+
+          it 'returns an OK status code' do
+            subject
+            expect(response).to have_http_status(:ok)
+          end
+
+          it 'returns the correct total' do
+            subject
+            expect(json['total']).to eq(expected_total)
+          end
+        end
       end
     end
   end

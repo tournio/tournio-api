@@ -34,6 +34,7 @@ class PurchasesController < ApplicationController
     matching_purchases.update_all(paid_at: paid_at, paypal_order_id: ppo.id)
 
     new_purchases = bowler.purchases.where(identifier: purchase_identifiers).to_a
+    previous_paid_event_item_identifiers = bowler.purchases.event.paid.map { |p| p.purchasable_item.identifier }
 
     # gather purchasable items
     items = details[:purchasable_items] || []
@@ -60,7 +61,7 @@ class PurchasesController < ApplicationController
     # apply any relevant event bundle discounts
     bundle_discount_items = tournament.purchasable_items.bundle_discount
     applicable_discounts = bundle_discount_items.select do |discount|
-      identifiers.intersection(discount.configuration['events']).length == discount.configuration['events'].length
+      (identifiers + previous_paid_event_item_identifiers).intersection(discount.configuration['events']).length == discount.configuration['events'].length
     end
     applicable_discounts.map do |d|
       new_purchases << Purchase.create(bowler: bowler,
