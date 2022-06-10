@@ -26,13 +26,14 @@ class Shift < ApplicationRecord
   has_many :teams, through: :shift_teams
 
   validates :capacity, comparison: { greater_than_or_equal_to: :confirmed }
-  validate :no_unknown_detail_properties
+  validate :no_unknown_detail_properties, :no_unknown_registration_types
 
   scope :available, -> { where('confirmed < capacity') }
 
   before_create :generate_identifier, if: -> { identifier.blank? }
 
-  SUPPORTED_DETAILS = %w(events permit_new_teams permit_solo permit_joins permit_partnering)
+  SUPPORTED_DETAILS = %w(events registration_types)
+  SUPPORTED_REGISTRATION_TYPES = %w(new_team solo join_team partner new_pair)
 
   def to_param
     identifier
@@ -54,6 +55,15 @@ class Shift < ApplicationRecord
     diff = detail_keys - SUPPORTED_DETAILS
     unless diff.empty?
       errors.add(:details, "includes unrecognized properties: #{diff.join(', ')}")
+    end
+  end
+
+  def no_unknown_registration_types
+    return unless details.present?
+    registration_types = details['registration_types'] || []
+    diff = registration_types - SUPPORTED_REGISTRATION_TYPES
+    unless diff.empty?
+      errors.add(:details, "includes unrecognized registration types: #{diff.join(', ')}")
     end
   end
 end

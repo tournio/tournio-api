@@ -20,6 +20,6 @@ class TournamentsController < ApplicationController
   def load_tournament
     params.require(:identifier)
     id = params[:identifier]
-    @tournament = Tournament.includes(:config_items, :contacts, :testing_environment, additional_questions: [:extended_form_field]).find_by_identifier(id)
+    @tournament = Tournament.includes(:config_items, :contacts, :testing_environment, :shifts, additional_questions: [:extended_form_field]).find_by_identifier(id)
   end
 end
