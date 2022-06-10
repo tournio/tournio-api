@@ -67,7 +67,7 @@ describe BowlersController, type: :request do
       context 'with valid bowler input' do
         let(:bowler_params) do
           {
-            bowler: create_bowler_test_data.merge({ position: 4 })
+            bowlers: [create_bowler_test_data.merge({ position: 4 })]
           }
         end
 
@@ -79,9 +79,10 @@ describe BowlersController, type: :request do
             expect(response).to have_http_status(:created)
           end
 
-          it 'includes the new team in the response' do
+          it 'includes the bowler identifier in the response' do
             subject
-            expect(json).to have_key('identifier')
+            bowler = Bowler.last
+            expect(json[0]['identifier']).to eq(bowler.identifier)
           end
 
           context 'a team on a shift' do
@@ -124,7 +125,7 @@ describe BowlersController, type: :request do
         let(:team) { create(:team, :standard_three_bowlers, tournament: tournament) }
         let(:bowler_params) do
           {
-            bowler: invalid_create_bowler_test_data.merge({position: 4})
+            bowlers: [invalid_create_bowler_test_data.merge({position: 4})]
           }
         end
 
@@ -139,7 +140,7 @@ describe BowlersController, type: :request do
       let(:uri) { "/tournaments/#{tournament.identifier}/bowlers" }
       let(:bowler_params) do
         {
-          bowler: create_bowler_test_data,
+          bowlers: [create_bowler_test_data],
         }
       end
 
@@ -159,7 +160,7 @@ describe BowlersController, type: :request do
       it 'includes the new bowler in the response' do
         subject
         bowler = Bowler.last
-        expect(json['identifier']).to eq(bowler.identifier)
+        expect(json[0]['identifier']).to eq(bowler.identifier)
       end
 
       it 'creates an entry-fee purchase for the bowler' do
@@ -176,11 +177,39 @@ describe BowlersController, type: :request do
           expect(response).to have_http_status(:created)
         end
 
-        it 'does not create an entry-fee purchase for the bowler' do
-          subject
-          bowler = Bowler.last
-          expect(bowler.purchases.entry_fee).to be_empty
+        it 'does not create any entry-fee purchases' do
+          expect { subject }.not_to change(Purchase, :count)
         end
+      end
+    end
+
+    context 'registering as a doubles pair' do
+      let(:tournament) { create :tournament, :active, :with_event_selection, :with_a_bowling_event }
+      let(:uri) { "/tournaments/#{tournament.identifier}/bowlers" }
+      let(:bowler_params) do
+        {
+          bowlers: create_doubles_test_data,
+        }
+      end
+
+      it 'succeeds' do
+        subject
+        expect(response).to have_http_status(:created)
+      end
+
+      it 'does not create any entry-fee purchases' do
+        expect { subject }.not_to change(Purchase, :count)
+      end
+
+      it 'creates two bowlers' do
+        expect { subject }.to change(Bowler, :count).by(2)
+      end
+
+      it 'partners up the two bowlers' do
+        subject
+        bowlers = Bowler.last(2)
+        expect(bowlers[0].doubles_partner_id).to eq(bowlers[1].id)
+        expect(bowlers[1].doubles_partner_id).to eq(bowlers[0].id)
       end
     end
   end

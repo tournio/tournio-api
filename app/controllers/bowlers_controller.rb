@@ -1,4 +1,6 @@
 class BowlersController < ApplicationController
+  wrap_parameters false
+
   ADDITIONAL_QUESTION_RESPONSES_ATTRS = %i[
       name
       response
@@ -52,12 +54,16 @@ class BowlersController < ApplicationController
       return
     end
 
-    form_data = clean_up_bowler_data(bowler_params)
-    @bowler = bowler_from_params(form_data)
-    unless bowler.valid?
-      Rails.logger.info(bowler.errors.inspect)
-      render json: bowler.errors, status: :unprocessable_entity
-      return
+    form_data = clean_up_bowler_data(parameters.require(:bowlers))
+    bowlers = []
+    form_data.each do |data|
+      a_bowler = bowler_from_params(data)
+      unless a_bowler.valid?
+        Rails.logger.info(a_bowler.errors.inspect)
+        render json: a_bowler.errors, status: :unprocessable_entity
+        return
+      end
+      bowlers << a_bowler
     end
 
     # now, are they joining a team, or registering solo?
@@ -68,14 +74,22 @@ class BowlersController < ApplicationController
         return
       end
     else
-      # registering solo
+      # registering solo or doubles
 
     end
 
-    bowler.save
-    TournamentRegistration.register_bowler(bowler)
+    bowlers.each do |b|
+      b.save
+      TournamentRegistration.register_bowler(b)
+    end
 
-    render json: { identifier: bowler.identifier }, status: :created
+    if bowlers.length == 2
+      bowlers[0].doubles_partner = bowlers[1]
+      bowlers[1].doubles_partner = bowlers[0]
+      bowlers.map(&:save)
+    end
+
+    render json: BowlerBlueprint.render(bowlers), status: :created
   end
 
   def show
@@ -213,7 +227,7 @@ class BowlersController < ApplicationController
   attr_reader :tournament, :team, :bowler, :parameters
 
   def permit_params
-    @parameters = params.permit(:identifier, :team_identifier, :tournament_identifier, bowler: BOWLER_ATTRS)
+    @parameters = params.permit(:identifier, :team_identifier, :tournament_identifier, bowlers: BOWLER_ATTRS)
   end
 
   def load_bowler
@@ -248,23 +262,42 @@ class BowlersController < ApplicationController
   end
 
   def clean_up_bowler_data(permitted_params)
-    # Remove any empty person attributes
-    permitted_params['person_attributes'].delete_if { |_k, v| v.length.zero? }
+    permitted_params.each do |p|
+      # Remove any empty person attributes
+      p['person_attributes'].delete_if { |_k, v| v.length.zero? }
 
-    # Person attributes: Convert integer params from string to integer
-    %w[birth_month birth_day].each do |attr|
-      permitted_params['person_attributes'][attr] = permitted_params['person_attributes'][attr].to_i
+      # Person attributes: Convert integer params from string to integer
+      %w[birth_month birth_day].each do |attr|
+        p['person_attributes'][attr] = p['person_attributes'][attr].to_i
+      end
+
+      # Remove additional question responses that are empty
+      p['additional_question_responses'].filter! { |r| r['response'].present? }
+
+      # transform the add'l question responses into the shape that we can accept via ActiveRecord
+      p['additional_question_responses_attributes'] =
+        additional_question_responses(p['additional_question_responses'])
+
+      # remove that key from the params...
+      p.delete('additional_question_responses')
     end
-
-    # Remove additional question responses that are empty
-    permitted_params['additional_question_responses'].filter! { |r| r['response'].present? }
-
-    # transform the add'l question responses into the shape that we can accept via ActiveRecord
-    permitted_params['additional_question_responses_attributes'] =
-      additional_question_responses(permitted_params['additional_question_responses'])
-
-    # remove that key from the params...
-    permitted_params.delete('additional_question_responses')
+    # # Remove any empty person attributes
+    # permitted_params['person_attributes'].delete_if { |_k, v| v.length.zero? }
+    #
+    # # Person attributes: Convert integer params from string to integer
+    # %w[birth_month birth_day].each do |attr|
+    #   permitted_params['person_attributes'][attr] = permitted_params['person_attributes'][attr].to_i
+    # end
+    #
+    # # Remove additional question responses that are empty
+    # permitted_params['additional_question_responses'].filter! { |r| r['response'].present? }
+    #
+    # # transform the add'l question responses into the shape that we can accept via ActiveRecord
+    # permitted_params['additional_question_responses_attributes'] =
+    #   additional_question_responses(permitted_params['additional_question_responses'])
+    #
+    # # remove that key from the params...
+    # permitted_params.delete('additional_question_responses')
 
     permitted_params
   end
@@ -278,10 +311,6 @@ class BowlersController < ApplicationController
       bowler.doubles_partner = partner if partner.present?
     end
     bowler
-  end
-
-  def bowler_params
-    parameters.require(:bowler).to_h.with_indifferent_access
   end
 
   def additional_question_responses(params)

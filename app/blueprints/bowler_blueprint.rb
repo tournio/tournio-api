@@ -19,9 +19,13 @@ class BowlerBlueprint < Blueprinter::Base
     field :events do |b, _|
       PurchaseBlueprint.render(b.purchases.event)
     end
+
+    association :doubles_partner, blueprint: BowlerBlueprint
   end
 
   view :detail do
+    include_view :list
+
     field :team_identifier do |b, _|
       # using &. because there may not be a team, if we're doing a singles tournament, say
       b.team&.identifier
