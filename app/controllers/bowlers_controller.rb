@@ -41,7 +41,8 @@ class BowlersController < ApplicationController
       return
     end
 
-    render json: BowlerBlueprint.render(tournament.bowlers, view: :list), status: :ok
+    list = parameters[:unpartnered].present? ? tournament.bowlers.without_doubles_partner : tournament.bowlers
+    render json: BowlerBlueprint.render(list, view: :list), status: :ok
   end
 
   def create
@@ -228,7 +229,7 @@ class BowlersController < ApplicationController
   attr_reader :tournament, :team, :bowler, :parameters
 
   def permit_params
-    @parameters = params.permit(:identifier, :team_identifier, :tournament_identifier, bowlers: BOWLER_ATTRS)
+    @parameters = params.permit(:identifier, :team_identifier, :tournament_identifier, :unpartnered, bowlers: BOWLER_ATTRS)
   end
 
   def load_bowler

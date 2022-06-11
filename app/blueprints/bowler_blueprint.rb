@@ -16,8 +16,8 @@ class BowlerBlueprint < Blueprinter::Base
   end
 
   view :list do
-    field :events do |b, _|
-      PurchaseBlueprint.render(b.purchases.event)
+    association :events, blueprint: PurchaseBlueprint do |bowler, _|
+      bowler.purchases.event
     end
 
     association :doubles_partner, blueprint: BowlerBlueprint
