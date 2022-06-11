@@ -180,6 +180,38 @@ describe BowlersController, type: :request do
         it 'does not create any entry-fee purchases' do
           expect { subject }.not_to change(Purchase, :count)
         end
+
+        context 'partnering up with an already-registered bowler' do
+          let!(:target) { create :bowler, tournament: tournament, position: nil }
+          let(:bowler_params) do
+            {
+              bowlers: [create_bowler_test_data.merge({
+                doubles_partner_identifier: target.identifier,
+              })],
+            }
+          end
+
+          it 'succeeds' do
+            subject
+            expect(response).to have_http_status(:created)
+          end
+
+          it 'creates a bowler' do
+            expect { subject }.to change(Bowler, :count).by(1)
+          end
+
+          it 'partners up the bowler with the target' do
+            subject
+            bowler = Bowler.last
+            expect(bowler.doubles_partner_id).to eq(target.id)
+          end
+
+          it 'reciprocates the partnership' do
+            subject
+            bowler = Bowler.last
+            expect(target.reload.doubles_partner_id).to eq(bowler.id)
+          end
+        end
       end
     end
 

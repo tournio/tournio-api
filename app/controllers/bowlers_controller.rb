@@ -25,6 +25,7 @@ class BowlersController < ApplicationController
   BOWLER_ATTRS = [
     :position,
     :doubles_partner_num,
+    :doubles_partner_identifier,
     person_attributes: PERSON_ATTRS,
     additional_question_responses: ADDITIONAL_QUESTION_RESPONSES_ATTRS,
   ].freeze
@@ -280,24 +281,14 @@ class BowlersController < ApplicationController
 
       # remove that key from the params...
       p.delete('additional_question_responses')
+
+      # If we've specified a doubles partner, then look them up by identifier and put their id in the params
+      if p['doubles_partner_identifier'].present?
+        partner = Bowler.where(identifier: p['doubles_partner_identifier'], doubles_partner_id: nil).first
+        p['doubles_partner_id'] = partner.id unless partner.nil?
+        p.delete('doubles_partner_identifier')
+      end
     end
-    # # Remove any empty person attributes
-    # permitted_params['person_attributes'].delete_if { |_k, v| v.length.zero? }
-    #
-    # # Person attributes: Convert integer params from string to integer
-    # %w[birth_month birth_day].each do |attr|
-    #   permitted_params['person_attributes'][attr] = permitted_params['person_attributes'][attr].to_i
-    # end
-    #
-    # # Remove additional question responses that are empty
-    # permitted_params['additional_question_responses'].filter! { |r| r['response'].present? }
-    #
-    # # transform the add'l question responses into the shape that we can accept via ActiveRecord
-    # permitted_params['additional_question_responses_attributes'] =
-    #   additional_question_responses(permitted_params['additional_question_responses'])
-    #
-    # # remove that key from the params...
-    # permitted_params.delete('additional_question_responses')
 
     permitted_params
   end
