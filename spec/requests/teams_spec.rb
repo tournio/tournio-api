@@ -13,14 +13,6 @@ describe TeamsController, type: :request do
 
     let(:uri) { "/tournaments/#{tournament.identifier}/teams" }
     let(:tournament) { create :tournament, :active, :with_entry_fee }
-    let(:shift) { create :shift, tournament: tournament }
-    let(:shift_params) do
-      {
-        shift: {
-          identifier: shift.identifier,
-        }
-      }
-    end
 
     before do
       comment = create(:extended_form_field, :comment)
@@ -35,31 +27,13 @@ describe TeamsController, type: :request do
     context 'with a full team' do
       let(:new_team_params) do
         {
-          team: full_team_test_data.merge(shift_params),
+          team: full_team_test_data,
         }
       end
 
       it 'succeeds' do
         subject
         expect(response).to have_http_status(:created)
-      end
-
-      it "creates a ShiftTeam instance" do
-        expect { subject }.to change(ShiftTeam, :count).by(1)
-      end
-
-      it "associates the new team to the shift" do
-        subject
-        team = Team.last
-        expect(team.shift).to eq(shift)
-      end
-
-      it "bumps the shift's requested attribute by 4" do
-        expect { subject }.to change { shift.reload.requested }.by(4)
-      end
-
-      it "does not change the shift's confirmed attribute" do
-        expect { subject }.not_to change { shift.reload.confirmed }
       end
 
       it 'does not set the place_with_others attribute under options' do
@@ -81,31 +55,13 @@ describe TeamsController, type: :request do
     context 'with a partial team' do
       let(:new_team_params) do
         {
-          team: partial_team_test_data.merge(shift_params)
+          team: partial_team_test_data,
         }
       end
 
       it 'succeeds' do
         subject
         expect(response).to have_http_status(:created)
-      end
-
-      it "creates a ShiftTeam instance" do
-        expect { subject }.to change(ShiftTeam, :count).by(1)
-      end
-
-      it "associates the new team to the shift" do
-        subject
-        team = Team.last
-        expect(team.shift).to eq(shift)
-      end
-
-      it "bumps the shift's requested attribute" do
-        expect { subject }.to change { shift.reload.requested }.by(3)
-      end
-
-      it "does not change the shift's confirmed attribute" do
-        expect { subject }.not_to change { shift.reload.confirmed }
       end
 
       it 'the options object is not empty' do
@@ -133,7 +89,7 @@ describe TeamsController, type: :request do
     context 'with invalid data' do
       let(:new_team_params) do
         {
-          team: invalid_team_test_data.merge(shift_params)
+          team: invalid_team_test_data,
         }
       end
 

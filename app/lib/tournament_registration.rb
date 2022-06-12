@@ -101,18 +101,6 @@ module TournamentRegistration
     add_late_fees_to_ledger(bowler)
     complete_doubles_link(bowler) if bowler.doubles_partner_id.present?
 
-    # TODO: individual bowlers and shift counts...
-
-    # Here if we're registering a team or if a bowler is joining a team
-    if bowler.team.present? && bowler.team&.shift.present?
-      shift = bowler.team.shift
-      if bowler.team.shift_team.confirmed?
-        shift.update(confirmed: shift.confirmed + 1)
-      else
-        shift.update(requested: shift.requested + 1)
-      end
-    end
-
     send_confirmation_email(bowler)
     notify_registration_contacts(bowler)
   end
@@ -263,20 +251,21 @@ module TournamentRegistration
   end
 
   def self.try_confirming_shift(team)
-    return unless team.present? && team.shift.present?
-    return if team.shift_team.confirmed?
-    return unless team.bowlers.count == team.tournament.team_size
-    unpaid_fees = team.bowlers.collect { |bowler| bowler.purchases.ledger.unpaid.any? }.flatten
-    return if unpaid_fees.any?
-    return if team.shift.confirmed >= team.shift.capacity
-
-    confirm_shift(team)
+    # TODO: remove when we kill the shifts_teams table
   end
 
-  def self.confirm_shift(team)
-    team.shift_team.confirm!
+  def self.try_confirming_bowler_shift(bowler)
+    return unless bowler.shift.present?
+    return if bowler.shift.confirmed?
+    unpaid_fees = bowler.purchases.ledger.unpaid.any? || bowler.purchases.event.unpaid.any?
+    return if unpaid_fees
+    return if bowler.shift.confirmed >= bowler.shift.capacity
 
-    #TODO Send an email to bowlers about confirmation
+    confirm_shift(bowler)
+  end
+
+  def self.confirm_shift(bowler)
+    bowler.bowler_shift.confirm!
   end
 
   # Private methods

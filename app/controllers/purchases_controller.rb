@@ -81,7 +81,7 @@ class PurchasesController < ApplicationController
     TournamentRegistration.send_receipt_email(bowler, ppo.identifier)
     send_payment_notification(bowler, ppo.identifier, total_credit, paid_at)
 
-    TournamentRegistration.try_confirming_shift(bowler.team)
+    TournamentRegistration.try_confirming_bowler_shift(bowler)
 
     if (new_purchases.empty?)
       render json: nil, status: :no_content

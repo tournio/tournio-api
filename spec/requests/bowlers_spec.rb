@@ -169,6 +169,35 @@ describe BowlersController, type: :request do
         expect(bowler.purchases.entry_fee).not_to be_empty
       end
 
+      it 'does not create a BowlerShift model instance' do
+        expect { subject }.not_to change(BowlerShift, :count)
+      end
+
+      context 'specifying a shift' do
+        let(:shift) { create :shift, tournament: tournament }
+        let(:bowler_params) do
+          {
+            bowlers: [
+              create_bowler_test_data.merge({ shift_identifier: shift.identifier })
+            ],
+          }
+        end
+
+        it 'succeeds' do
+          subject
+          expect(response).to have_http_status(:created)
+        end
+
+        it 'creates a BowlerShift join model instance' do
+          expect { subject }.to change(BowlerShift, :count).by(1)
+        end
+
+        it 'marks the BowlerShift as requested' do
+          subject
+          expect(BowlerShift.last.requested?).to be_truthy
+        end
+      end
+
       context 'a tournament with event selection' do
         let(:tournament) { create :tournament, :active, :with_event_selection, :with_a_bowling_event }
 

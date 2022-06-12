@@ -56,7 +56,7 @@ describe PurchasesController, type: :request do
         # When a bowler registers, they get a Purchase for the entry fee
         before do
           bowler.purchases << purchase
-          allow(TournamentRegistration).to receive(:try_confirming_shift)
+          allow(TournamentRegistration).to receive(:try_confirming_bowler_shift)
         end
 
         it 'returns a Created status code' do
@@ -100,8 +100,8 @@ describe PurchasesController, type: :request do
           subject
         end
 
-        it "tries to confirm the bowler's team's requested shift" do
-          expect(TournamentRegistration).to receive(:try_confirming_shift)
+        it "tries to confirm the bowler's requested shift" do
+          expect(TournamentRegistration).to receive(:try_confirming_bowler_shift)
           subject
         end
 

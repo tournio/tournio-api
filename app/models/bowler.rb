@@ -30,7 +30,8 @@ class Bowler < ApplicationRecord
   belongs_to :team, optional: true
   belongs_to :tournament
   has_one :free_entry
-  has_one :shift, through: :team
+  has_one :bowler_shift
+  has_one :shift, through: :bowler_shift
   has_many :ledger_entries, dependent: :destroy
   has_many :purchases, dependent: :destroy
   has_many :additional_question_responses
@@ -62,7 +63,7 @@ class Bowler < ApplicationRecord
 
   scope :without_doubles_partner, -> { where(doubles_partner_id: nil) }
 
-  accepts_nested_attributes_for :person, :free_entry, :additional_question_responses
+  accepts_nested_attributes_for :person, :free_entry, :additional_question_responses, :bowler_shift
 
   before_create :generate_identifier
   before_destroy :unlink_free_entry, :unlink_doubles_partner

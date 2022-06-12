@@ -166,7 +166,6 @@ module Director
       end
 
       DirectorUtilities.reassign_bowler(bowler: bowler, to_team: new_team)
-      TournamentRegistration.try_confirming_shift(new_team)
     end
 
     def try_updating_details

@@ -26,6 +26,7 @@ class BowlersController < ApplicationController
     :position,
     :doubles_partner_num,
     :doubles_partner_identifier,
+    :shift_identifier,
     person_attributes: PERSON_ATTRS,
     additional_question_responses: ADDITIONAL_QUESTION_RESPONSES_ATTRS,
   ].freeze
@@ -288,6 +289,12 @@ class BowlersController < ApplicationController
         partner = Bowler.where(identifier: p['doubles_partner_identifier'], doubles_partner_id: nil).first
         p['doubles_partner_id'] = partner.id unless partner.nil?
         p.delete('doubles_partner_identifier')
+      end
+
+      if p['shift_identifier'].present?
+        shift = Shift.find_by(identifier: p['shift_identifier'])
+        p['bowler_shift_attributes'] = { shift_id: shift.id } unless shift.nil?
+        p.delete('shift_identifier')
       end
     end
 
