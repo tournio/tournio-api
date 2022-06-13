@@ -92,9 +92,9 @@ class PaymentReceiptNotifierJob < TemplateMailerJob
 
   def tournament_page
     if Rails.env.production?
-      "https://www.igbo-reg.com/teams/#{bowler.team.identifier}"
+      "https://www.igbo-reg.com/bowlers/#{bowler.identifier}"
     else
-      "http://localhost:3000/teams/#{bowler.team.identifier}"
+      "http://localhost:3000/bowlers/#{bowler.identifier}"
     end
   end
 end
