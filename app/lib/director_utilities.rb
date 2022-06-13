@@ -8,7 +8,7 @@ module DirectorUtilities
     tournament.reload.bowlers.destroy_all
     tournament.free_entries.destroy_all
     tournament.shifts.each do |shift|
-      shift.shift_teams.destroy_all
+      shift.bowler_shifts.destroy_all
       shift.reset_counts
     end
   end
