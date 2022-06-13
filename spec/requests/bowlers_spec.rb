@@ -87,7 +87,24 @@ describe BowlersController, type: :request do
 
           context 'a team on a shift' do
             let(:shift) { create :shift, :high_demand, tournament: tournament }
-            let!(:shift_team) { create :shift_team, shift: shift, team: team }
+
+            let(:bowler_params) do
+              {
+                bowlers: [
+                  create_bowler_test_data.merge({ position: 4, shift_identifier: shift.identifier })
+                ]
+              }
+            end
+
+            before do
+              team.bowlers.each do |b|
+                create :bowler_shift, shift: shift, bowler: b
+              end
+            end
+
+            it 'creates a BowlerShift instance' do
+              expect { subject }.to change(BowlerShift, :count).by(1)
+            end
 
             it 'bumps the requested count by one' do
               expect { subject }.to change { shift.reload.requested }.by(1)
@@ -95,18 +112,6 @@ describe BowlersController, type: :request do
 
             it 'does not bump the confirmed count' do
               expect { subject }.not_to change { shift.reload.confirmed }
-            end
-
-            context 'the team is confirmed on the shift' do
-              let!(:shift_team) { create :shift_team, shift: shift, team: team, aasm_state: :confirmed, confirmed_at: 3.days.ago }
-
-              it 'bumps the confirmed count by one' do
-                expect { subject }.to change { shift.reload.confirmed }.by(1)
-              end
-
-              it 'does not bump the confirmed count' do
-                expect { subject }.not_to change { shift.reload.requested }
-              end
             end
           end
         end

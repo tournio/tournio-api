@@ -43,6 +43,7 @@ module ApiHelpers
               'response' => 'http://www.leaguesecretary.com',
             },
           ],
+          'shift_identifier' => 'this-is-a-shift',
         },
         {
           'position' => 2,
@@ -74,6 +75,7 @@ module ApiHelpers
               'response' => 'I like pizza!',
             },
           ],
+          'shift_identifier' => 'this-is-a-shift',
         },
         {
           'position' => 3,
@@ -101,6 +103,7 @@ module ApiHelpers
               'response' => 'fe fi fo fum',
             },
           ],
+          'shift_identifier' => 'this-is-a-shift',
         },
         {
           'position' => 4,
@@ -128,6 +131,7 @@ module ApiHelpers
               'response' => '',
             },
           ],
+          'shift_identifier' => 'this-is-a-shift',
         },
       ],
     }

@@ -23,10 +23,6 @@
 class Shift < ApplicationRecord
   belongs_to :tournament
 
-  # remove when we remove the shifts_teams join table
-  has_many :shift_teams, dependent: :destroy
-  has_many :teams, through: :shift_teams
-
   has_many :bowler_shifts, dependent: :destroy
   has_many :bowlers, through: :bowler_shifts
 

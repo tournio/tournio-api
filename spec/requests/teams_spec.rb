@@ -50,6 +50,22 @@ describe TeamsController, type: :request do
         expect(json['name']).to eq(full_team_test_data['name'])
         expect(json['size']).to eq(4)
       end
+
+      context 'a team on a shift' do
+        let!(:shift) { create :shift, :high_demand, tournament: tournament, identifier: 'this-is-a-shift' }
+
+        it 'creates a BowlerShift instance for each member of the team' do
+          expect { subject }.to change(BowlerShift, :count).by(4)
+        end
+
+        it 'bumps the requested count' do
+          expect { subject }.to change { shift.reload.requested }.by(4)
+        end
+
+        it 'does not bump the confirmed count' do
+          expect { subject }.not_to change { shift.reload.confirmed }
+        end
+      end
     end
 
     context 'with a partial team' do
