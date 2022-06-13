@@ -18,7 +18,6 @@ module Director
     def index
       @users = policy_scope(User)
       authorize(User)
-      sleep(1) if Rails.env.development?
       render json: UserBlueprint.render(@users), status: :ok
     end
 

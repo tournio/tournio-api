@@ -107,7 +107,6 @@ class BowlersController < ApplicationController
       bowler: BowlerBlueprint.render_as_hash(bowler, view: :detail),
       available_items: rendered_purchasable_items_by_identifier,
     }
-    sleep(1) if Rails.env.development?
     render json: result, status: :ok
   end
 
