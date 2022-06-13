@@ -24,13 +24,13 @@ class BowlerShift < ApplicationRecord
   belongs_to :shift
 
   after_create do
-    shift.update(requested: shift.requested + 1) if requested?
-    shift.update(confirmed: shift.confirmed + 1) if confirmed?
+    shift.update(requested: shift.reload.requested + 1) if requested?
+    shift.update(confirmed: shift.reload.confirmed + 1) if confirmed?
   end
 
   before_destroy do
-    shift.update(requested: shift.requested - 1) if requested?
-    shift.update(confirmed: shift.confirmed - 1) if confirmed?
+    shift.update(requested: shift.reload.requested - 1) if requested?
+    shift.update(confirmed: shift.reload.confirmed - 1) if confirmed?
   end
 
   aasm timestamps: true do

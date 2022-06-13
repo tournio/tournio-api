@@ -21,6 +21,7 @@ class BowlerBlueprint < Blueprinter::Base
     end
 
     association :doubles_partner, blueprint: BowlerBlueprint
+    association :shift, blueprint: ShiftBlueprint
   end
 
   view :detail do
@@ -57,7 +58,7 @@ class BowlerBlueprint < Blueprinter::Base
       if shift.present?
         {
           full: shift.confirmed >= shift.capacity,
-          confirmed: b.team.shift_team.confirmed_at.present?,
+          confirmed: b.bowler_shift.confirmed?,
         }
       else
         {}

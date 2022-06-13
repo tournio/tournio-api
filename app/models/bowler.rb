@@ -30,7 +30,7 @@ class Bowler < ApplicationRecord
   belongs_to :team, optional: true
   belongs_to :tournament
   has_one :free_entry
-  has_one :bowler_shift
+  has_one :bowler_shift, dependent: :destroy
   has_one :shift, through: :bowler_shift
   has_many :ledger_entries, dependent: :destroy
   has_many :purchases, dependent: :destroy
