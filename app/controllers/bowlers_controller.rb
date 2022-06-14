@@ -199,6 +199,12 @@ class BowlersController < ApplicationController
     end
     total_discount = applicable_discounts.sum(&:value)
 
+    # apply any relevant event-linked late fees
+    late_fee_items = tournament.purchasable_items.event_linked
+    applicable_fees = late_fee_items.select do |fee|
+      identifiers.include?(fee.configuration.event) &&
+    end
+
     # items_total = purchasable_items.sum(&:value)
     items_total = items.map do |item|
       identifier = item[:identifier]

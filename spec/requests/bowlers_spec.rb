@@ -665,28 +665,33 @@ describe BowlersController, type: :request do
 
     context 'a tournament with event selection' do
       let(:tournament) { create :tournament, :active, :accepting_payments, :with_event_selection }
-      let!(:bundle_discount_item) { create :purchasable_item, :event_bundle_discount, tournament: tournament }
 
-      let(:chosen_items) { [tournament.purchasable_items.event.first] }
+      context 'without an event bundle discount' do
+        let(:chosen_items) { [tournament.purchasable_items.event.first] }
+        let(:expected_total) { tournament.purchasable_items.event.first.value }
 
-      let(:expected_total) { tournament.purchasable_items.event.first.value }
+        before do
+          create :purchasable_item, :bowling_event, tournament: tournament
+        end
 
-      it 'returns an OK status code' do
-        subject
-        expect(response).to have_http_status(:ok)
-      end
+        it 'returns an OK status code' do
+          subject
+          expect(response).to have_http_status(:ok)
+        end
 
-      it 'returns the correct total' do
-        subject
-        expect(json['total']).to eq(expected_total)
-      end
+        it 'returns the correct total' do
+          subject
+          expect(json['total']).to eq(expected_total)
+        end
 
-      it 'includes the expected paypal client id' do
-        subject
-        expect(json['paypal_client_id']).to eq(client_id)
+        it 'includes the expected paypal client id' do
+          subject
+          expect(json['paypal_client_id']).to eq(client_id)
+        end
       end
 
       context 'when a bundle discount applies' do
+        let!(:bundle_discount_item) { create :purchasable_item, :event_bundle_discount, tournament: tournament }
         let(:chosen_items) { tournament.purchasable_items.event }
         let(:expected_total) { tournament.purchasable_items.event.sum(&:value) + bundle_discount_item.value }
 
@@ -715,6 +720,22 @@ describe BowlersController, type: :request do
             subject
             expect(json['total']).to eq(expected_total)
           end
+        end
+      end
+
+      context 'when an event-linked late fee applies' do
+        let!(:late_fee_item) { create :purchasable_item, :event_late_fee, tournament: tournament, configuration: { applies_at: 2.weeks.ago }}
+        let(:chosen_items) { tournament.purchasable_items.event }
+        let(:expected_total) { tournament.purchasable_items.event.first.value + late_fee_item.value }
+
+        it 'returns an OK status code' do
+          subject
+          expect(response).to have_http_status(:ok)
+        end
+
+        it 'returns the correct total' do
+          subject
+          expect(json['total']).to eq(expected_total)
         end
       end
     end

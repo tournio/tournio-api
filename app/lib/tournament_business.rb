@@ -81,6 +81,9 @@ module TournamentBusiness
     end
   end
 
+  # can we modify this to take an event-linked late fee?
+  # Different events in the same tournament shouldn't have different applies_at times, but there's
+  # nothing stopping it from happening at the moment...
   def in_late_registration?(current_time = Time.zone.now)
     if (demo? || testing?) && testing_environment
       testing_environment.conditions['registration_period'] == TestingEnvironment::LATE_REGISTRATION

@@ -140,6 +140,7 @@ FactoryBot.define do
       refinement { :event_linked }
       name { 'Late registration fee for an event'}
       user_selectable { false }
+      value { 15 }
       configuration do
         {
           applies_at: 2.weeks.from_now,
