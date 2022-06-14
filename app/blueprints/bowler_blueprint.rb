@@ -70,8 +70,7 @@ class BowlerBlueprint < Blueprinter::Base
     field :email
 
     field :amount_billed do |b, _|
-      billed = TournamentRegistration.amount_billed(b).to_i
-      ActionController::Base.helpers.number_to_currency(billed, precision: 0)
+      TournamentRegistration.amount_billed(b)
     end
 
     field :has_free_entry do |b, _|
