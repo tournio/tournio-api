@@ -200,10 +200,11 @@ class BowlersController < ApplicationController
     total_discount = applicable_discounts.sum(&:value)
 
     # apply any relevant event-linked late fees
-    late_fee_items = tournament.purchasable_items.event_linked
+    late_fee_items = tournament.purchasable_items.event_linked.late_fee
     applicable_fees = late_fee_items.select do |fee|
-      identifiers.include?(fee.configuration.event) &&
+      identifiers.include?(fee.configuration['event']) && tournament.in_late_registration?(event_linked_late_fee: fee)
     end
+    total_fees = applicable_fees.sum(&:value)
 
     # items_total = purchasable_items.sum(&:value)
     items_total = items.map do |item|
@@ -213,7 +214,7 @@ class BowlersController < ApplicationController
     end.sum
 
     # sum up the total of unpaid purchases and indicated purchasable items
-    total_to_charge = purchases_total + items_total + total_discount
+    total_to_charge = purchases_total + items_total + total_discount + total_fees
 
     # Disallow a purchase if there's nothing owed
     if (total_to_charge == 0)

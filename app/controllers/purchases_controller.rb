@@ -74,6 +74,27 @@ class PurchasesController < ApplicationController
     end
     total_credit += applicable_discounts.sum(&:value)
 
+    # apply any relevant event-linked late fees
+    late_fee_items = tournament.purchasable_items.event_linked.late_fee
+    applicable_fees = late_fee_items.select do |fee|
+      identifiers.include?(fee.configuration['event']) && tournament.in_late_registration?(event_linked_late_fee: fee)
+    end
+    applicable_fees.map do |lf|
+      new_purchases << Purchase.create(bowler: bowler,
+        purchasable_item: lf,
+        amount: lf.value,
+        paid_at: paid_at,
+        paypal_order: ppo
+      )
+      linked_event = tournament.purchasable_items.event.find_by(identifier: lf.configuration['event'])
+      bowler.ledger_entries << LedgerEntry.new(
+        debit: lf.value,
+        source: :purchase,
+        identifier: "#{lf.name} (#{linked_event.name})"
+      )
+    end
+    total_credit += applicable_fees.sum(&:value)
+
     unless total_credit == 0
       bowler.ledger_entries << LedgerEntry.new(credit: total_credit, source: :paypal, identifier: details[:paypal_details][:id])
     end

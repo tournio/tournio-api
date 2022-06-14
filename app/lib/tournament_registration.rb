@@ -127,7 +127,7 @@ module TournamentRegistration
     bowler.purchases << Purchase.new(purchasable_item: early_discount_item)
   end
 
-  def self.add_late_fees_to_ledger(bowler, current_time = Time.zone.now)
+  def self.add_late_fees_to_ledger(bowler)
     tournament = bowler.tournament
     return unless tournament.in_late_registration?
 

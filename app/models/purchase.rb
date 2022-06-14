@@ -39,6 +39,8 @@ class Purchase < ApplicationRecord
   scope :ledger, -> { joins(:purchasable_item).where(purchasable_items: {category: :ledger}) }
   scope :event, -> { joins(:purchasable_item).where(purchasable_item: {determination: :event}) }
   scope :bundle_discount, -> { joins(:purchasable_item).where(purchasable_item: {category: :ledger, determination: :bundle_discount}) }
+  scope :late_fee, -> { joins(:purchasable_item).where(purchasable_item: {category: :ledger, determination: :late_fee})}
+  scope :event_linked, -> { joins(:purchasable_item).where(purchasable_item: {refinement: :event_linked})}
 
   private
 

@@ -451,7 +451,61 @@ describe PurchasesController, type: :request do
           end
         end
       end
-    end
 
+      context 'when an event-linked late fee applies' do
+        let!(:late_fee_item) do
+          create :purchasable_item,
+            :event_late_fee,
+            tournament: tournament,
+            configuration: {
+              applies_at: 2.weeks.ago
+            }
+        end
+        let(:chosen_event) { tournament.purchasable_items.find_by(identifier: late_fee_item.configuration['event']) }
+        let(:chosen_items) { [chosen_event] }
+        let(:expected_total) { chosen_event.value + late_fee_item.value }
+
+        # the bundle discount item creation automatically creates two events.
+        # the late fee item automatically creates one. so there are three events total.
+        # we want to buy just the event with the late fee associated, so we don't trigger the bundle discount
+
+        it 'creates the expected number of Purchases' do
+          expect { subject }.to change(Purchase, :count).by(2)
+        end
+
+        it 'creates Purchases for each event' do
+          subject
+          expect(bowler.purchases.reload.event.count).to eq(1)
+        end
+
+        it 'creates a Purchase for the applied late fee' do
+          subject
+          expect(bowler.purchases.reload.late_fee.event_linked.count).to eq(1)
+        end
+
+        it 'creates a ledger entry in the amount of the expected total' do
+          subject
+          le = bowler.ledger_entries.last
+          expect(le.credit).to eq(expected_total)
+        end
+
+        it 'creates a ledger entry for the event, the late fee, and the payment' do
+          expect { subject }.to change { LedgerEntry.count }.by(3)
+        end
+
+        it 'links the Purchases to the paypal order' do
+          subject
+          ppo = PaypalOrder.last
+          purchases = bowler.purchases.reload
+          purchases.each { |p| expect(p.paypal_order_id).to eq(ppo.id) }
+        end
+
+        it 'sets the paid_at attribute on each Purchase' do
+          subject
+          purchases = bowler.purchases.reload
+          expect(purchases.collect(&:paid_at).compact).to match_array(purchases.collect(&:paid_at))
+        end
+      end
+    end
   end
 end

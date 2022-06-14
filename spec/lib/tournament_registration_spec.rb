@@ -236,7 +236,7 @@ RSpec.describe TournamentRegistration do
   end
 
   describe '#add_late_fees_to_ledger' do
-    subject { subject_class.add_late_fees_to_ledger(bowler, time) }
+    subject { subject_class.add_late_fees_to_ledger(bowler) }
 
     let(:time) { Time.zone.now }
     let(:bowler) { create(:bowler, person: create(:person), tournament: tournament) }
