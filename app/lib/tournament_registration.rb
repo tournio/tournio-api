@@ -250,13 +250,9 @@ module TournamentRegistration
       (purchase_or_item.configuration['order'].to_i || 0)
   end
 
-  def self.try_confirming_shift(team)
-    # TODO: remove when we kill the shifts_teams table
-  end
-
   def self.try_confirming_bowler_shift(bowler)
     return unless bowler.shift.present?
-    return if bowler.shift.confirmed?
+    return if bowler.bowler_shift.confirmed?
     unpaid_fees = bowler.purchases.ledger.unpaid.any? || bowler.purchases.event.unpaid.any?
     return if unpaid_fees
     return if bowler.shift.confirmed >= bowler.shift.capacity

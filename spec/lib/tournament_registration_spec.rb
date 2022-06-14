@@ -943,6 +943,10 @@ RSpec.describe TournamentRegistration do
         end
       end
     end
+
+    context 'a tournament with event selection' do
+
+    end
   end
 
   describe '#confirm_shift' do
