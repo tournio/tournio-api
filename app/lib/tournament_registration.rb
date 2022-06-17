@@ -21,9 +21,11 @@ module TournamentRegistration
       entry_fee: 1,
       early_discount: 2,
       late_fee: 3,
-      discount_expiration: 4,
-      single_use: 5,
-      multi_use: 6,
+      bundle_discount: 4,
+      discount_expiration: 5,
+      event: 10,
+      single_use: 11,
+      multi_use: 12,
     },
     refinement: {
       division: -1,
@@ -71,7 +73,8 @@ module TournamentRegistration
   end
 
   def self.person_display_name(person)
-    "#{person.last_name}, #{person.first_name}"
+    preferred_name = person.nickname.present? ? person.nickname : person.first_name
+    "#{person.last_name}, #{preferred_name}"
   end
 
   def self.bowler_full_name(bowler)
@@ -98,24 +101,17 @@ module TournamentRegistration
     add_late_fees_to_ledger(bowler)
     complete_doubles_link(bowler) if bowler.doubles_partner_id.present?
 
-    if bowler.team.shift.present?
-      shift = bowler.team.shift
-      if bowler.team.shift_team.confirmed?
-        shift.update(confirmed: shift.confirmed + 1)
-      else
-        shift.update(requested: shift.requested + 1)
-      end
-    end
-
     send_confirmation_email(bowler)
     notify_registration_contacts(bowler)
   end
 
   def self.purchase_entry_fee(bowler)
-    entry_fee = bowler.tournament.entry_fee
+    entry_fee_item = bowler.tournament.purchasable_items.entry_fee.first
+    return unless entry_fee_item.present?
+
+    entry_fee = entry_fee_item.value
     bowler.ledger_entries << LedgerEntry.new(debit: entry_fee, identifier: 'entry fee') if entry_fee.positive?
 
-    entry_fee_item = bowler.tournament.purchasable_items.entry_fee.first
     bowler.purchases << Purchase.new(purchasable_item: entry_fee_item)
   end
 
@@ -131,7 +127,7 @@ module TournamentRegistration
     bowler.purchases << Purchase.new(purchasable_item: early_discount_item)
   end
 
-  def self.add_late_fees_to_ledger(bowler, current_time = Time.zone.now)
+  def self.add_late_fees_to_ledger(bowler)
     tournament = bowler.tournament
     return unless tournament.in_late_registration?
 
@@ -254,21 +250,18 @@ module TournamentRegistration
       (purchase_or_item.configuration['order'].to_i || 0)
   end
 
-  def self.try_confirming_shift(team)
-    return unless team.shift.present?
-    return if team.shift_team.confirmed?
-    return unless team.bowlers.count == team.tournament.team_size
-    unpaid_fees = team.bowlers.collect { |bowler| bowler.purchases.ledger.unpaid.any? }.flatten
-    return if unpaid_fees.any?
-    return if team.shift.confirmed >= team.shift.capacity
+  def self.try_confirming_bowler_shift(bowler)
+    return unless bowler.shift.present?
+    return if bowler.bowler_shift.confirmed?
+    unpaid_fees = bowler.purchases.ledger.unpaid.any? || bowler.purchases.event.unpaid.any?
+    return if unpaid_fees
+    return if bowler.shift.confirmed >= bowler.shift.capacity
 
-    confirm_shift(team)
+    confirm_shift(bowler)
   end
 
-  def self.confirm_shift(team)
-    team.shift_team.confirm!
-
-    #TODO Send an email to bowlers about confirmation
+  def self.confirm_shift(bowler)
+    bowler.bowler_shift.confirm!
   end
 
   # Private methods

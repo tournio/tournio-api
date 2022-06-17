@@ -21,9 +21,7 @@
 class Team < ApplicationRecord
   belongs_to :tournament
   has_many :bowlers, dependent: :destroy
-  has_one :shift_team, dependent: :destroy
-  has_one :shift, through: :shift_team
-  accepts_nested_attributes_for :bowlers, :shift_team
+  accepts_nested_attributes_for :bowlers
 
   before_create :generate_identifier
 

@@ -9,10 +9,10 @@ RSpec.describe DirectorUtilities do
     before do
       # for the tournament under test
       team = create :team, tournament: tournament
-      b1 = create :bowler, tournament: tournament, team: team, person: create(:person)
-      b2 = create :bowler, tournament: tournament, position: 2, team: team, person: create(:person)
-      b3 = create :bowler, tournament: tournament, position: 3, team: team, person: create(:person)
-      b4 = create :bowler, tournament: tournament, position: 4, team: team, person: create(:person)
+      b1 = create :bowler, tournament: tournament, team: team, person: create(:person), shift: tournament.shifts.first
+      b2 = create :bowler, tournament: tournament, position: 2, team: team, person: create(:person), shift: tournament.shifts.first
+      b3 = create :bowler, tournament: tournament, position: 3, team: team, person: create(:person), shift: tournament.shifts.first
+      b4 = create :bowler, tournament: tournament, position: 4, team: team, person: create(:person), shift: tournament.shifts.first
       FreeEntry.create(tournament: tournament, unique_code: 'a-1')
       FreeEntry.create(tournament: tournament, unique_code: 'a-2', bowler: b1)
       LedgerEntry.create(bowler: b1, debit: 100)
@@ -24,7 +24,7 @@ RSpec.describe DirectorUtilities do
 
     # golden path
     context 'with a tournament in testing' do
-      let!(:tournament) { create(:tournament, :testing) }
+      let!(:tournament) { create(:tournament, :testing, :one_shift) }
 
       it "drops all the tournament's teams" do
         expect { subject }.to change(tournament.teams, :count).to(0)
@@ -40,6 +40,10 @@ RSpec.describe DirectorUtilities do
 
       it "drops all the tournament's ledger entries" do
         expect { subject }.to change(LedgerEntry, :count).to(0)
+      end
+
+      it "drops all the tournament's bowler-shift joins" do
+        expect { subject }.to change(BowlerShift, :count).to(0)
       end
 
       context 'when there are other tournaments in testing' do

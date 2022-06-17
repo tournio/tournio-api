@@ -1,10 +1,30 @@
 # frozen_string_literal: true
 
 require 'rails_helper'
-# require 'team_spec_helper'
 
 RSpec.describe TournamentRegistration do
   let(:subject_class) { described_class }
+
+  describe '#person_display_name' do
+    subject { subject_class.person_display_name(person) }
+
+    let(:first_name) { 'Aragorn' }
+    let(:last_name) { 'Arathorn' }
+    let(:person) { create :person, first_name: first_name, last_name: last_name }
+
+    it 'uses the first name' do
+      expect(subject).to eq("#{last_name}, #{first_name}")
+    end
+
+    context 'with a nickname specified' do
+      let(:nickname) { 'Strider' }
+      let(:person) { create :person, first_name: first_name, last_name: last_name, nickname: nickname }
+
+      it 'uses the nickname' do
+        expect(subject).to eq("#{last_name}, #{nickname}")
+      end
+    end
+  end
 
   describe '#display_date' do
     subject { subject_class.display_date(date_arg) }
@@ -158,33 +178,14 @@ RSpec.describe TournamentRegistration do
       expect(subject_class).to receive(:send_confirmation_email).with(bowler).once
       subject
     end
-
-    context 'When a team is requesting a shift' do
-      let(:team) { create :team, tournament: tournament }
-      let(:shift) { create :shift, tournament: tournament }
-      let!(:shift_team) { create :shift_team, team: team, shift: shift }
-
-      before do
-        bowler.update(team: team)
-      end
-
-      it 'increases the shift requested count by 1' do
-        expect { subject }.to change { shift.reload.requested }.by(1)
-      end
-    end
   end
 
   describe '#purchase_entry_fee' do
     subject { subject_class.purchase_entry_fee(bowler) }
 
-    let(:tournament) { create :tournament, :active }
-    let(:entry_fee) { 100 }
+    let(:tournament) { create :tournament, :active, :with_entry_fee }
     let(:bowler) { create(:bowler, person: create(:person), tournament: tournament) }
-
-    before do
-      allow(tournament).to receive(:entry_fee).and_return(entry_fee)
-      create(:purchasable_item, :entry_fee, value: entry_fee, tournament: tournament)
-    end
+    let(:entry_fee_item) { tournament.purchasable_items.entry_fee.first }
 
     it 'creates a ledger item for the tournament entry fee' do
       expect { subject }.to change(LedgerEntry, :count).by(1)
@@ -197,7 +198,7 @@ RSpec.describe TournamentRegistration do
     it 'creates it as a debit' do
       subject
       debit_sum = bowler.ledger_entries.reload.sum(&:debit).to_i
-      expect(debit_sum).to eq(entry_fee)
+      expect(debit_sum).to eq(entry_fee_item.value)
     end
 
     it 'creates no credit entries' do
@@ -220,10 +221,22 @@ RSpec.describe TournamentRegistration do
       purchase = bowler.purchases.reload.first
       expect(purchase.purchasable_item.determination).to eq('entry_fee')
     end
+
+    context 'when there is no entry fee purchasable item, e.g., with event selection enabled' do
+      let(:tournament) { create :tournament, :active }
+
+      it 'does not create a Purchase for the bowler' do
+        expect { subject }.not_to change(bowler.purchases, :count)
+      end
+
+      it 'does not create a ledger item for a tournament entry fee' do
+        expect { subject }.not_to change(LedgerEntry, :count)
+      end
+    end
   end
 
   describe '#add_late_fees_to_ledger' do
-    subject { subject_class.add_late_fees_to_ledger(bowler, time) }
+    subject { subject_class.add_late_fees_to_ledger(bowler) }
 
     let(:time) { Time.zone.now }
     let(:bowler) { create(:bowler, person: create(:person), tournament: tournament) }
@@ -880,22 +893,20 @@ RSpec.describe TournamentRegistration do
     end
   end
 
-  describe '#try_confirming_shift' do
-    subject { subject_class.try_confirming_shift(team) }
+  describe '#try_confirming_bowler_shift' do
+    subject { subject_class.try_confirming_bowler_shift(bowler) }
 
     let(:tournament) { create :tournament, :active, :with_entry_fee, :two_shifts }
+    let(:bowler) { create :bowler, tournament: tournament }
     let(:entry_fee_item) { tournament.purchasable_items.entry_fee.first }
     let(:shift) { tournament.shifts.first }
-    let(:team) { create :team, :standard_full_team, tournament: tournament }
-    let!(:shift_team) { create :shift_team, shift: shift, team: team }
+    let!(:bowler_shift) { create :bowler_shift, shift: shift, bowler: bowler }
 
     before { allow(subject_class).to receive(:confirm_shift) }
 
-    context 'when at least one bowler has not paid' do
+    context 'when the bowler has not paid' do
       before do
-        team.bowlers.each do |b|
-          create :purchase, bowler: b, purchasable_item: entry_fee_item, amount: entry_fee_item.value
-        end
+        create :purchase, bowler: bowler, purchasable_item: entry_fee_item, amount: entry_fee_item.value
       end
 
       it 'does not confirm the shift' do
@@ -904,11 +915,9 @@ RSpec.describe TournamentRegistration do
       end
     end
 
-    context 'when all bowlers have paid their entry fees' do
+    context 'when the bowler has paid their entry fees' do
       before do
-        team.bowlers.each do |b|
-          create :purchase, :paid, bowler: b, purchasable_item: entry_fee_item, amount: entry_fee_item.value
-        end
+        create :purchase, :paid, bowler: bowler, purchasable_item: entry_fee_item, amount: entry_fee_item.value
       end
 
       it 'confirms the shift' do
@@ -916,8 +925,8 @@ RSpec.describe TournamentRegistration do
         subject
       end
 
-      context "but the team's shift is already confirmed" do
-        let!(:shift_team) { create :shift_team, :confirmed, shift: shift, team: team }
+      context "but the bowler's shift is already confirmed" do
+        let!(:bowler_shift) { create :bowler_shift, :confirmed, shift: shift, bowler: bowler }
 
         it 'does not confirm the shift' do
           expect(subject_class).not_to receive(:confirm_shift)
@@ -934,52 +943,26 @@ RSpec.describe TournamentRegistration do
         end
       end
     end
-
-    context 'the team is not full' do
-      let(:team) { create :team, :standard_three_bowlers, tournament: tournament }
-
-      context 'and at least one bowler has not paid' do
-        before do
-          team.bowlers.each do |b|
-            create :purchase, bowler: b, purchasable_item: entry_fee_item, amount: entry_fee_item.value
-          end
-        end
-
-        it 'does not confirm the shift' do
-          expect(subject_class).not_to receive(:confirm_shift)
-          subject
-        end
-      end
-
-      context 'and all bowlers have paid their fees' do
-        before do
-          team.bowlers.each do |b|
-            create :purchase, :paid, bowler: b, purchasable_item: entry_fee_item, amount: entry_fee_item.value
-          end
-        end
-
-        it 'does not confirm the shift' do
-          expect(subject_class).not_to receive(:confirm_shift)
-          subject
-        end
-      end
-    end
   end
 
   describe '#confirm_shift' do
-    subject { subject_class.confirm_shift(team) }
+    subject { subject_class.confirm_shift(bowler) }
 
     let(:tournament) { create :tournament, :active, :with_entry_fee, :two_shifts }
     let(:shift) { tournament.shifts.first }
-    let(:team) { create :team, :standard_full_team, tournament: tournament }
-    let!(:shift_team) { create :shift_team, shift: shift, team: team }
+    let(:bowler) { create :bowler, tournament: tournament }
+    let!(:bowler_shift) { create :bowler_shift, shift: shift, bowler: bowler }
 
     it 'changes the state' do
-      expect { subject }.to change { shift_team.confirmed? }.from(false).to(true)
+      expect { subject }.to change { bowler_shift.confirmed? }.from(false).to(true)
     end
 
     it "bumps the shift's confirmed count" do
-      expect { subject }.to change { shift.confirmed }.by(4)
+      expect { subject }.to change { shift.confirmed }.by(1)
+    end
+
+    it "dropss the shift's requested count" do
+      expect { subject }.to change { shift.requested }.by(-1)
     end
   end
 end

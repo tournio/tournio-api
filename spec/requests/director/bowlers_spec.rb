@@ -137,8 +137,7 @@ describe Director::BowlersController, type: :request do
     let(:uri) { "/director/bowlers/#{bowler_identifier}" }
 
     let(:tournament) { create :tournament, :active }
-    let(:team) { create :team, tournament: tournament }
-    let(:bowler) { create :bowler, tournament: tournament, team: team }
+    let(:bowler) { create :bowler, tournament: tournament }
     let(:bowler_identifier) { bowler.identifier }
 
     include_examples 'an authorized action'
@@ -148,9 +147,9 @@ describe Director::BowlersController, type: :request do
       expect(response).to have_http_status(:no_content)
     end
 
-    context 'on a team with a chosen shift' do
+    context 'on a shift' do
       let(:shift) { create :shift, :high_demand, tournament: tournament }
-      let!(:shift_team) { create :shift_team, team: team, shift: shift }
+      let!(:bowler_shift) { create :bowler_shift, bowler: bowler, shift: shift }
 
       it "drops the requested count of the shift" do
         expect { subject }.to change { shift.reload.requested }.by(-1)
@@ -160,8 +159,8 @@ describe Director::BowlersController, type: :request do
         expect { subject }.not_to change { shift.reload.confirmed }
       end
 
-      context 'when the team is confirmed in the shift' do
-        let!(:shift_team) { create :shift_team, team: team, shift: shift, confirmed_at: 5.days.ago }
+      context 'when the bowler is confirmed in the shift' do
+        let!(:bowler_shift) { create :bowler_shift, :confirmed, bowler: bowler, shift: shift }
 
         it "drops the confirmed count of the shift" do
           expect { subject }.to change { shift.reload.confirmed }.by(-1)

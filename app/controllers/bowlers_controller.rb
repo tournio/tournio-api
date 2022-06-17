@@ -1,4 +1,6 @@
 class BowlersController < ApplicationController
+  wrap_parameters false
+
   ADDITIONAL_QUESTION_RESPONSES_ATTRS = %i[
       name
       response
@@ -23,33 +25,74 @@ class BowlersController < ApplicationController
   BOWLER_ATTRS = [
     :position,
     :doubles_partner_num,
+    :doubles_partner_identifier,
+    :shift_identifier,
     person_attributes: PERSON_ATTRS,
     additional_question_responses: ADDITIONAL_QUESTION_RESPONSES_ATTRS,
   ].freeze
 
   ####################################
 
+  def index
+    permit_params
+    load_tournament
+
+    unless tournament.present?
+      render json: nil, status: :not_found
+      return
+    end
+
+    list = parameters[:unpartnered].present? ? tournament.bowlers.without_doubles_partner : tournament.bowlers
+    render json: BowlerBlueprint.render(list, view: :list), status: :ok
+  end
+
   def create
+    permit_params
     load_team
+    load_tournament
 
-    if team.bowlers.count == tournament.team_size
-      render json: { message: 'This team is full.' }, status: :bad_request
+    # the tournament should be loaded either by association with the team, or finding by its identifier
+    unless tournament.present?
+      render json: nil, status: :not_found
       return
     end
 
-    form_data = clean_up_bowler_data(bowler_params)
-    bowler = bowler_from_params(form_data)
-
-    unless bowler.valid?
-      Rails.logger.info(bowler.errors.inspect)
-      render json: bowler.errors, status: :unprocessable_entity
-      return
+    form_data = clean_up_bowler_data(parameters.require(:bowlers))
+    bowlers = []
+    form_data.each do |data|
+      a_bowler = bowler_from_params(data)
+      unless a_bowler.valid?
+        Rails.logger.info(a_bowler.errors.inspect)
+        render json: a_bowler.errors, status: :unprocessable_entity
+        return
+      end
+      bowlers << a_bowler
     end
 
-    bowler.save
-    TournamentRegistration.register_bowler(bowler)
+    # now, are they joining a team, or registering solo?
+    if team.present?
+      # joining
+      if team.bowlers.count == tournament.team_size
+        render json: { message: 'This team is full.' }, status: :bad_request
+        return
+      end
+    else
+      # registering solo or doubles
 
-    render json: { identifier: bowler.identifier }, status: :created
+    end
+
+    bowlers.each do |b|
+      b.save
+      TournamentRegistration.register_bowler(b)
+    end
+
+    if bowlers.length == 2
+      bowlers[0].doubles_partner = bowlers[1]
+      bowlers[1].doubles_partner = bowlers[0]
+      bowlers.map(&:save)
+    end
+
+    render json: BowlerBlueprint.render(bowlers), status: :created
   end
 
   def show
@@ -64,7 +107,6 @@ class BowlersController < ApplicationController
       bowler: BowlerBlueprint.render_as_hash(bowler, view: :detail),
       available_items: rendered_purchasable_items_by_identifier,
     }
-    sleep(1) if Rails.env.development?
     render json: result, status: :ok
   end
 
@@ -149,6 +191,21 @@ class BowlersController < ApplicationController
       return
     end
 
+    # apply any relevant event bundle discounts
+    bundle_discount_items = tournament.purchasable_items.bundle_discount
+    previous_paid_event_item_identifiers = bowler.purchases.event.paid.map { |p| p.purchasable_item.identifier }
+    applicable_discounts = bundle_discount_items.select do |discount|
+      (identifiers + previous_paid_event_item_identifiers).intersection(discount.configuration['events']).length == discount.configuration['events'].length
+    end
+    total_discount = applicable_discounts.sum(&:value)
+
+    # apply any relevant event-linked late fees
+    late_fee_items = tournament.purchasable_items.event_linked.late_fee
+    applicable_fees = late_fee_items.select do |fee|
+      identifiers.include?(fee.configuration['event']) && tournament.in_late_registration?(event_linked_late_fee: fee)
+    end
+    total_fees = applicable_fees.sum(&:value)
+
     # items_total = purchasable_items.sum(&:value)
     items_total = items.map do |item|
       identifier = item[:identifier]
@@ -157,7 +214,7 @@ class BowlersController < ApplicationController
     end.sum
 
     # sum up the total of unpaid purchases and indicated purchasable items
-    total_to_charge = purchases_total + items_total
+    total_to_charge = purchases_total + items_total + total_discount + total_fees
 
     # Disallow a purchase if there's nothing owed
     if (total_to_charge == 0)
@@ -176,7 +233,11 @@ class BowlersController < ApplicationController
 
   private
 
-  attr_reader :tournament, :team, :bowler
+  attr_reader :tournament, :team, :bowler, :parameters
+
+  def permit_params
+    @parameters = params.permit(:identifier, :team_identifier, :tournament_identifier, :unpartnered, bowlers: BOWLER_ATTRS)
+  end
 
   def load_bowler
     identifier = params.require(:identifier)
@@ -188,39 +249,60 @@ class BowlersController < ApplicationController
   end
 
   def load_team
-    identifier = params.require(:team_identifier)
-    @team = Team.find_by_identifier(identifier)
-    unless @team.present?
-      render json: nil, status: 404
-      return
+    identifier = parameters[:team_identifier]
+    if identifier.present?
+      @team = Team.find_by_identifier(identifier)
+      @tournament = team&.tournament
     end
-    @tournament = team.tournament
+  end
+
+  def load_tournament
+    return unless tournament.nil?
+    identifier = parameters[:tournament_identifier]
+    if identifier.present?
+      @tournament = Tournament.includes(:bowlers).find_by_identifier(identifier)
+    end
   end
 
   def rendered_purchasable_items_by_identifier
-    excluded_item_names = bowler.purchases.single_use.collect { |p| p.purchasable_item.name }
+    excluded_item_names = (bowler.purchases.single_use + bowler.purchases.event).collect { |p| p.purchasable_item.name }
     items = tournament.purchasable_items.user_selectable.where.not(name: excluded_item_names)
     items.each_with_object({}) { |i, result| result[i.identifier] = PurchasableItemBlueprint.render_as_hash(i) }
   end
 
   def clean_up_bowler_data(permitted_params)
-    # Remove any empty person attributes
-    permitted_params['person_attributes'].delete_if { |_k, v| v.length.zero? }
+    permitted_params.each do |p|
+      # Remove any empty person attributes
+      p['person_attributes'].delete_if { |_k, v| v.length.zero? }
 
-    # Person attributes: Convert integer params from string to integer
-    %w[birth_month birth_day].each do |attr|
-      permitted_params['person_attributes'][attr] = permitted_params['person_attributes'][attr].to_i
+      # Person attributes: Convert integer params from string to integer
+      %w[birth_month birth_day].each do |attr|
+        p['person_attributes'][attr] = p['person_attributes'][attr].to_i
+      end
+
+      # Remove additional question responses that are empty
+      p['additional_question_responses'].filter! { |r| r['response'].present? }
+
+      # transform the add'l question responses into the shape that we can accept via ActiveRecord
+      p['additional_question_responses_attributes'] =
+        additional_question_responses(p['additional_question_responses'])
+
+      # remove that key from the params...
+      p.delete('additional_question_responses')
+
+      # If we've specified a doubles partner, then look them up by identifier and put their id in the params
+      if p['doubles_partner_identifier'].present?
+        partner = Bowler.where(identifier: p['doubles_partner_identifier'], doubles_partner_id: nil).first
+        p['doubles_partner_id'] = partner.id unless partner.nil?
+        p.delete('doubles_partner_identifier')
+      end
+
+      if p['shift_identifier'].present?
+        shift = Shift.find_by(identifier: p['shift_identifier'])
+        p['bowler_shift_attributes'] = { shift_id: shift.id } unless shift.nil?
+        p.delete('shift_identifier')
+      end
     end
-
-    # Remove additional question responses that are empty
-    permitted_params['additional_question_responses'].filter! { |r| r['response'].present? }
-
-    # transform the add'l question responses into the shape that we can accept via ActiveRecord
-    permitted_params['additional_question_responses_attributes'] =
-      additional_question_responses(permitted_params['additional_question_responses'])
-
-    # remove that key from the params...
-    permitted_params.delete('additional_question_responses')
 
     permitted_params
   end
@@ -228,16 +310,12 @@ class BowlersController < ApplicationController
   # These are used only when adding a bowler to an existing team
 
   def bowler_from_params(info)
-    partner = team.bowlers.without_doubles_partner.first
-
     bowler = Bowler.new(info.merge(team: team, tournament: tournament))
-    bowler.doubles_partner = partner if partner.present?
-
+    if team.present?
+      partner = team.bowlers.without_doubles_partner.first
+      bowler.doubles_partner = partner if partner.present?
+    end
     bowler
-  end
-
-  def bowler_params
-    params.require(:bowler).permit(BOWLER_ATTRS).to_h.with_indifferent_access
   end
 
   def additional_question_responses(params)

@@ -306,9 +306,10 @@ RSpec.describe TournamentBusiness do
   end
 
   describe '#in_late_registration?' do
-    subject { dummy_obj.in_late_registration?(the_time) }
+    subject { dummy_obj.in_late_registration?(current_time: the_time, event_linked_late_fee: late_fee_item) }
 
     let(:the_time) { Time.zone.now }
+    let(:late_fee_item) { nil }
 
     context 'when the tournament is not in the testing state' do
       before do
@@ -342,7 +343,31 @@ RSpec.describe TournamentBusiness do
 
           it { is_expected.to eq(false) }
         end
+      end
 
+      context 'a tournament with an event-linked late fee' do
+        # In the real world, a late fee item will have more details, but this is all we need for this context
+        let(:late_fee_item) do
+          create :purchasable_item,
+            :event_late_fee,
+            tournament: tournament,
+            configuration: {
+              applies_at: applies_at,
+            }
+        end
+        let(:applies_at) { 2.weeks.from_now }
+
+        context 'when the tournament is actually in late registration' do
+          let(:the_time) { applies_at + 1.week }
+
+          it { is_expected.to eq(true) }
+        end
+
+        context 'when the tournament is not in late registration' do
+          let(:the_time) { applies_at - 1.week }
+
+          it { is_expected.to eq(false) }
+        end
       end
     end
 

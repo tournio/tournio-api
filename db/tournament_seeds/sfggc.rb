@@ -39,6 +39,10 @@ playground.config_items += [
     key: 'display_capacity',
     value: 'false',
   ),
+  ConfigItem.new(
+    key: 'paypal_client_id',
+    value: 'sb',
+  ),
 ]
 
 playground.contacts << Contact.new(

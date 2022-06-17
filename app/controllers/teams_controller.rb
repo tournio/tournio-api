@@ -25,13 +25,13 @@ class TeamsController < ApplicationController
   BOWLER_ATTRS = [
     :position,
     :doubles_partner_num,
+    :shift_identifier,
     person_attributes: PERSON_ATTRS,
     additional_question_responses: ADDITIONAL_QUESTION_RESPONSES_ATTRS,
   ].freeze
   TEAM_ATTRS = [
     :name,
     bowlers_attributes: BOWLER_ATTRS,
-    shift: [:identifier],
     options: {},
   ].freeze
 
@@ -64,7 +64,6 @@ class TeamsController < ApplicationController
       return
     end
     teams = params[:incomplete] ? tournament.available_to_join : tournament.teams.order('LOWER(name)')
-    sleep(1) if Rails.env.development?
     render json: TeamBlueprint.render(teams, view: :list)
   end
 
@@ -75,7 +74,6 @@ class TeamsController < ApplicationController
       return
     end
     team.bowlers.includes(:person, :ledger_entries).order(:position)
-    sleep(1) if Rails.env.development?
     render json: TeamBlueprint.render(team, view: :detail)
   end
 
@@ -116,18 +114,10 @@ class TeamsController < ApplicationController
     # cleaned_up['bowlers_attributes'].transform_keys!(&:to_i)
     cleaned_up['bowlers_attributes'].map! { |bowler_attrs| clean_up_bowler_data(bowler_attrs) }
 
-    # transform shift param into the Rails association style
-    unless permitted_params['shift'].nil?
-      shift = tournament.shifts.find_by(identifier: permitted_params['shift']['identifier'])
-      unless shift.nil?
-        cleaned_up[:shift_team_attributes] = { shift_id: shift.id }
-      end
-      cleaned_up.delete(:shift)
-    end
-
     cleaned_up
   end
 
+  # TODO: This is a good candidate for consolidation, since it's essentially repeated from BowlersController
   def clean_up_bowler_data(permitted_params)
     # Remove any empty person attributes
     permitted_params['person_attributes'].delete_if { |_k, v| v.length.zero? }
@@ -146,6 +136,12 @@ class TeamsController < ApplicationController
 
     # remove that key from the params...
     permitted_params.delete('additional_question_responses')
+
+    if permitted_params['shift_identifier'].present?
+      shift = Shift.find_by(identifier: permitted_params['shift_identifier'])
+      permitted_params['bowler_shift_attributes'] = { shift_id: shift.id } unless shift.nil?
+      permitted_params.delete('shift_identifier')
+    end
 
     permitted_params
   end

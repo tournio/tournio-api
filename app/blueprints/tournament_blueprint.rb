@@ -4,6 +4,9 @@ class TournamentBlueprint < Blueprinter::Base
   identifier :identifier
 
   fields :name, :year, :id
+  field :image_path do |t, _|
+    t.config[:image_path]
+  end
 
   view :list do
     field :aasm_state, name: :state
@@ -44,9 +47,6 @@ class TournamentBlueprint < Blueprinter::Base
     end
     field :early_registration_ends do |t, _|
       t.early_registration_ends.present? ? datetime_with_timezone(t.early_registration_ends, t) : nil
-    end
-    field :image_path do |t, _|
-      t.config[:image_path]
     end
     field :website do |t, _|
       t.config[:website]

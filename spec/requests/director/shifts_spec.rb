@@ -154,14 +154,15 @@ describe Director::ShiftsController, type: :request do
       end
     end
 
-    context 'updating a details properties' do
+    context 'updating a details property' do
       let(:shift_params) do
         {
           details: {
-            permit_new_teams: false,
-            permit_solo: false,
-            permit_joins: true,
-            events: [{:day=>"Friday", :time=>"9pm-midnight", :event=>"Team"}, {:day=>"Saturday", :time=>"4-10pm", :event=>"Singles/Doubles"}],
+            registration_types: %i(join_team),
+            events: [
+              {:day=>"Friday", :time=>"9pm-midnight", :event=>"Team"},
+              {:day=>"Saturday", :time=>"4-10pm", :event=>"Singles/Doubles"},
+            ],
           }
         }
       end
@@ -173,9 +174,7 @@ describe Director::ShiftsController, type: :request do
 
       it "updates the details properties" do
         subject
-        expect(shift.reload.details['permit_new_teams']).to be_falsey
-        expect(shift.reload.details['permit_solo']).to be_falsey
-        expect(shift.reload.details['permit_joins']).to be_truthy
+        expect(shift.reload.details['registration_types']).to eq(%w(join_team))
       end
     end
 

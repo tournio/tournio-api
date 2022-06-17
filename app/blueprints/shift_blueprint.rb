@@ -16,15 +16,11 @@ class ShiftBlueprint < Blueprinter::Base
     s.details['events']
   end
 
-  field :permit_new_teams do |s, _|
-    s.details['permit_new_teams']
-  end
-
-  field :permit_solo do |s, _|
-    s.details['permit_solo']
-  end
-
-  field :permit_joins do |s, _|
-    s.details['permit_joins']
+  field :registration_types do |s, _|
+    types = {}
+    Shift::SUPPORTED_REGISTRATION_TYPES.each do |t|
+      types[t] = s.details['registration_types'].include?(t)
+    end
+    types
   end
 end

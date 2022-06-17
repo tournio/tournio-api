@@ -101,6 +101,34 @@ RSpec.describe PurchasableItem, type: :model do
       end
     end
 
+    # Example: late fee, late fee on an event
+    describe '#one_ledger_item_per_determination' do
+      let(:category) { :ledger }
+      let(:determination) { :late_fee }
+      let(:time_string) { 2.weeks.from_now.strftime('%FT%T%:z') }
+      let(:configuration) { base_configuration.merge({ applies_at: time_string }) }
+
+      it { is_expected.to be_truthy }
+
+      context 'a standard tournament' do
+        before do
+          create :purchasable_item, :late_fee, tournament: tournament
+        end
+
+        it { is_expected.to be_falsey }
+      end
+
+      context 'with event selection' do
+        before do
+          create :purchasable_item, :event_late_fee, tournament: tournament
+        end
+
+        let(:refinement) { :event_linked }
+
+        it { is_expected.to be_truthy }
+      end
+    end
+
     # Things like a non-bowler banquet entry, which require some kind of text.
     describe '#contains_input_label' do
       let(:category) { :banquet }

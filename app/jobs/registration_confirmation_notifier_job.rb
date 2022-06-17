@@ -29,7 +29,7 @@ class RegistrationConfirmationNotifierJob < TemplateMailerJob
       secretary_email: secretary_contact,
       bowler_full_name: TournamentRegistration.bowler_full_name(bowler),
       usbc_id: bowler.usbc_id,
-      igbo_id: bowler.igbo_id,
+      # igbo_id: bowler.igbo_id,
       birth_month: bowler.birth_month,
       birth_day: bowler.birth_day,
       address1: bowler.address1,
@@ -43,12 +43,13 @@ class RegistrationConfirmationNotifierJob < TemplateMailerJob
       amount_due: amount_due_text,
       payment_url: payment_page,
       additional_questions: [],
+      event_selection: tournament.config['event_selection'],
     }
     if team_info.any?
       data.merge!({
-                   team_name: team_info[:name],
-                   team_order: team_info[:position],
-                 })
+        team_name: team_info[:name],
+        team_order: team_info[:position],
+      })
     end
     if bowler.doubles_partner.present?
       data[:doubles_partner] = TournamentRegistration.bowler_full_name(bowler.doubles_partner)
@@ -81,17 +82,21 @@ class RegistrationConfirmationNotifierJob < TemplateMailerJob
 
   def payment_page
     if Rails.env.production?
-      "https://www.igbo-reg.com/teams/#{bowler.team.identifier}"
+      "https://www.igbo-reg.com/bowlers/#{bowler.identifier}"
     else
-      "http://localhost:3000/teams/#{bowler.team.identifier}"
+      "http://localhost:3000/bowlers/#{bowler.identifier}"
     end
   end
 
   def team_info
-    @team_info ||= {
-      name: TournamentRegistration.team_display_name(bowler.team),
-      position: bowler.position,
-    }
+    @team_info ||= if bowler.team.present?
+                     {
+                       name: TournamentRegistration.team_display_name(bowler.team),
+                       position: bowler.position,
+                     }
+                   else
+                     {}
+                   end
   end
 
   def amount_due_text

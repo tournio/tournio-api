@@ -4,6 +4,10 @@ class BowlerBlueprint < Blueprinter::Base
   identifier :identifier
   fields :first_name, :last_name, :position
   field :nickname, name: :preferred_name
+  field :created_at, name: :date_registered, datetime_format: "%F"
+  field :full_name do |b, _|
+    TournamentRegistration.person_display_name(b.person)
+  end
 
   association :tournament, blueprint: TournamentBlueprint
 
@@ -11,7 +15,18 @@ class BowlerBlueprint < Blueprinter::Base
     TournamentRegistration.amount_due(b).to_i
   end
 
+  view :list do
+    association :events, blueprint: PurchaseBlueprint do |bowler, _|
+      bowler.purchases.event
+    end
+
+    association :doubles_partner, blueprint: BowlerBlueprint
+    association :shift, blueprint: ShiftBlueprint
+  end
+
   view :detail do
+    include_view :list
+
     field :team_identifier do |b, _|
       # using &. because there may not be a team, if we're doing a singles tournament, say
       b.team&.identifier
@@ -43,7 +58,7 @@ class BowlerBlueprint < Blueprinter::Base
       if shift.present?
         {
           full: shift.confirmed >= shift.capacity,
-          confirmed: b.team.shift_team.confirmed_at.present?,
+          confirmed: b.bowler_shift.confirmed?,
         }
       else
         {}
@@ -52,9 +67,10 @@ class BowlerBlueprint < Blueprinter::Base
   end
 
   view :director_list do
+    field :email
+
     field :amount_billed do |b, _|
-      billed = TournamentRegistration.amount_billed(b).to_i
-      ActionController::Base.helpers.number_to_currency(billed, precision: 0)
+      TournamentRegistration.amount_billed(b)
     end
 
     field :has_free_entry do |b, _|
@@ -62,14 +78,12 @@ class BowlerBlueprint < Blueprinter::Base
     end
 
     field :team_name do |b, _|
-      TournamentRegistration.team_display_name(b.team)
+      b.team.present? ? TournamentRegistration.team_display_name(b.team) : 'n/a'
     end
 
     field :team_identifier do |b, _|
-      b.team.identifier
+      b.team.present? ? b.team.identifier : 'n/a'
     end
-
-    field :created_at, name: :date_registered, datetime_format: "%F"
 
     field :igbo_member do |b, _|
       b.verified_data['igbo_member'] || false

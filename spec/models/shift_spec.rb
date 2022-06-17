@@ -23,5 +23,63 @@
 require 'rails_helper'
 
 RSpec.describe Shift, type: :model do
-  # pending "add some examples to (or delete) #{__FILE__}"
+  describe 'validations' do
+    describe 'details' do
+      let(:details) { nil }
+      let(:shift) { build :shift, details: details }
+
+      subject { shift.valid? }
+
+      it { is_expected.to be_truthy }
+
+      context 'a standard tournament' do
+        let(:details) do
+          {
+            registration_types: %i(new_team solo join_team)
+          }
+        end
+
+        it { is_expected.to be_truthy }
+      end
+
+      context 'a tournament with event selection, e.g., DAMIT' do
+        let(:details) do
+          {
+            registration_types: %i(solo partner new_pair),
+          }
+        end
+
+        it { is_expected.to be_truthy }
+      end
+
+      context 'no registration types specified' do
+        let(:details) do
+          {}
+        end
+
+        it {is_expected.to be_truthy }
+      end
+
+      context 'unknown registration type' do
+        let(:details) do
+          {
+            registration_types: %i(group),
+          }
+        end
+
+        it { is_expected.to be_falsey }
+      end
+
+      context 'unrecognized properties' do
+        let(:details) do
+          {
+            unknown: true,
+            also_unknown: true,
+          }
+        end
+
+        it { is_expected.to be_falsey }
+      end
+    end
+  end
 end
