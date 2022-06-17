@@ -7,10 +7,6 @@ module DirectorUtilities
     tournament.teams.destroy_all
     tournament.reload.bowlers.destroy_all
     tournament.free_entries.destroy_all
-    tournament.shifts.each do |shift|
-      shift.bowler_shifts.destroy_all
-      shift.reset_counts
-    end
   end
 
   def self.reassign_bowler(bowler:, to_team:)

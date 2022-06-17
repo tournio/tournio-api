@@ -42,10 +42,6 @@ RSpec.describe DirectorUtilities do
         expect { subject }.to change(LedgerEntry, :count).to(0)
       end
 
-      it "drops all the tournament's bowler-shift joins" do
-        expect { subject }.to change(BowlerShift, :count).to(0)
-      end
-
       context 'when there are other tournaments in testing' do
         let!(:other_tournament) { create(:tournament, :testing) }
 
