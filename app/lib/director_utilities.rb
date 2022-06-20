@@ -156,11 +156,19 @@ module DirectorUtilities
 
   def self.team_export(bowler:)
     team = bowler.team
-    {
-      team_id: team.identifier,
-      team_name: team.name,
-      team_order: bowler.position,
-    }
+    if team.present?
+      {
+        team_id: team.identifier,
+        team_name: team.name,
+        team_order: bowler.position,
+      }
+    else
+      {
+        team_id: 'n/a',
+        team_name: 'n/a',
+        team_order: 'n/a',
+      }
+    end
   end
 
   def self.csv_hash(tournament:)
@@ -179,12 +187,7 @@ module DirectorUtilities
 
   def self.csv_bowlers(tournament:)
     tournament.bowlers.collect do |bowler|
-      t = bowler&.team
-      team_deets = if t.present?
-                     team_export(bowler: bowler)
-                   else
-                     {}
-                   end
+      team_deets = team_export(bowler: bowler)
       d = bowler.doubles_partner
       doubles_deets = doubles_partner_info(partner: d, name_only: true)
       bowler_data = bowler_export(bowler: bowler)
