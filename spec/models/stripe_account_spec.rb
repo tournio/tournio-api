@@ -2,7 +2,7 @@
 #
 # Table name: stripe_accounts
 #
-#  id                      :bigint           not null, primary key
+#  identifier              :string           not null, primary key
 #  onboarding_completed_at :datetime
 #  created_at              :datetime         not null
 #  updated_at              :datetime         not null
