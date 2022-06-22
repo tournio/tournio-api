@@ -70,6 +70,11 @@ describe Director::LedgerEntriesController, type: :request do
       expect { subject }.to change(bowler.ledger_entries, :count).by(1)
     end
 
+    it "tries to confirm the bowler's shift" do
+      expect(TournamentRegistration).to receive(:try_confirming_bowler_shift).with(bowler).once
+      subject
+    end
+
     context 'as an unpermitted user' do
       let(:requesting_user) { create(:user, :unpermitted) }
 

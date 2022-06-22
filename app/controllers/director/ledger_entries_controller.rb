@@ -11,7 +11,11 @@ module Director
       entry.bowler = bowler
       entry.source = :manual
       entry.notes = "Created by #{current_user.email}"
-      if (entry.save)
+      if entry.save
+        if bowler.purchases.ledger.unpaid.sum(&:amount) == entry.credit
+          bowler.purchases.ledger.unpaid.update_all(paid_at: Time.zone.now)
+          TournamentRegistration.try_confirming_bowler_shift(bowler)
+        end
         render json: LedgerEntryBlueprint.render(entry), status: :created
       end
     rescue ActiveRecord::RecordNotFound
