@@ -3,6 +3,8 @@
 # Table name: stripe_accounts
 #
 #  identifier              :string           not null, primary key
+#  link_expires_at         :datetime
+#  link_url                :string
 #  onboarding_completed_at :datetime
 #  created_at              :datetime         not null
 #  updated_at              :datetime         not null
