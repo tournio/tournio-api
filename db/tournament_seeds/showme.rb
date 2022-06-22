@@ -45,15 +45,25 @@ if (Rails.env.development?)
   tournament.config_items << ConfigItem.new(key: 'email_in_dev', value: 'false')
 end
 
+# tournament.contacts << Contact.new(
+#   name: 'Rich Bax',
+#   email: 'richardjbax@yahoo.com',
+#   role: :director,
+# )
 tournament.contacts << Contact.new(
-  name: 'Rich Bax',
-  email: 'richardjbax@yahoo.com',
+  name: 'Rich Hagan',
+  email: 'stlnutsy1@aol.com',
   role: :director,
 )
+# tournament.contacts << Contact.new(
+#   name: 'Stephen Bodine',
+#   email: 'stlouisguy99@sbcglobal.net',
+#   role: :secretary,
+# )
 tournament.contacts << Contact.new(
-  name: 'Stephen Bodine',
-  email: 'stlouisguy99@sbcglobal.net',
-  role: :secretary,
+  name: 'Del Watlington',
+  email: 'msnlsec@yahoo.com',
+  role: :registration,
   notify_on_registration: true,
   notification_preference: :daily_summary,
 )
