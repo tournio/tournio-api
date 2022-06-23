@@ -85,6 +85,7 @@ class TournamentBlueprint < Blueprinter::Base
     association :purchasable_items, blueprint: PurchasableItemBlueprint
     association :testing_environment, blueprint: TestingEnvironmentBlueprint
     association :shifts, blueprint: ShiftBlueprint
+    association :stripe_account, blueprint: StripeAccountBlueprint
 
     field :available_conditions do |t, _|
       output = {}
