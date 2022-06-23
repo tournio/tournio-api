@@ -241,6 +241,11 @@ RSpec.describe TournamentRegistration do
     let(:time) { Time.zone.now }
     let(:bowler) { create(:bowler, person: create(:person), tournament: tournament) }
     let(:config) { {} }
+    let(:configuration) do
+      {
+        applies_at: '1976-12-28T18:37:00-07:00',
+      }
+    end
 
     before { allow(tournament).to receive(:config).and_return(config) }
 
@@ -256,11 +261,6 @@ RSpec.describe TournamentRegistration do
     end
 
     context 'with a late fee and date configured' do
-      let(:configuration) do
-        {
-          applies_at: '1976-12-28T18:37:00-07:00',
-        }
-      end
       let!(:purchasable_item) { create(:purchasable_item, :late_fee, value: late_fee, tournament: tournament, configuration: configuration) }
 
       context 'not in late registration' do
@@ -300,6 +300,37 @@ RSpec.describe TournamentRegistration do
           purchasable_item = tournament.purchasable_items.late_fee.first
           expect(purchase.purchasable_item_id).to eq(purchasable_item.id)
           expect(purchase.amount).to eq(purchasable_item.value)
+        end
+      end
+    end
+
+    # The creation of event purchases creates any associated late-fee purchases.
+    # We don't want this method to create any late fee purchases or ledger entries.
+    context 'a tournament with event-linked late fees' do
+      let(:tournament) { create :tournament, :active, :with_event_selection }
+      let!(:purchasable_item) { create(:purchasable_item, :event_late_fee, value: late_fee, tournament: tournament, configuration: configuration) }
+
+      context 'not in late registration' do
+        before { allow(tournament).to receive(:in_late_registration?).and_return(false) }
+
+        it 'does not create a ledger entry' do
+          expect { subject }.not_to change(LedgerEntry, :count)
+        end
+
+        it 'does not create a purchase' do
+          expect { subject }.not_to change(Purchase, :count)
+        end
+      end
+
+      context 'in late registration' do
+        before { allow(tournament).to receive(:in_late_registration?).and_return(true) }
+
+        it 'does not create a ledger entry' do
+          expect { subject }.not_to change(LedgerEntry, :count)
+        end
+
+        it 'does not create a purchase' do
+          expect { subject }.not_to change(Purchase, :count)
         end
       end
     end

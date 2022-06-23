@@ -132,7 +132,7 @@ module TournamentRegistration
     return unless tournament.in_late_registration?
 
     # tournament late fee
-    late_fee_item = tournament.purchasable_items.late_fee.first
+    late_fee_item = tournament.purchasable_items.late_fee.where(refinement: nil).first
     return unless late_fee_item.present?
 
     late_fee = late_fee_item.value
