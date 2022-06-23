@@ -35,7 +35,6 @@ class Tournament < ApplicationRecord
   has_one :testing_environment, dependent: :destroy
   has_one :registration_summary_send
   has_one :payment_summary_send
-  has_one :stripe_account
 
   accepts_nested_attributes_for :additional_questions, allow_destroy: true
 

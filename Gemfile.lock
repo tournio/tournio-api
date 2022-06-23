@@ -224,7 +224,6 @@ GEM
       rack (~> 2.0)
       redis (>= 4.2.0)
     slugify (1.0.7)
-    stripe (6.4.0)
     strscan (3.0.3)
     thor (1.2.1)
     timeout (0.3.0)
@@ -269,7 +268,6 @@ DEPENDENCIES
   shoulda-matchers
   sidekiq
   slugify
-  stripe
   tzinfo-data
 
 RUBY VERSION
