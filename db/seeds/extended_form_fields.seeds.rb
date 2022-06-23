@@ -68,3 +68,73 @@ ExtendedFormField.create(
   },
   helper_text: 'See tournament rules for details',
 )
+
+ExtendedFormField.create(
+  name: 'shirt_size',
+  label: 'Shirt size',
+  html_element_type: 'select',
+  html_element_config: {
+    options: [
+      {
+        value: '',
+        label: '-- Indicate your shirt size',
+      },
+      {
+        value: "men's xs",
+        label: "Men's XS",
+      },
+      {
+        value: "men's s",
+        label: "Men's S",
+      },
+      {
+        value: "men's m",
+        label: "Men's M",
+      },
+      {
+        value: "men's l",
+        label: "Men's L",
+      },
+      {
+        value: "men's xl",
+        label: "Men's XL",
+      },
+      {
+        value: "men's xxl",
+        label: "Men's XXL",
+      },
+      {
+        value: "women's xs",
+        label: "Women's XS",
+      },
+      {
+        value: "women's s",
+        label: "Women's S",
+      },
+      {
+        value: "women's m",
+        label: "Women's M",
+      },
+      {
+        value: "women's l",
+        label: "Women's L",
+      },
+      {
+        value: "women's xl",
+        label: "Women's XL",
+      },
+      {
+        value: "women's xxl",
+        label: "Women's XXL",
+      },
+      {
+        value: "other",
+        label: "Other (please let us know!)",
+      },
+    ],
+    value: '',
+  },
+  validation_rules: { required: false },
+  helper_text: '',
+  helper_url: '',
+)
