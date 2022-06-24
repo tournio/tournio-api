@@ -16,6 +16,7 @@
 #
 FactoryBot.define do
   factory :stripe_account do
-    
+    identifier  { 'stripe_123' }
+    association :tournament, strategy: :build
   end
 end

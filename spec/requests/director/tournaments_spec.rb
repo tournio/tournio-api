@@ -726,4 +726,7 @@ describe Director::TournamentsController, type: :request do
       end
     end
   end
+
+
+
 end

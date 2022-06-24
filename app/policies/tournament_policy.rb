@@ -51,6 +51,10 @@ class TournamentPolicy < DirectorPolicy
     user.superuser?
   end
 
+  def stripe_refresh?
+    sufficient_access?
+  end
+
   private
 
   def sufficient_role?
