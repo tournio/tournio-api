@@ -2,9 +2,16 @@
 
 module Director
   class TournamentsController < BaseController
+    # this gives us attributes: tournament, stripe_account
+    # as well as some methods
+    include StripeUtilities
+
     rescue_from Pundit::NotAuthorizedError, with: :unauthorized
 
     before_action :load_tournament, except: [:index]
+
+    MAX_STRIPE_ATTEMPTS = 10
+
 
     def index
       tournaments = if params[:upcoming]
@@ -143,9 +150,35 @@ module Director
       render json: nil, status: :ok
     end
 
-    private
+    def stripe_refresh
+      unless tournament.present?
+        render json: nil, status: 404
+        return
+      end
 
-    attr_accessor :tournament
+      authorize tournament
+
+      self.stripe_account = find_stripe_account
+      unless stripe_account.present?
+        self.stripe_account = create_stripe_account
+      end
+      unless stripe_account.present?
+        render json: { error: 'Failed to create a Stripe account in time.' }, status: :service_unavailable
+        return
+      end
+
+      # this will update the stripe_account's attributes if it's successful
+      get_updated_account_link
+
+      unless stripe_account.link_expires_at.to_i > Time.zone.now.to_i
+        render json: { error: 'Failed to get an account link in time.'}, status: :service_unavailable
+        return
+      end
+
+      render json: StripeAccountBlueprint.render(stripe_account), status: :ok
+    end
+
+    private
 
     def load_tournament
       params.require(:identifier)
@@ -163,6 +196,10 @@ module Director
 
     def update_params
       params.require(:tournament).permit(additional_questions_attributes: [:id, :extended_form_field_id, :order, :_destroy, validation_rules: {}])
+    end
+
+    def find_stripe_account
+      StripeAccount.find_by(tournament: tournament)
     end
   end
 end
