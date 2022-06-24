@@ -12,7 +12,7 @@ module StripeUtilities
 
   # assumes the existence of tournament
   def refresh_uri
-    "/director/tournaments/#{tournament.identifier}/tbd"
+    "/director/tournaments/#{tournament.identifier}/stripe_account_setup"
   end
 
   # assumes the existence of tournament
