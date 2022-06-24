@@ -22,9 +22,9 @@ module StripeUtilities
       business_type: 'non_profit'
     )
     Rails.logger.debug "Stripe account creation result: #{result.inspect}"
-    unless result.instance_of?(StripeError)
-      StripeAccount.create(tournament_id: tournament.id, identifier: result.id)
-    end
+    StripeAccount.create(tournament_id: tournament.id, identifier: result.id)
+  rescue Stripe::StripeError => e
+    Rails.logger.info "Stripe error: #{e}"
   end
 
   # assumes the existence of stripe_account
@@ -39,5 +39,7 @@ module StripeUtilities
       link_url: result.url,
       link_expires_at: Time.at(result.expires_at),
     )
+  rescue Stripe::StripeError => e
+    Rails.logger.info "Stripe error: #{e}"
   end
 end
