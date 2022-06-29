@@ -221,7 +221,7 @@ ActiveRecord::Schema[7.0].define(version: 2022_06_29_175505) do
     t.index ["tournament_id"], name: "index_shifts_on_tournament_id"
   end
 
-  create_table "stripe_accounts", force: :cascade do |t|
+  create_table "stripe_accounts", primary_key: "identifier", id: :string, force: :cascade do |t|
     t.bigint "tournament_id", null: false
     t.datetime "onboarding_completed_at"
     t.string "link_url"

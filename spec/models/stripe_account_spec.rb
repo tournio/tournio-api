@@ -2,7 +2,7 @@
 #
 # Table name: stripe_accounts
 #
-#  id                      :bigint           not null, primary key
+#  identifier              :string           not null, primary key
 #  link_expires_at         :datetime
 #  link_url                :string
 #  onboarding_completed_at :datetime
