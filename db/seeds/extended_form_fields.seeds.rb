@@ -154,3 +154,57 @@ ExtendedFormField.create(
   helper_text: '',
   helper_url: '',
 ) unless ExtendedFormField.find_by(name: 'shirt_size').present?
+
+ExtendedFormField.create(
+  name: 'shirt_size_unisex',
+  label: 'Shirt size (unisex)',
+  html_element_type: 'select',
+  html_element_config: {
+    options: [
+      {
+        value: '',
+        label: '-- Indicate your shirt size',
+      },
+      {
+        value: "xs",
+        label: "XS",
+      },
+      {
+        value: "s",
+        label: "S",
+      },
+      {
+        value: "m",
+        label: "M",
+      },
+      {
+        value: "l",
+        label: "L",
+      },
+      {
+        value: "xl",
+        label: "XL",
+      },
+      {
+        value: "2xl",
+        label: "2XL",
+      },
+      {
+        value: "3xl",
+        label: "3XL",
+      },
+      {
+        value: "4xl",
+        label: "4XL",
+      },
+      {
+        value: "other",
+        label: "Other (please let us know!)",
+      },
+    ],
+    value: '',
+  },
+  validation_rules: { required: false },
+  helper_text: '',
+  helper_url: '',
+) unless ExtendedFormField.find_by(name: 'shirt_size_unisex').present?
