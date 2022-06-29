@@ -12,7 +12,6 @@ module Director
 
     MAX_STRIPE_ATTEMPTS = 10
 
-
     def index
       tournaments = if params[:upcoming]
                       policy_scope(Tournament).includes(:config_items).upcoming.order(name: :asc)
@@ -152,13 +151,13 @@ module Director
 
     def stripe_refresh
       unless tournament.present?
-        render json: nil, status: 404
+        render json: nil, status: :not_found
         return
       end
 
       authorize tournament
 
-      self.stripe_account = find_stripe_account
+      load_stripe_account
       unless stripe_account.present?
         self.stripe_account = create_stripe_account
       end
@@ -178,6 +177,32 @@ module Director
       render json: StripeAccountBlueprint.render(stripe_account), status: :ok
     end
 
+    def stripe_status
+      unless tournament.present?
+        render json: nil, status: :not_found
+        return
+      end
+
+      authorize tournament
+
+      load_stripe_account
+
+      unless stripe_account.present?
+        render json: { error: 'No Stripe account exists yet.' }, status: :precondition_failed
+        return
+      end
+
+      result = get_account_details
+      unless result.present?
+        render json: { error: 'Failed to retrieve account status from Stripe.' }, status: :service_unavailable
+        return
+      end
+
+      update_account_details(result)
+
+      render json: StripeAccountBlueprint.render(stripe_account.reload), status: :ok
+    end
+
     private
 
     def load_tournament
@@ -190,6 +215,7 @@ module Director
                                             :bowlers,
                                             :free_entries,
                                             :shifts,
+                                            :stripe_account,
                                             additional_questions: [:extended_form_field])
                                   .find_by_identifier(id)
     end
@@ -198,8 +224,8 @@ module Director
       params.require(:tournament).permit(additional_questions_attributes: [:id, :extended_form_field_id, :order, :_destroy, validation_rules: {}])
     end
 
-    def find_stripe_account
-      StripeAccount.find_by(tournament: tournament)
+    def load_stripe_account
+      self.stripe_account = tournament.stripe_account
     end
   end
 end

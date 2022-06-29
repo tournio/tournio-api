@@ -55,6 +55,10 @@ class TournamentPolicy < DirectorPolicy
     sufficient_access?
   end
 
+  def stripe_status?
+    sufficient_access?
+  end
+
   private
 
   def sufficient_role?

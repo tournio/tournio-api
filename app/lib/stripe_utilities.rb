@@ -7,7 +7,7 @@ module StripeUtilities
 
   # assumes the existence of tournament
   def return_uri
-    "/director/tournaments/#{tournament.identifier}/tbd"
+    "/director/tournaments/#{tournament.identifier}?stripe=true"
   end
 
   # assumes the existence of tournament
@@ -41,5 +41,30 @@ module StripeUtilities
     )
   rescue Stripe::StripeError => e
     Rails.logger.info "Stripe error: #{e}"
+  end
+
+  # assumes the existence of stripe_account
+  def get_account_details
+    Stripe::Account.retrieve(stripe_account.identifier)
+  rescue Stripe::StripeError => e
+    Rails.logger.info "Stripe error: #{e}"
+  end
+
+  # assumes the existence of stripe_account
+  #
+  # account_obj is a Stripe::Account instance
+  def update_account_details(account_obj)
+    charges_enabled = account_obj[:charges_enabled]
+    info_submitted = account_obj[:details_submitted]
+
+    # Did they complete the onboarding process, and can now make charges?
+    unless stripe_account.onboarding_completed_at.present?
+      stripe_account.update(onboarding_completed_at: Time.zone.now) if charges_enabled && info_submitted
+    end
+
+    # What if the account was disabled / deactivated?
+    unless charges_enabled && info_submitted && stripe_account.onboarding_completed_at.present?
+      stripe_account.update(onboarding_completed_at: nil)
+    end
   end
 end
