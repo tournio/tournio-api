@@ -14,9 +14,8 @@
 #
 #  index_stripe_accounts_on_tournament_id  (tournament_id)
 #
-FactoryBot.define do
-  factory :stripe_account do
-    identifier  { 'stripe_123' }
-    association :tournament, strategy: :build
-  end
+require 'rails_helper'
+
+RSpec.describe StripeAccount, type: :model do
+  pending "add some examples to (or delete) #{__FILE__}"
 end

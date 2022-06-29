@@ -14,9 +14,10 @@
 #
 #  index_stripe_accounts_on_tournament_id  (tournament_id)
 #
-FactoryBot.define do
-  factory :stripe_account do
-    identifier  { 'stripe_123' }
-    association :tournament, strategy: :build
+class StripeAccount < ApplicationRecord
+  belongs_to :tournament
+
+  def can_accept_payments?
+    onboarding_completed_at.present?
   end
 end
