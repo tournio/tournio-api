@@ -8,7 +8,7 @@ ExtendedFormField.create(
   validation_rules: { required: false },
   helper_text: '',
   helper_url: '',
-)
+) unless ExtendedFormField.find_by(name: 'comment').present?
 
 ExtendedFormField.create(
   name: 'standings_link',
@@ -18,7 +18,7 @@ ExtendedFormField.create(
   validation_rules: { required: false },
   helper_text: '',
   helper_url: '',
-)
+) unless ExtendedFormField.find_by(name: 'standings_link').present?
 
 ExtendedFormField.create(
   name: 'pronouns',
@@ -52,7 +52,7 @@ ExtendedFormField.create(
   validation_rules: { required: false },
   helper_text: '',
   helper_url: '',
-)
+) unless ExtendedFormField.find_by(name: 'pronouns').present?
 
 ExtendedFormField.create(
   name: 'entering_average',
@@ -67,7 +67,7 @@ ExtendedFormField.create(
     max: 300,
   },
   helper_text: 'See tournament rules for details',
-)
+) unless ExtendedFormField.find_by(name: 'entering_average').present?
 
 ExtendedFormField.create(
   name: 'shirt_size',
@@ -100,8 +100,16 @@ ExtendedFormField.create(
         label: "Men's XL",
       },
       {
-        value: "men's xxl",
-        label: "Men's XXL",
+        value: "men's 2xl",
+        label: "Men's 2XL",
+      },
+      {
+        value: "men's 3xl",
+        label: "Men's 3XL",
+      },
+      {
+        value: "men's 4xl",
+        label: "Men's 4XL",
       },
       {
         value: "women's xs",
@@ -124,8 +132,16 @@ ExtendedFormField.create(
         label: "Women's XL",
       },
       {
-        value: "women's xxl",
-        label: "Women's XXL",
+        value: "women's 2xl",
+        label: "Women's 2XL",
+      },
+      {
+        value: "women's 3xl",
+        label: "Women's 3XL",
+      },
+      {
+        value: "women's 4xl",
+        label: "Women's 4XL",
       },
       {
         value: "other",
@@ -137,4 +153,4 @@ ExtendedFormField.create(
   validation_rules: { required: false },
   helper_text: '',
   helper_url: '',
-)
+) unless ExtendedFormField.find_by(name: 'shirt_size').present?
