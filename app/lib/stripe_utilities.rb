@@ -18,7 +18,7 @@ module StripeUtilities
   # assumes the existence of tournament
   def create_stripe_account
     result = Stripe::Account.create(
-      type: 'standard',
+      type: Rails.env.production? ? 'standard' : 'express',
       business_type: 'non_profit'
     )
     Rails.logger.debug "Stripe account creation result: #{result.inspect}"
