@@ -67,4 +67,17 @@ module StripeUtilities
       stripe_account.update(onboarding_completed_at: nil)
     end
   end
+
+  def line_item_for_purchasable_item(pi, quantity = 1)
+    {
+      quantity: quantity,
+      price_data: {
+        currency: tournament.config['currency'] || 'usd',
+        product_data: {
+          name: pi.name,
+        },
+        unit_amount: pi.value * 100, # in cents
+      },
+    }
+  end
 end
