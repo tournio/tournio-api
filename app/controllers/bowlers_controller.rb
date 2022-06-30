@@ -231,6 +231,15 @@ class BowlersController < ApplicationController
     render json: output, status: :ok
   end
 
+  def stripe_checkout
+
+
+    output = {
+      redirect_to: 'https://www.twitter.com',
+    }
+    render json: output, status: :ok
+  end
+
   private
 
   attr_reader :tournament, :team, :bowler, :parameters

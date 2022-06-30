@@ -59,6 +59,7 @@ Rails.application.routes.draw do
       resources :bowlers, only: %i(create show), param: :identifier, shallow: true do
         member do
           post 'purchase_details'
+          post 'stripe_checkout'
         end
         resources :purchases, only: %i(create), param: :identifier, shallow: true
       end
