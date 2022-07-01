@@ -218,7 +218,7 @@ module TournamentRegistration
       return
     end
     recipient = if Rails.env.production?
-                  tournament.active? ? bowler.email : tournament.contacts.treasurer.first || tournament.contacts.payment_notifiable.first
+                  tournament.active? ? bowler.email : tournament.contacts.treasurer.first&.email || tournament.contacts.payment_notifiable.first&.email
                 elsif Rails.env.test?
                   MailerJob::FROM
                 elsif tournament.config[:email_in_dev]
