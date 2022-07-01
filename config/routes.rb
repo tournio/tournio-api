@@ -65,4 +65,6 @@ Rails.application.routes.draw do
       end
     end
   end
+
+  post 'stripe_webhook', to: 'stripe_webhooks#webhook'
 end

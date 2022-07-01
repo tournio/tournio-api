@@ -75,6 +75,9 @@ module StripeUtilities
         currency: tournament.config['currency'] || 'usd',
         product_data: {
           name: pi.name,
+          metadata: {
+            identifier: pi.identifier,
+          },
         },
         unit_amount: pi.value * 100, # in cents
       },
