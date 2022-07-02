@@ -182,6 +182,8 @@ class BowlersController < ApplicationController
       redirect_to: session[:url],
     }
     render json: output, status: :ok
+  rescue PurchaseError => e
+    render json: { error: e.message }, status: e.http_status
   end
 
   private
