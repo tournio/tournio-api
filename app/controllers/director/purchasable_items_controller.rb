@@ -18,6 +18,9 @@ module Director
 
       PurchasableItem.transaction do
         self.items = PurchasableItem.create!(purchasable_item_create_params)
+
+        items.each { |i| Stripe::ProductCreator.perform_async(i.id) }
+
         render json: PurchasableItemBlueprint.render(items), status: :created
       end
 
@@ -47,6 +50,8 @@ module Director
       pi.update(purchasable_item_update_params)
       if pi.errors
         Rails.logger.info pi.errors.inspect
+      else
+        # TODO: update Stripe product information
       end
 
       render json: PurchasableItemBlueprint.render(pi.reload), status: :ok
@@ -63,6 +68,9 @@ module Director
 
       unless tournament.active? || tournament.demo?
         pi.destroy
+
+        # TODO: delete Stripe Product and Price info
+
         render json: {}, status: :no_content
         return
       end

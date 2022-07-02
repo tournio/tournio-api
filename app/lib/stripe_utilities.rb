@@ -1,6 +1,10 @@
 module StripeUtilities
   attr_accessor :tournament, :stripe_account
 
+  def load_stripe_account
+    self.stripe_account = tournament.stripe_account
+  end
+
   def client_host
     Rails.env.production? ? 'https://www.igbo-reg.com' : 'http://localhost:3000'
   end

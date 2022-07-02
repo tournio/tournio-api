@@ -22,6 +22,11 @@ module TournamentBusiness
     team_size
   end
 
+  # This will allow us to change it later when it becomes a config item
+  def currency
+    'usd'
+  end
+
   def config
     @config ||= config_items.each_with_object(HashWithIndifferentAccess.new) do |item, config_hash|
       symbolized_key = item.key.to_sym

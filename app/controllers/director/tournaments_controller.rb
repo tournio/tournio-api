@@ -223,9 +223,5 @@ module Director
     def update_params
       params.require(:tournament).permit(additional_questions_attributes: [:id, :extended_form_field_id, :order, :_destroy, validation_rules: {}])
     end
-
-    def load_stripe_account
-      self.stripe_account = tournament.stripe_account
-    end
   end
 end

@@ -387,10 +387,6 @@ class BowlersController < ApplicationController
     end
   end
 
-  def load_stripe_account
-    self.stripe_account = tournament.stripe_account
-  end
-
   def stripe_checkout_session
     line_items = matching_purchases.collect do |mp|
       line_item_for_purchasable_item(mp)
