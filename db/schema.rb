@@ -10,7 +10,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema[7.0].define(version: 2022_06_29_175505) do
+ActiveRecord::Schema[7.0].define(version: 2022_07_02_205819) do
   # These are extensions that must be enabled in order to support this database
   enable_extension "plpgsql"
 
@@ -229,6 +229,15 @@ ActiveRecord::Schema[7.0].define(version: 2022_06_29_175505) do
     t.datetime "created_at", null: false
     t.datetime "updated_at", null: false
     t.index ["tournament_id"], name: "index_stripe_accounts_on_tournament_id"
+  end
+
+  create_table "stripe_checkout_sessions", force: :cascade do |t|
+    t.bigint "bowler_id", null: false
+    t.string "checkout_session_id", null: false
+    t.integer "status", default: 0
+    t.datetime "created_at", null: false
+    t.datetime "updated_at", null: false
+    t.index ["bowler_id"], name: "index_stripe_checkout_sessions_on_bowler_id"
   end
 
   create_table "teams", force: :cascade do |t|
