@@ -10,7 +10,6 @@ module Stripe
       Rails.logger.info "Stripe event: #{event.inspect}"
 
       handle_event
-      # Now, we can farm it out to
     rescue StripeError => e
       Rails.logger.warn "Failed to retrieve Stripe event! #{event_id}"
       Rails.logger.warn "Why? #{e.inspect}"

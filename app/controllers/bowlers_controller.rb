@@ -177,6 +177,7 @@ class BowlersController < ApplicationController
     # purchasable_items -- all the additional items being bought, indexed by identifier
 
     session = stripe_checkout_session
+    bowler.stripe_checkout_sessions << StripeCheckoutSession.new(checkout_session_id: session[:id])
 
     output = {
       redirect_to: session[:url],
