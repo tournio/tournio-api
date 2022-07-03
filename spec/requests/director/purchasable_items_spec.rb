@@ -44,6 +44,8 @@ describe Director::PurchasableItemsController, type: :request do
       }
     end
 
+    before { Sidekiq::Job.clear_all }
+
     ###############
 
     include_examples 'an authorized action'
@@ -62,6 +64,11 @@ describe Director::PurchasableItemsController, type: :request do
     it 'includes the new item in the response' do
       subject
       expect(json.first).to have_key('identifier')
+    end
+
+    it 'kicks off a Stripe::ProductCreator job' do
+      subject
+      expect(Stripe::ProductCreator.jobs.size).to eq(1)
     end
 
     context 'a collection of division items' do
@@ -95,6 +102,11 @@ describe Director::PurchasableItemsController, type: :request do
         subject
         expect(json).to be_a_kind_of(Array)
         expect(json.count).to eq(5)
+      end
+
+      it 'kicks off a Stripe::ProductCreator job for each item' do
+        subject
+        expect(Stripe::ProductCreator.jobs.size).to eq(5)
       end
     end
 
