@@ -21,6 +21,10 @@ module Stripe
       )
 
       line_items = cs[:line_items][:data]
+      # inside each line_item is a price object, which has the important things:
+      # - id (of Price object)
+      # - product (id of Product object)
+
 
       Rails.logger.info "Checkout session retrieved: #{cs.inspect}"
     end

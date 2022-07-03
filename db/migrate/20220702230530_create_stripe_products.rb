@@ -6,6 +6,8 @@ class CreateStripeProducts < ActiveRecord::Migration[7.0]
       t.string :price_id
 
       t.timestamps
+
+      t.index [:product_id, :price_id]
     end
   end
 end

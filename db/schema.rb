@@ -246,6 +246,7 @@ ActiveRecord::Schema[7.0].define(version: 2022_07_02_230530) do
     t.string "price_id"
     t.datetime "created_at", null: false
     t.datetime "updated_at", null: false
+    t.index ["product_id", "price_id"], name: "index_stripe_products_on_product_id_and_price_id"
     t.index ["purchasable_item_id"], name: "index_stripe_products_on_purchasable_item_id"
   end
 

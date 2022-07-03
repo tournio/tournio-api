@@ -11,7 +11,8 @@
 #
 # Indexes
 #
-#  index_stripe_products_on_purchasable_item_id  (purchasable_item_id)
+#  index_stripe_products_on_product_id_and_price_id  (product_id,price_id)
+#  index_stripe_products_on_purchasable_item_id      (purchasable_item_id)
 #
 class StripeProduct < ApplicationRecord
   belongs_to :purchasable_item
