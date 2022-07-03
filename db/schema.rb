@@ -238,6 +238,7 @@ ActiveRecord::Schema[7.0].define(version: 2022_07_02_230530) do
     t.datetime "created_at", null: false
     t.datetime "updated_at", null: false
     t.index ["bowler_id"], name: "index_stripe_checkout_sessions_on_bowler_id"
+    t.index ["checkout_session_id"], name: "index_stripe_checkout_sessions_on_checkout_session_id"
   end
 
   create_table "stripe_products", force: :cascade do |t|

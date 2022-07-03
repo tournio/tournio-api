@@ -19,14 +19,35 @@ module Stripe
           stripe_account: event[:account],
         }
       )
+      scp = StripeCheckoutSession.find_by(checkout_session_id: cs[:id])
+      bowler = scp.bowler
 
       line_items = cs[:line_items][:data]
       # inside each line_item is a price object, which has the important things:
       # - id (of Price object)
       # - product (id of Product object)
+      line_items.each do |li|
+        price_id = li[:price][:id]
+        product_id = li[:price][:product]
+        quantity = li[:quantity]
+        sp = StripeProduct.includes(purchasable_item: :tournament).find_by(price_id: price_id, product_id: product_id)
+        pi = sp.purchasable_item
 
+        # does the pi correspond to an unpaid purchase?
+        purchases = bowler.purchases.unpaid.where(purchasable_item: pi)
+        if purchases.any?
+          # quantity should be 1, since we don't create multiples of ledger items upon registration.
+          # So, sanity check here.
+          if purchases.count != quantity
+            raise "We have a mismatched number of unpaid purchases. PItem ID: #{pi.identifier}. Stripe checkout session: #{cs[:id]}"
+          end
 
-      Rails.logger.info "Checkout session retrieved: #{cs.inspect}"
+          purchases.update_all(paid_at: event[:created], )
+        end
+
+        # or is it a new purchase?
+      end
+
     end
   end
 end

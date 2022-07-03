@@ -11,7 +11,8 @@
 #
 # Indexes
 #
-#  index_stripe_checkout_sessions_on_bowler_id  (bowler_id)
+#  index_stripe_checkout_sessions_on_bowler_id            (bowler_id)
+#  index_stripe_checkout_sessions_on_checkout_session_id  (checkout_session_id)
 #
 FactoryBot.define do
   factory :stripe_checkout_session do
