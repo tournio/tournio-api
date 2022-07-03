@@ -389,7 +389,8 @@ class BowlersController < ApplicationController
 
   def stripe_checkout_session
     line_items = matching_purchases.collect do |mp|
-      line_item_for_purchasable_item(mp)
+      pi = mp.purchasable_item
+      line_item_for_purchasable_item(pi)
     end
 
     line_items += item_quantities.collect do |iq|

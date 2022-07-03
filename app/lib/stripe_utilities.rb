@@ -73,18 +73,10 @@ module StripeUtilities
   end
 
   def line_item_for_purchasable_item(pi, quantity = 1)
+    stripe_product = pi.stripe_product
     {
       quantity: quantity,
-      price_data: {
-        currency: tournament.config['currency'] || 'usd',
-        product_data: {
-          name: pi.name,
-          metadata: {
-            identifier: pi.identifier,
-          },
-        },
-        unit_amount: pi.value * 100, # in cents
-      },
+      price: stripe_product.price_id,
     }
   end
 end

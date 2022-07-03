@@ -1,4 +1,6 @@
 class StripeWebhooksController < ApplicationController
+  include ActiveSupport::Inflector
+  
   wrap_parameters false
 
   ENDPOINT_SECRET = ENV['STRIPE_WEBHOOK_KEY']
