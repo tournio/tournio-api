@@ -42,7 +42,8 @@ module Stripe
             raise "We have a mismatched number of unpaid purchases. PItem ID: #{pi.identifier}. Stripe checkout session: #{cs[:id]}"
           end
 
-          purchases.update_all(paid_at: event[:created], )
+          # Pick up here, when we have a model to associate it with.
+          # purchases.update_all(paid_at: event[:created], )
         end
 
         # or is it a new purchase?

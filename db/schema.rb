@@ -10,7 +10,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema[7.0].define(version: 2022_07_02_230530) do
+ActiveRecord::Schema[7.0].define(version: 2022_07_03_173058) do
   # These are extensions that must be enabled in order to support this database
   enable_extension "plpgsql"
 
@@ -108,6 +108,15 @@ ActiveRecord::Schema[7.0].define(version: 2022_07_02_230530) do
     t.datetime "updated_at", null: false
   end
 
+  create_table "external_payments", force: :cascade do |t|
+    t.integer "payment_type", null: false
+    t.string "paypal_identifier"
+    t.string "stripe_payment_intent_id"
+    t.jsonb "details"
+    t.datetime "created_at", null: false
+    t.datetime "updated_at", null: false
+  end
+
   create_table "free_entries", force: :cascade do |t|
     t.bigint "tournament_id", null: false
     t.string "unique_code"
@@ -189,12 +198,12 @@ ActiveRecord::Schema[7.0].define(version: 2022_07_02_230530) do
     t.bigint "purchasable_item_id"
     t.integer "amount", default: 0
     t.datetime "paid_at"
-    t.bigint "paypal_order_id"
     t.datetime "created_at", null: false
     t.datetime "updated_at", null: false
+    t.bigint "external_payment_id"
     t.index ["bowler_id"], name: "index_purchases_on_bowler_id"
+    t.index ["external_payment_id"], name: "index_purchases_on_external_payment_id"
     t.index ["identifier"], name: "index_purchases_on_identifier"
-    t.index ["paypal_order_id"], name: "index_purchases_on_paypal_order_id"
     t.index ["purchasable_item_id"], name: "index_purchases_on_purchasable_item_id"
   end
 
