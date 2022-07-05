@@ -1,8 +1,6 @@
 module Stripe
   class CheckoutSessionCompleted < EventHandler
     def handle_event
-      Rails.logger.info "Handling the event my way!"
-
       # The checkout session is in event.data.object.
       # There should be line_items in there, indicating everything that was paid
       # for as part of the purchase, including quantities
@@ -19,6 +17,7 @@ module Stripe
           stripe_account: event[:account],
         }
       )
+      external_payment = ExternalPayment.new(payment_type: :stripe, identifier: cs[:id], details: cs.to_hash)
       scp = StripeCheckoutSession.find_by(checkout_session_id: cs[:id])
       bowler = scp.bowler
 
@@ -43,10 +42,11 @@ module Stripe
           end
 
           # Pick up here, when we have a model to associate it with.
-          # purchases.update_all(paid_at: event[:created], )
+          purchases.update_all(paid_at: event[:created], external_payment: external_payment)
         end
 
         # or is it a new purchase?
+        # TODO: pick up here, migrating from purchases_controller
       end
 
     end
