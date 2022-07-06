@@ -1,11 +1,10 @@
 require 'rails_helper'
 
 RSpec.describe "StripeWebhooks", type: :request do
-  describe "GET /create" do
+  describe "POST /stripe_webhook" do
     it "returns http success" do
-      get "/stripe_webhooks/create"
+      post "/stripe_webhook"
       expect(response).to have_http_status(:success)
     end
   end
-
 end
