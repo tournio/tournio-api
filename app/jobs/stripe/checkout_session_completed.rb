@@ -25,6 +25,7 @@ module Stripe
       external_payment = ExternalPayment.create(payment_type: :stripe, identifier: cs[:id], details: cs.to_hash)
       scp = StripeCheckoutSession.find_by(checkout_session_id: cs[:id])
       bowler = scp.bowler
+      paid_at = Time.at(event[:created])
 
       # TODO:
       #  - any sanity-checking, in the event the SCP model shows it was already completed
@@ -43,6 +44,8 @@ module Stripe
         sp = StripeProduct.includes(purchasable_item: :tournament).find_by(price_id: price_id, product_id: product_id)
         pi = sp.purchasable_item
 
+        Rails.logger.info "=== Line item for Purchasable Item: #{pi.name}. Quantity: #{quantity}"
+
         # does the pi correspond to an unpaid purchase?
         unpaid_purchases = bowler.purchases.unpaid.where(purchasable_item: pi)
         if unpaid_purchases.any?
@@ -52,28 +55,25 @@ module Stripe
             raise "We have a mismatched number of unpaid purchases. PItem ID: #{pi.identifier}. Stripe checkout session: #{cs[:id]}"
           end
 
+          Rails.logger.info "=== Updating #{unpaid_purchases.count} unpaid purchase(s) to paid."
           unpaid_purchases.update_all(
-            paid_at: event[:created],
-            external_payment: external_payment
+            paid_at: paid_at,
+            external_payment_id: external_payment.id
           )
-          quantity.times do |_|
-            bowler.ledger_entries << LedgerEntry.new(
-              debit: pi.value,
-              source: :purchase,
-              identifier: pi.name
-            )
-          end
+          total_credit += pi.value * quantity
         else
           # or is it a new purchase?
           quantity.times do |_|
+            Rails.logger.info "=== Creating a new Purchase: #{pi.name}"
             new_purchases << Purchase.create(
               bowler: bowler,
               purchasable_item: pi,
               amount: pi.value,
-              paid_at: event[:created],
-              external_payment: external_payment
+              paid_at: paid_at,
+              external_payment_id: external_payment.id
             )
 
+            Rails.logger.info "=== Creating a ledger entry for that purchase"
             bowler.ledger_entries << LedgerEntry.new(
               debit: pi.value,
               source: :purchase,
@@ -85,6 +85,7 @@ module Stripe
       end
 
       unless total_credit == 0
+        Rails.logger.info "=== Creating a ledger entry for the full payment amount: $#{total_credit}"
         bowler.ledger_entries << LedgerEntry.new(
           credit: total_credit,
           source: :stripe,
