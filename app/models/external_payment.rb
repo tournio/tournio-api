@@ -9,6 +9,10 @@
 #  created_at   :datetime         not null
 #  updated_at   :datetime         not null
 #
+# Indexes
+#
+#  index_external_payments_on_identifier  (identifier)
+#
 class ExternalPayment < ApplicationRecord
   has_many :purchases
 

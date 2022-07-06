@@ -8,6 +8,11 @@ module Stripe
       # Go through the line items in the event
       # Mark unpaid purchases as paid, create paid purchases for the rest, and create a ledger entry
 
+      # TODO:
+      #  - early-registration discounts
+      #  - event bundle discounts
+      #  - event-linked late fees
+
       cs = Stripe::Checkout::Session.retrieve(
         {
           id: event[:data][:object][:id],
@@ -17,10 +22,16 @@ module Stripe
           stripe_account: event[:account],
         }
       )
-      external_payment = ExternalPayment.new(payment_type: :stripe, identifier: cs[:id], details: cs.to_hash)
+      external_payment = ExternalPayment.create(payment_type: :stripe, identifier: cs[:id], details: cs.to_hash)
       scp = StripeCheckoutSession.find_by(checkout_session_id: cs[:id])
       bowler = scp.bowler
 
+      # TODO:
+      #  - any sanity-checking, in the event the SCP model shows it was already completed
+
+      new_purchases = []
+      # previous_paid_event_item_ids = bowler.purchases.event.paid.map { |p| p.purchasable_item.identifier }
+      total_credit = 0
       line_items = cs[:line_items][:data]
       # inside each line_item is a price object, which has the important things:
       # - id (of Price object)
@@ -33,22 +44,57 @@ module Stripe
         pi = sp.purchasable_item
 
         # does the pi correspond to an unpaid purchase?
-        purchases = bowler.purchases.unpaid.where(purchasable_item: pi)
-        if purchases.any?
+        unpaid_purchases = bowler.purchases.unpaid.where(purchasable_item: pi)
+        if unpaid_purchases.any?
           # quantity should be 1, since we don't create multiples of ledger items upon registration.
           # So, sanity check here.
-          if purchases.count != quantity
+          if unpaid_purchases.count != quantity
             raise "We have a mismatched number of unpaid purchases. PItem ID: #{pi.identifier}. Stripe checkout session: #{cs[:id]}"
           end
 
-          # Pick up here, when we have a model to associate it with.
-          purchases.update_all(paid_at: event[:created], external_payment: external_payment)
-        end
+          unpaid_purchases.update_all(
+            paid_at: event[:created],
+            external_payment: external_payment
+          )
+          quantity.times do |_|
+            bowler.ledger_entries << LedgerEntry.new(
+              debit: pi.value,
+              source: :purchase,
+              identifier: pi.name
+            )
+          end
+        else
+          # or is it a new purchase?
+          quantity.times do |_|
+            new_purchases << Purchase.create(
+              bowler: bowler,
+              purchasable_item: pi,
+              amount: pi.value,
+              paid_at: event[:created],
+              external_payment: external_payment
+            )
 
-        # or is it a new purchase?
-        # TODO: pick up here, migrating from purchases_controller
+            bowler.ledger_entries << LedgerEntry.new(
+              debit: pi.value,
+              source: :purchase,
+              identifier: pi.name
+            )
+            total_credit += pi.value
+          end
+        end
       end
 
+      unless total_credit == 0
+        bowler.ledger_entries << LedgerEntry.new(
+          credit: total_credit,
+          source: :stripe,
+          identifier: cs[:id]
+        )
+      end
+
+      TournamentRegistration.send_receipt_email(bowler, external_payment.identifier)
+      TournamentRegistration.try_confirming_bowler_shift(bowler)
+      scp.completed!
     end
   end
 end

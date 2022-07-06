@@ -114,6 +114,7 @@ ActiveRecord::Schema[7.0].define(version: 2022_07_03_173058) do
     t.jsonb "details"
     t.datetime "created_at", null: false
     t.datetime "updated_at", null: false
+    t.index ["identifier"], name: "index_external_payments_on_identifier"
   end
 
   create_table "free_entries", force: :cascade do |t|

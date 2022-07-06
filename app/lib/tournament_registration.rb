@@ -211,7 +211,7 @@ module TournamentRegistration
     recipients.each { |r| RegistrationConfirmationNotifierJob.perform_async(bowler.id, r) }
   end
 
-  def self.send_receipt_email(bowler, paypal_order_identifier)
+  def self.send_receipt_email(bowler, external_order_id)
     tournament = bowler.tournament
     if Rails.env.development? && !tournament.config[:email_in_dev]
       Rails.logger.info "========= Not sending receipt email, dev config says not to."
@@ -226,7 +226,7 @@ module TournamentRegistration
                 end
 
     if recipient.present?
-      PaymentReceiptNotifierJob.perform_async(paypal_order_identifier, recipient)
+      PaymentReceiptNotifierJob.perform_async(external_order_id, recipient)
     end
   end
 
