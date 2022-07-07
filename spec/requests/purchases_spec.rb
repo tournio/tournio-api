@@ -76,13 +76,13 @@ describe PurchasesController, type: :request do
         end
 
         it 'creates a paypal order' do
-          expect { subject }.to change { PaypalOrder.count }.by(1)
+          expect { subject }.to change { ExternalPayment.count }.by(1)
         end
 
-        it 'links the purchase to the paypal order' do
+        it 'links the purchase to the external payment order' do
           subject
-          ppo = PaypalOrder.last
-          expect(purchase.reload.paypal_order_id).to eq(ppo.id)
+          ep = ExternalPayment.last
+          expect(purchase.reload.external_payment_id).to eq(ep.id)
         end
 
         it 'creates a ledger entry' do
@@ -121,8 +121,8 @@ describe PurchasesController, type: :request do
 
           it 'links the additional purchase to the paypal order' do
             subject
-            ppo = PaypalOrder.last
-            expect(purchase2.reload.paypal_order_id).to eq(ppo.id)
+            ep = ExternalPayment.last
+            expect(purchase2.reload.external_payment_id).to eq(ep.id)
           end
 
           it 'creates a ledger entry' do
@@ -152,8 +152,8 @@ describe PurchasesController, type: :request do
 
           it 'links the additional purchase to the paypal order' do
             subject
-            ppo = PaypalOrder.last
-            expect(purchase2.reload.paypal_order_id).to eq(ppo.id)
+            ep = ExternalPayment.last
+            expect(purchase2.reload.external_payment_id).to eq(ep.id)
           end
 
           it 'creates a ledger entry' do
@@ -214,9 +214,9 @@ describe PurchasesController, type: :request do
 
             it 'links the new purchases to the paypal order' do
               subject
-              ppo = PaypalOrder.last
+              ep = ExternalPayment.last
               purchases = Purchase.last(3)
-              purchases.each { |p| expect(p.paypal_order_id).to eq(ppo.id) }
+              purchases.each { |p| expect(p.external_payment_id).to eq(ep.id) }
             end
 
             it 'creates a ledger entry for each purchase and the payment' do
@@ -255,9 +255,9 @@ describe PurchasesController, type: :request do
 
             it 'links the new purchases to the paypal order' do
               subject
-              ppo = PaypalOrder.last
+              ep = ExternalPayment.last
               purchases = Purchase.last(5)
-              purchases.each { |p| expect(p.paypal_order_id).to eq(ppo.id) }
+              purchases.each { |p| expect(p.external_payment_id).to eq(ep.id) }
             end
 
             it 'creates a ledger entry for each purchase and the payment' do
@@ -336,15 +336,15 @@ describe PurchasesController, type: :request do
         expect(purchases.collect(&:paid_at).compact).to match_array(purchases.collect(&:paid_at))
       end
 
-      it 'creates a paypal order' do
-        expect { subject }.to change { PaypalOrder.count }.by(1)
+      it 'creates an external payment' do
+        expect { subject }.to change { ExternalPayment.count }.by(1)
       end
 
-      it 'links the Purchases to the paypal order' do
+      it 'links the Purchases to the external payment' do
         subject
-        ppo = PaypalOrder.last
+        ep = ExternalPayment.last
         purchases = bowler.purchases.reload
-        purchases.each { |p| expect(p.paypal_order_id).to eq(ppo.id) }
+        purchases.each { |p| expect(p.external_payment_id).to eq(ep.id) }
       end
 
       it 'creates a ledger entry in the amount of the expected total' do
@@ -396,9 +396,9 @@ describe PurchasesController, type: :request do
 
         it 'links the Purchases to the paypal order' do
           subject
-          ppo = PaypalOrder.last
+          ep = ExternalPayment.last
           purchases = bowler.purchases.reload
-          purchases.each { |p| expect(p.paypal_order_id).to eq(ppo.id) }
+          purchases.each { |p| expect(p.external_payment_id).to eq(ep.id) }
         end
 
         it 'sets the paid_at attribute on each Purchase' do
@@ -439,9 +439,9 @@ describe PurchasesController, type: :request do
 
           it 'links the Purchases to the paypal order' do
             subject
-            ppo = PaypalOrder.last
+            ep = ExternalPayment.last
             purchases = bowler.purchases.reload.last(2)
-            purchases.each { |p| expect(p.paypal_order_id).to eq(ppo.id) }
+            purchases.each { |p| expect(p.external_payment_id).to eq(ep.id) }
           end
 
           it 'sets the paid_at attribute on each Purchase' do
@@ -495,9 +495,9 @@ describe PurchasesController, type: :request do
 
         it 'links the Purchases to the paypal order' do
           subject
-          ppo = PaypalOrder.last
+          ep = ExternalPayment.last
           purchases = bowler.purchases.reload
-          purchases.each { |p| expect(p.paypal_order_id).to eq(ppo.id) }
+          purchases.each { |p| expect(p.external_payment_id).to eq(ep.id) }
         end
 
         it 'sets the paid_at attribute on each Purchase' do

@@ -26,12 +26,13 @@ class PurchasesController < ApplicationController
     end
 
     paid_at = Time.zone.now
-    ppo = PaypalOrder.create(identifier: details[:paypal_details][:id], details: details[:paypal_details])
+    # ppo = PaypalOrder.create(identifier: details[:paypal_details][:id], details: details[:paypal_details])
+    extp = ExternalPayment.create(payment_type: :paypal, identifier: details[:paypal_details][:id], details: details[:paypal_details])
 
     purchase_identifiers = details[:purchase_identifiers] || []
     matching_purchases = bowler.purchases.unpaid.where(identifier: purchase_identifiers)
     total_credit = matching_purchases.sum(&:amount)
-    matching_purchases.update_all(paid_at: paid_at, paypal_order_id: ppo.id)
+    matching_purchases.update_all(paid_at: paid_at, external_payment_id: extp.id)
 
     new_purchases = bowler.purchases.where(identifier: purchase_identifiers).to_a
     previous_paid_event_item_identifiers = bowler.purchases.event.paid.map { |p| p.purchasable_item.identifier }
@@ -51,7 +52,7 @@ class PurchasesController < ApplicationController
           purchasable_item: item,
           amount: item.value,
           paid_at: paid_at,
-          paypal_order: ppo
+          external_payment_id: extp.id
         )
         bowler.ledger_entries << LedgerEntry.new(debit: item.value, source: :purchase, identifier: item[:name])
         total_credit += item.value
@@ -68,7 +69,7 @@ class PurchasesController < ApplicationController
         purchasable_item: d,
         amount: d.value,
         paid_at: paid_at,
-        paypal_order: ppo
+        external_payment_id: extp.id
       )
       bowler.ledger_entries << LedgerEntry.new(credit: -d.value, source: :purchase, identifier: d.name)
     end
@@ -84,7 +85,7 @@ class PurchasesController < ApplicationController
         purchasable_item: lf,
         amount: lf.value,
         paid_at: paid_at,
-        paypal_order: ppo
+        external_payment_id: extp.id
       )
       linked_event = tournament.purchasable_items.event.find_by(identifier: lf.configuration['event'])
       bowler.ledger_entries << LedgerEntry.new(
@@ -99,8 +100,8 @@ class PurchasesController < ApplicationController
       bowler.ledger_entries << LedgerEntry.new(credit: total_credit, source: :paypal, identifier: details[:paypal_details][:id])
     end
 
-    TournamentRegistration.send_receipt_email(bowler, ppo.identifier)
-    send_payment_notification(bowler, ppo.identifier, total_credit, paid_at)
+    TournamentRegistration.send_receipt_email(bowler, extp.id)
+    send_payment_notification(bowler, extp.identifier, total_credit, paid_at)
 
     TournamentRegistration.try_confirming_bowler_shift(bowler)
 
@@ -125,12 +126,12 @@ class PurchasesController < ApplicationController
     @tournament = bowler&.tournament
   end
 
-  def send_payment_notification(bowler, payment_identifier, amount, received_at = Time.zone.now)
+  def send_payment_notification(bowler, external_payment_identifier, amount, received_at = Time.zone.now)
     tournament = bowler.tournament
     contacts = tournament.contacts.payment_notifiable.individually
     contacts.each do |c|
       email = Rails.env.production? ? c.email : MailerJob::FROM
-      NewPaymentNotifierJob.perform_async(bowler.id, payment_identifier, amount, received_at, email)
+      NewPaymentNotifierJob.perform_async(bowler.id, external_payment_identifier, amount, received_at, email)
     end
   end
 
