@@ -6,10 +6,7 @@ class StripeWebhooksController < ApplicationController
   ENDPOINT_SECRET = ENV['STRIPE_WEBHOOK_KEY']
 
   def webhook
-    body = request.body.read
-    sig_header = request.headers['HTTP_STRIPE_SIGNATURE']
-
-    event = Stripe::Webhook.construct_event(body, sig_header, ENDPOINT_SECRET)
+    event = build_stripe_event
 
     # this lets us specify which event types we support
     case event[:type]
@@ -25,6 +22,13 @@ class StripeWebhooksController < ApplicationController
     render json: {}, status: :bad_request
   rescue Stripe::SignatureVerificationError => e
     render json: {}, status: :bad_request
+  end
+
+  def build_stripe_event
+    body = request.body.read
+    sig_header = request.headers['HTTP_STRIPE_SIGNATURE']
+
+    Stripe::Webhook.construct_event(body, sig_header, ENDPOINT_SECRET)
   end
 
   def event_to_class(event_name)
