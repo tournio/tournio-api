@@ -136,12 +136,11 @@ describe Director::ShiftsController, type: :request do
         }
       end
 
-      it 'ignores the calculated attributes' do
+      it 'raises if we try to change calculated attributes' do
         initial_confirmed = shift.confirmed
         initial_requested = shift.requested
         subject
-        expect(json['confirmed_count']).to eq(initial_confirmed)
-        expect(json['requested_count']).to eq(initial_requested)
+        expect(response).to have_http_status(:conflict)
       end
     end
 
@@ -159,10 +158,11 @@ describe Director::ShiftsController, type: :request do
         {
           details: {
             registration_types: %i(join_team),
-            events: [
-              {:day=>"Friday", :time=>"9pm-midnight", :event=>"Team"},
-              {:day=>"Saturday", :time=>"4-10pm", :event=>"Singles/Doubles"},
-            ],
+            # Re-add this when we do multiple-shift support
+            # events: [
+            #   {:day=>"Friday", :time=>"9pm-midnight", :event=>"Team"},
+            #   {:day=>"Saturday", :time=>"4-10pm", :event=>"Singles/Doubles"},
+            # ],
           }
         }
       end

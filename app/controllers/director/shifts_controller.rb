@@ -5,6 +5,7 @@ module Director
     rescue_from Pundit::NotAuthorizedError, with: :unauthorized
 
     wrap_parameters false
+    ActionController::Parameters.action_on_unpermitted_parameters = :raise
 
     def create
       self.tournament = Tournament.find_by_identifier!(params[:tournament_identifier])
@@ -53,6 +54,8 @@ module Director
       render json: nil, status: :not_found
     rescue ActiveRecord::RecordInvalid
       render json: { error: 'Cannot make capacity less than the number of confirmed bowlers' }, status: :conflict
+    rescue ActionController::UnpermittedParameters
+      render json: { error: 'Cannot change confirmed or requested attributes' }, status: :conflict
     end
 
     private
@@ -64,7 +67,8 @@ module Director
         :identifier,
         shift: %i(capacity description name display_order).concat([
           details: {
-            events: [],
+            # Re-add this when we do multiple-shift support
+            # events: [],
             registration_types: []
           }
         ]
