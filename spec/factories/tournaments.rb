@@ -66,7 +66,7 @@ FactoryBot.define do
       end
     end
 
-    trait :accepting_payments do
+    trait :using_paypal do
       after(:create) do |t, _|
         create(:config_item, :paypal_client_id, tournament: t)
       end

@@ -13,15 +13,7 @@ module Stripe
       #  - event bundle discounts
       #  - event-linked late fees
 
-      cs = Stripe::Checkout::Session.retrieve(
-        {
-          id: event[:data][:object][:id],
-          expand: %w(line_items)
-        },
-        {
-          stripe_account: event[:account],
-        }
-      )
+      cs = retrieve_stripe_object
       external_payment = ExternalPayment.create(payment_type: :stripe, identifier: cs[:id], details: cs.to_hash)
       scp = StripeCheckoutSession.find_by(checkout_session_id: cs[:id])
       bowler = scp.bowler
@@ -96,6 +88,18 @@ module Stripe
       TournamentRegistration.send_receipt_email(bowler, external_payment.identifier)
       TournamentRegistration.try_confirming_bowler_shift(bowler)
       scp.completed!
+    end
+
+    def retrieve_stripe_object
+      Stripe::Checkout::Session.retrieve(
+        {
+          id: event[:data][:object][:id],
+          expand: %w(line_items)
+        },
+        {
+          stripe_account: event[:account],
+        }
+      )
     end
   end
 end

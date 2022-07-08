@@ -153,5 +153,10 @@ FactoryBot.define do
       end
     end
 
+    trait :with_stripe_product do
+      after(:create) do |pi, _|
+        create :stripe_product, purchasable_item: pi
+      end
+    end
   end
 end

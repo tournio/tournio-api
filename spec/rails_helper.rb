@@ -66,6 +66,8 @@ RSpec.configure do |config|
 
   # Added by me
   config.include ApiHelpers
+  config.include StripeApiHelpers
+  config.include StripeApiHelpers::CheckoutSessionCompleted
 
   config.before(:suite) do
     DatabaseCleaner.strategy = :transaction

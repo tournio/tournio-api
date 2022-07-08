@@ -38,7 +38,7 @@ describe PurchasesController, type: :request do
     let(:expected_total) { 0 }
 
     context 'a standard tournament' do
-      let(:tournament) { create :tournament, :active, :accepting_payments }
+      let(:tournament) { create :tournament, :active, :using_paypal }
       let(:team) { create :team, tournament: tournament }
       let(:bowler) { create(:bowler, person: create(:person), tournament: tournament, team: team) }
 
@@ -307,7 +307,7 @@ describe PurchasesController, type: :request do
     end
 
     context 'a tournament with event selection' do
-      let(:tournament) { create :tournament, :active, :accepting_payments, :with_event_selection }
+      let(:tournament) { create :tournament, :active, :using_paypal, :with_event_selection }
       let(:bowler) { create(:bowler, person: create(:person), tournament: tournament) }
       let!(:bundle_discount_item) { create :purchasable_item, :event_bundle_discount, tournament: tournament }
 
