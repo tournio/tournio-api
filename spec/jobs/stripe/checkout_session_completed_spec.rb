@@ -95,7 +95,7 @@ RSpec.describe Stripe::CheckoutSessionCompleted, type: :job do
         end
 
         context 'and some optional items' do
-          let!(:item_1) do
+          let(:item_1) do
             create(:purchasable_item,
               :scratch_competition,
               :with_stripe_product,
@@ -103,7 +103,7 @@ RSpec.describe Stripe::CheckoutSessionCompleted, type: :job do
             )
           end
 
-          let!(:item_2) do
+          let(:item_2) do
             create(:purchasable_item,
               :optional_event,
               :with_stripe_product,
@@ -199,6 +199,72 @@ RSpec.describe Stripe::CheckoutSessionCompleted, type: :job do
           it 'has the full payment amount on the LedgerEntry' do
             subject
             expect(bowler.ledger_entries.stripe.take.credit.to_i).to eq(expected_total)
+          end
+        end
+
+        context 'and a late-registration fee' do
+          let(:late_fee_item) do
+            create(:purchasable_item,
+              :late_fee,
+              :with_stripe_product,
+              value: 19,
+              tournament: tournament
+            )
+          end
+
+          let(:mock_checkout_session) do
+            object_for_items([
+              {
+                item: entry_fee_item,
+                quantity: 1,
+              },
+              {
+                item: late_fee_item,
+                quantity: 1,
+              },
+            ])
+          end
+
+          let(:expected_total) { entry_fee_item.value + late_fee_item.value }
+
+          context 'because the bowler registered late' do
+            # So the late-fee Purchase already exists when they make their payment
+
+            before do
+              create(:purchase, bowler: bowler, purchasable_item: late_fee_item, amount: late_fee_item.value)
+            end
+
+            it_behaves_like 'a Stripe event handler'
+            it_behaves_like 'a completed checkout session'
+
+            it 'creates no new Purchases' do
+              expect { subject }.not_to change { bowler.purchases.count }
+            end
+
+            it 'has the full payment amount on the LedgerEntry' do
+              subject
+              expect(bowler.ledger_entries.stripe.take.credit).to eq(expected_total)
+            end
+          end
+
+          context 'because the bowler waited too long to pay' do
+            # So there is not a pre-existing late-fee Purchase
+
+            it_behaves_like 'a Stripe event handler'
+            it_behaves_like 'a completed checkout session'
+
+            it 'creates a Purchase for the late fee item' do
+              expect { subject }.to change { bowler.purchases.count }.by(1)
+            end
+
+            it 'creates a ledger entry for the Purchase' do
+              expect { subject }.to change { bowler.ledger_entries.purchase.count }.by(1)
+            end
+
+            it 'has the full payment amount on the LedgerEntry' do
+              subject
+              expect(bowler.ledger_entries.stripe.take.credit).to eq(expected_total)
+            end
           end
         end
       end
