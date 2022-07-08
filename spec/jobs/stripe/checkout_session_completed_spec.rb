@@ -79,6 +79,7 @@ RSpec.describe Stripe::CheckoutSessionCompleted, type: :job do
           end
 
           it_behaves_like 'a Stripe event handler'
+          it_behaves_like 'a completed checkout session'
 
           it 'associates the ExternalPayment to the entry-fee Purchase' do
             subject
@@ -133,6 +134,7 @@ RSpec.describe Stripe::CheckoutSessionCompleted, type: :job do
             let(:expected_total) { entry_fee_item.value + item_1.value + item_2.value }
 
             it_behaves_like 'a Stripe event handler'
+            it_behaves_like 'a completed checkout session'
 
             it 'creates a Purchase for each optional item' do
               expect { subject }.to change { bowler.purchases.count }.by(2)
@@ -145,6 +147,60 @@ RSpec.describe Stripe::CheckoutSessionCompleted, type: :job do
             it 'has the full payment amount on the LedgerEntry' do
               subject
               expect(bowler.ledger_entries.stripe.take.credit).to eq(expected_total)
+            end
+          end
+
+          context 'and some multi-use items' do
+            let!(:item_1) do
+              create(:purchasable_item,
+                :banquet_entry,
+                :with_stripe_product,
+                tournament: tournament
+              )
+            end
+
+            let!(:item_2) do
+              create(:purchasable_item,
+                :raffle_bundle,
+                :with_stripe_product,
+                value: 65,
+                tournament: tournament
+              )
+            end
+
+            let(:mock_checkout_session) do
+              object_for_items([
+                {
+                  item: entry_fee_item,
+                  quantity: 1,
+                },
+                {
+                  item: item_1,
+                  quantity: 2,
+                },
+                {
+                  item: item_2,
+                  quantity: 3,
+                },
+              ])
+            end
+
+            let(:expected_total) { entry_fee_item.value + item_1.value * 2 + item_2.value * 3 }
+
+            it_behaves_like 'a Stripe event handler'
+            it_behaves_like 'a completed checkout session'
+
+            it 'creates a Purchase for each optional item' do
+              expect { subject }.to change { bowler.purchases.count }.by(5)
+            end
+
+            it 'creates a ledger entry for each Purchase' do
+              expect { subject }.to change { bowler.ledger_entries.purchase.count }.by(5)
+            end
+
+            it 'has the full payment amount on the LedgerEntry' do
+              subject
+              expect(bowler.ledger_entries.stripe.take.credit.to_i).to eq(expected_total)
             end
           end
         end
