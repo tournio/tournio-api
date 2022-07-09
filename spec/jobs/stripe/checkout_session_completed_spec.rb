@@ -26,13 +26,13 @@ RSpec.describe Stripe::CheckoutSessionCompleted, type: :job do
     #     },
     #   },
     #
-    # The combination of price_id and product_id (both Stripe-generated
-    # identifiers) is enough to find an associated PurchasableItem.
     # The Stripe objects Price and Product are created at the time of
-    # PurchasableItem creation.
+    # PurchasableItem creation, so the combination of price_id and product_id
+    # (both Stripe-generated identifiers) is enough to find an associated
+    # PurchasableItem.
     #
     # We rely on our price/value/amount data, not the data in Stripe's
-    # API responses. (If there's ever a discrepancy, that's our problem.)
+    # API responses. (If there's ever a discrepancy, that's our problem to fix.)
 
     let(:event_handler) { described_class.new }
     let(:bowler) { create :bowler, tournament: tournament }

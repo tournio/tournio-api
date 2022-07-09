@@ -30,7 +30,7 @@ module Director
     rescue ActiveRecord::RecordInvalid => exception
       if exception.message.include? 'Determination'
         render json: {error: 'Determination already present'}, status: :conflict
-        return;
+        return
       end
 
       render json: {error: 'Invalid item configuration'}, status: :unprocessable_entity

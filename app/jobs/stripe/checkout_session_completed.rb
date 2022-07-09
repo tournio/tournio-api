@@ -19,8 +19,9 @@ module Stripe
       bowler = scp.bowler
       paid_at = Time.at(event[:created])
 
-      # TODO:
-      #  - any sanity-checking, in the event the SCP model shows it was already completed
+      # TODO: any sanity-checking, e.g.,
+      #  - in the event the SCP model shows it was already completed
+      #  - verifying that the amount of each line item matches the value of the PurchasableItem
 
       new_purchases = []
       # previous_paid_event_item_ids = bowler.purchases.event.paid.map { |p| p.purchasable_item.identifier }

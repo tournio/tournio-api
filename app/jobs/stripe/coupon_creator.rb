@@ -1,23 +1,21 @@
 module Stripe
-  class ProductCreator
+  class CouponCreator
     include Sidekiq::Job
     sidekiq_options retry: false
 
     attr_accessor :tournament,
       :stripe_account,
       :purchasable_item,
-      :product,
-      :price
+      :coupon
 
     def perform(purchasable_item_id)
       set_attributes(purchasable_item_id)
 
-      create_product
-      create_price
+      create_coupon
 
-      purchasable_item.stripe_product = StripeProduct.new(product_id: product[:id], price_id: price[:id])
+      purchasable_item.stripe_coupon = StripeCoupon.new(coupon_id: coupon[:id])
     rescue StripeError => e
-      Rails.logger.warn "Failed to associate PurchasableItem with Stripe Product or Price: #{e.message}"
+      Rails.logger.warn "Failed to associate PurchasableItem with Stripe Coupon: #{e.message}"
     end
 
     def set_attributes(purchasable_item_id)
@@ -26,51 +24,27 @@ module Stripe
       self.stripe_account = tournament.stripe_account
     end
 
-    def create_product
-      product_hash = {
+    def create_coupon
+      # - amount_off – positive integer – amount that'll be removed from the total
+      # - currency – the 3-letter ISO code (e.g., 'usd')
+      # - name – name of the coupon to display to the customer
+      # - redeem_by – Unix timestamp representing the "valid_until" time, after which the coupon cannot be redeemed.
+      # - applies_to – optional hash giving directions for what it applies to.
+      #   - products – array of Product IDs. If we use ethis, it'll be the ID of the entry-fee Product
+
+      coupon_hash = {
         name: purchasable_item.name,
+        amount_off: purchasable_item.value,
+        currency: tournament.currency,
+        redeem_by: Time.parse(purchasable_item.configuration['valid_until']).to_i,
       }
-      product_hash[:description] = division_description if purchasable_item.division?
-      product_hash[:description] = banquet_description if purchasable_item.banquet?
-      self.product = Stripe::Product.create(
-        product_hash,
+
+      self.coupon = Stripe::Coupon.create(
+        coupon_hash,
         {
           stripe_account: stripe_account.identifier,
         }
       )
     end
-
-    def create_price
-      self.price = Stripe::Price.create(
-        {
-          currency: tournament.currency,
-          product: product[:id],
-          unit_amount: purchasable_item.value * 100,
-        },
-        {
-          stripe_account: stripe_account.identifier,
-        }
-      )
-    end
-
-    def division_description
-      desc = purchasable_item.configuration['division']
-      if purchasable_item.configuration['note'].present?
-        desc += " (#{purchasable_item.configuration['note']})"
-      end
-      desc
-    end
-
-    def banquet_description
-      purchasable_item.configuration['note']
-    end
-
-    # Also to do:
-    # - product
-    # - late fee
-    #
-    # Coupons:
-    # - early discount
-    # - bundle discount
   end
 end
