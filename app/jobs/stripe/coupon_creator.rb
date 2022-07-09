@@ -34,7 +34,7 @@ module Stripe
 
       coupon_hash = {
         name: purchasable_item.name,
-        amount_off: purchasable_item.value,
+        amount_off: purchasable_item.value * 100,
         currency: tournament.currency,
         redeem_by: Time.parse(purchasable_item.configuration['valid_until']).to_i,
       }

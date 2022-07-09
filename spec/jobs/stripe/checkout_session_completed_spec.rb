@@ -267,6 +267,50 @@ RSpec.describe Stripe::CheckoutSessionCompleted, type: :job do
             end
           end
         end
+
+        context 'and an early-registration fee' do
+          let(:discount_item) do
+            create(:purchasable_item,
+              :early_discount,
+              :with_stripe_coupon,
+              value: 14,
+              tournament: tournament
+            )
+          end
+
+          let(:mock_checkout_session) do
+            object_for_items([
+              {
+                item: entry_fee_item,
+                quantity: 1,
+                discounts: [ discount_item ],
+              },
+            ])
+          end
+
+          let(:expected_total) { entry_fee_item.value - discount_item.value }
+
+          before do
+            create(:purchase, bowler: bowler, purchasable_item: discount_item, amount: discount_item.value)
+          end
+
+          it_behaves_like 'a Stripe event handler'
+          it_behaves_like 'a completed checkout session'
+
+          it 'creates no new Purchases' do
+            expect { subject }.not_to change { bowler.purchases.count }
+          end
+
+          it 'updates the paid_at attribute of the discount Purchase' do
+            subject
+            expect(bowler.purchases.early_discount.where(paid_at: nil)).to be_empty
+          end
+
+          it 'has the full payment amount on the LedgerEntry' do
+            subject
+            expect(bowler.ledger_entries.stripe.take.credit).to eq(expected_total)
+          end
+        end
       end
 
       context 'error conditions' do

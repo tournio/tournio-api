@@ -1,5 +1,7 @@
 module Stripe
   class CheckoutSessionCompleted < EventHandler
+    attr_accessor :external_payment, :bowler, :paid_at
+
     def handle_event
       # The checkout session is in event.data.object.
       # There should be line_items in there, indicating everything that was paid
@@ -14,10 +16,10 @@ module Stripe
       #  - event-linked late fees
 
       cs = retrieve_stripe_object
-      external_payment = ExternalPayment.create(payment_type: :stripe, identifier: cs[:id], details: cs.to_hash)
+      self.external_payment = ExternalPayment.create(payment_type: :stripe, identifier: cs[:id], details: cs.to_hash)
       scp = StripeCheckoutSession.find_by(checkout_session_id: cs[:id])
-      bowler = scp.bowler
-      paid_at = Time.at(event[:created])
+      self.bowler = scp.bowler
+      self.paid_at = Time.at(event[:created])
 
       # TODO: any sanity-checking, e.g.,
       #  - in the event the SCP model shows it was already completed
@@ -54,6 +56,13 @@ module Stripe
             external_payment_id: external_payment.id
           )
           total_credit += pi.value * quantity
+
+          # Is there a coupon associated?
+          # Right now, all discounts on our side are created as unpaid purchases,
+          # so it is not possible for one to be associated with a new purchase.
+          if li[:discounts].any?
+            li[:discounts].each { |d| total_credit -= handle_discount(d) }
+          end
         else
           # or is it a new purchase?
           quantity.times do |_|
@@ -91,11 +100,23 @@ module Stripe
       scp.completed!
     end
 
+    def handle_discount(discount)
+      coupon_id = discount[:discount][:coupon][:id]
+      sc = StripeCoupon.includes(:purchasable_item).find_by!(coupon_id: coupon_id)
+      pi = sc.purchasable_item
+      purchase = bowler.purchases.unpaid.where(purchasable_item: pi).first
+      purchase.update(
+        paid_at: paid_at,
+        external_payment_id: external_payment.id
+      )
+      pi.value
+    end
+
     def retrieve_stripe_object
       Stripe::Checkout::Session.retrieve(
         {
           id: event[:data][:object][:id],
-          expand: %w(line_items)
+          expand: %w(line_items.data.discounts)
         },
         {
           stripe_account: event[:account],

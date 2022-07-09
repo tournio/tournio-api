@@ -49,7 +49,7 @@ FactoryBot.define do
       category { :ledger }
       determination { :early_discount }
       name { 'Early registration discount' }
-      value { -25 }
+      value { 25 }
       user_selectable { false }
       configuration do
         {
@@ -156,6 +156,12 @@ FactoryBot.define do
     trait :with_stripe_product do
       after(:create) do |pi, _|
         create :stripe_product, purchasable_item: pi
+      end
+    end
+
+    trait :with_stripe_coupon do
+      after(:create) do |pi, _|
+        create :stripe_coupon, purchasable_item: pi
       end
     end
   end

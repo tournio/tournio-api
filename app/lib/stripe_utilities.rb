@@ -79,4 +79,11 @@ module StripeUtilities
       price: stripe_product.price_id,
     }
   end
+
+  def discount_for_purchasable_item(pi)
+    stripe_coupon = pi.stripe_coupon
+    {
+      coupon: stripe_coupon.coupon_id,
+    }
+  end
 end

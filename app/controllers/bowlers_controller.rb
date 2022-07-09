@@ -390,25 +390,40 @@ class BowlersController < ApplicationController
   def stripe_checkout_session
     line_items = matching_purchases.collect do |mp|
       pi = mp.purchasable_item
-      line_item_for_purchasable_item(pi)
-    end
+      unless pi.early_discount? || pi.bundle_discount?
+        line_item_for_purchasable_item(pi)
+      end
+    end.compact
 
     line_items += item_quantities.collect do |iq|
       pi = purchasable_items[iq[:identifier]]
       line_item_for_purchasable_item(pi, iq[:quantity])
     end
 
+    discounts = matching_purchases.collect do |mp|
+      pi = mp.purchasable_item
+      if pi.early_discount? || pi.bundle_discount?
+        discount_for_purchasable_item(pi)
+      end
+    end.compact
+
+    Rails.logger.debug "==== Discounts array: #{discounts.inspect}"
+
+    session_params = {
+      success_url: "#{client_host}/bowlers/#{bowler.identifier}/finish_checkout",
+      cancel_url: "#{client_host}/bowlers/#{bowler.identifier}",
+      line_items: line_items,
+      mode: 'payment',
+      customer_email: bowler.email,
+      customer_creation: 'always',
+      submit_type: 'pay',
+    }
+
+    session_params[:discounts] = discounts unless discounts.empty?
+
     # client_host comes from StripeUtilities
     Stripe::Checkout::Session.create(
-      {
-        success_url: "#{client_host}/bowlers/#{bowler.identifier}/finish_checkout",
-        cancel_url: "#{client_host}/bowlers/#{bowler.identifier}",
-        line_items: line_items,
-        mode: 'payment',
-        customer_email: bowler.email,
-        customer_creation: 'always',
-        submit_type: 'pay',
-      },
+      session_params,
       {
         stripe_account: stripe_account.identifier,
       },

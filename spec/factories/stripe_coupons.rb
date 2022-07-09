@@ -15,6 +15,7 @@
 #
 FactoryBot.define do
   factory :stripe_coupon do
-    
+    coupon_id { "stripe_coupon_#{SecureRandom.uuid}" }
+    association :purchasable_item
   end
 end

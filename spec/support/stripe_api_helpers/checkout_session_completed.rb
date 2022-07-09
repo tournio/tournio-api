@@ -4,13 +4,30 @@ module StripeApiHelpers
       line_items_data = []
       items_and_quantities.each do |iq|
         sp = iq[:item].stripe_product
-        line_items_data << {
+        data = {
           quantity: iq[:quantity],
           price: {
             id: sp.price_id,
             product: sp.product_id,
           },
         }
+
+        if iq[:discounts]
+          discounts = []
+          iq[:discounts].each do |d|
+            discounts << {
+              amount: d.value,
+              discount: {
+                coupon: {
+                  id: d.stripe_coupon.coupon_id,
+                },
+              },
+            }
+          end
+          data[:discounts] = discounts
+        end
+
+        line_items_data << data
       end
       {
         id: "cs_test_#{SecureRandom.uuid}",
