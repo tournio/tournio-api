@@ -26,7 +26,8 @@ class PurchasableItem < ApplicationRecord
   belongs_to :tournament
   has_many :purchases
 
-  has_one :stripe_product
+  has_one :stripe_product, optional: true
+  has_one :stripe_coupon, optional: true
 
   enum category: {
     bowling: 'bowling', # optional bowling events
