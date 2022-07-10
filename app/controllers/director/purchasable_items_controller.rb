@@ -19,7 +19,13 @@ module Director
       PurchasableItem.transaction do
         self.items = PurchasableItem.create!(purchasable_item_create_params)
 
-        items.each { |i| Stripe::ProductCreator.perform_async(i.id) }
+        items.each do |i|
+          if i.bundle_discount? || i.early_discount?
+            Stripe::CouponCreator.perform_async(i.id)
+          else
+            Stripe::ProductCreator.perform_async(i.id)
+          end
+        end
 
         render json: PurchasableItemBlueprint.render(items), status: :created
       end
