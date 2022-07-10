@@ -11,9 +11,7 @@ module Stripe
       # Mark unpaid purchases as paid, create paid purchases for the rest, and create a ledger entry
 
       # TODO:
-      #  - early-registration discounts
-      #  - event bundle discounts
-      #  - event-linked late fees
+      #  - event-linked late fees (maybe we don't need to?)
 
       cs = retrieve_stripe_object
       self.external_payment = ExternalPayment.create(payment_type: :stripe, identifier: cs[:id], details: cs.to_hash)

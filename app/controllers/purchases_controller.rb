@@ -54,7 +54,11 @@ class PurchasesController < ApplicationController
           paid_at: paid_at,
           external_payment_id: extp.id
         )
-        bowler.ledger_entries << LedgerEntry.new(debit: item.value, source: :purchase, identifier: item[:name])
+        bowler.ledger_entries << LedgerEntry.new(
+          debit: item.value,
+          source: :purchase,
+          identifier: item[:name]
+        )
         total_credit += item.value
       end
     end
@@ -71,7 +75,11 @@ class PurchasesController < ApplicationController
         paid_at: paid_at,
         external_payment_id: extp.id
       )
-      bowler.ledger_entries << LedgerEntry.new(credit: -d.value, source: :purchase, identifier: d.name)
+      bowler.ledger_entries << LedgerEntry.new(
+        credit: d.value,
+        source: :purchase,
+        identifier: d.name
+      )
     end
     total_credit += applicable_discounts.sum(&:value)
 
@@ -97,7 +105,11 @@ class PurchasesController < ApplicationController
     total_credit += applicable_fees.sum(&:value)
 
     unless total_credit == 0
-      bowler.ledger_entries << LedgerEntry.new(credit: total_credit, source: :paypal, identifier: details[:paypal_details][:id])
+      bowler.ledger_entries << LedgerEntry.new(
+        credit: total_credit,
+        source: :paypal,
+        identifier: details[:paypal_details][:id]
+      )
     end
 
     TournamentRegistration.send_receipt_email(bowler, extp.id)

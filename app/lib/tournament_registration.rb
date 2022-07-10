@@ -122,7 +122,7 @@ module TournamentRegistration
     early_discount_item = tournament.purchasable_items.early_discount&.first
     return unless early_discount_item.present?
 
-    early_discount = early_discount_item.value * (-1)
+    early_discount = early_discount_item.value
     bowler.ledger_entries << LedgerEntry.new(credit: early_discount, identifier: 'early registration')
     bowler.purchases << Purchase.new(purchasable_item: early_discount_item)
   end
