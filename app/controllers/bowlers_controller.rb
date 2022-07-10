@@ -181,6 +181,7 @@ class BowlersController < ApplicationController
 
     output = {
       redirect_to: session[:url],
+      checkout_session_id: session[:id],
     }
     render json: output, status: :ok
   rescue PurchaseError => e
@@ -388,26 +389,24 @@ class BowlersController < ApplicationController
   end
 
   def stripe_checkout_session
-    line_items = matching_purchases.collect do |mp|
+    line_items = matching_purchases.each_with_object([]) do |mp, a|
       pi = mp.purchasable_item
       unless pi.early_discount? || pi.bundle_discount?
-        line_item_for_purchasable_item(pi)
+        a.push(line_item_for_purchasable_item(pi))
       end
-    end.compact
+    end
 
     line_items += item_quantities.collect do |iq|
       pi = purchasable_items[iq[:identifier]]
       line_item_for_purchasable_item(pi, iq[:quantity])
     end
 
-    discounts = matching_purchases.collect do |mp|
+    discounts = matching_purchases.each_with_object([]) do |mp, a|
       pi = mp.purchasable_item
       if pi.early_discount? || pi.bundle_discount?
-        discount_for_purchasable_item(pi)
+        a.push(discount_for_purchasable_item(pi))
       end
-    end.compact
-
-    Rails.logger.debug "==== Discounts array: #{discounts.inspect}"
+    end
 
     session_params = {
       success_url: "#{client_host}/bowlers/#{bowler.identifier}/finish_checkout",
@@ -420,8 +419,10 @@ class BowlersController < ApplicationController
     }
 
     session_params[:discounts] = discounts unless discounts.empty?
+    create_stripe_checkout_session(session_params)
+  end
 
-    # client_host comes from StripeUtilities
+  def create_stripe_checkout_session(session_params)
     Stripe::Checkout::Session.create(
       session_params,
       {
