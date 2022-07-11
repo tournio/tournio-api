@@ -555,15 +555,6 @@ describe Director::TournamentsController, type: :request do
     end
   end
 
-
-  describe '#csv_download' do
-
-  end
-
-  describe '#igbots_download' do
-
-  end
-
   describe '#email_payment_reminders' do
     subject { post uri, headers: auth_headers, as: :json }
 
@@ -726,7 +717,4 @@ describe Director::TournamentsController, type: :request do
       end
     end
   end
-
-
-
 end

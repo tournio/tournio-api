@@ -368,7 +368,7 @@ RSpec.describe TournamentRegistration do
           subject
           ledger_entry = LedgerEntry.last
           expect(ledger_entry.debit).to be_zero
-          expect(ledger_entry.credit).to eq(discount_amount * (-1))
+          expect(ledger_entry.credit).to eq(discount_amount)
           expect(ledger_entry.identifier).to eq('early registration')
         end
 

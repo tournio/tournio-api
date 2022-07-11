@@ -64,6 +64,7 @@ Rails.application.routes.draw do
       resources :purchases, only: %i(create), param: :identifier, shallow: true
     end
   end
+  resources :checkout_sessions, only: %i(show), param: :identifier
 
   post 'stripe_webhook', to: 'stripe_webhooks#webhook'
 end

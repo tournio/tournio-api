@@ -50,7 +50,7 @@ RSpec.describe Stripe::CheckoutSessionCompleted, type: :job do
       before do
         create :stripe_checkout_session,
           bowler: bowler,
-          checkout_session_id: mock_checkout_session[:id]
+          identifier: mock_checkout_session[:id]
       end
 
       context 'with an entry fee' do

@@ -15,7 +15,7 @@ module Stripe
 
       cs = retrieve_stripe_object
       self.external_payment = ExternalPayment.create(payment_type: :stripe, identifier: cs[:id], details: cs.to_hash)
-      scp = StripeCheckoutSession.find_by(checkout_session_id: cs[:id])
+      scp = StripeCheckoutSession.find_by(identifier: cs[:id])
       self.bowler = scp.bowler
       self.paid_at = Time.at(event[:created])
 
@@ -58,7 +58,7 @@ module Stripe
           # Is there a coupon associated?
           # Right now, all discounts on our side are created as unpaid purchases,
           # so it is not possible for one to be associated with a new purchase.
-          if li[:discounts].any?
+          if li[:discounts].present?
             li[:discounts].each { |d| total_credit -= handle_discount(d) }
           end
         else
