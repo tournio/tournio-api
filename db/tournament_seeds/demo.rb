@@ -29,11 +29,7 @@ tournament.config_items += [
   ),
   ConfigItem.new(
     key: 'website',
-    value: 'http://www.igbo-reg.com',
-  ),
-  ConfigItem.new(
-    key: 'paypal_client_id',
-    value: 'sb',
+    value: 'http://www.tourn.io',
   ),
   ConfigItem.new(
     key: 'email_in_dev',
