@@ -28,6 +28,6 @@ class Contact < ApplicationRecord
   scope :registration_notifiable, -> { where(notify_on_registration: true) }
   scope :payment_notifiable, -> { where(notify_on_payment: true) }
 
-  enum role: [ :director, :secretary, :treasurer, :'secretary-treasurer', :statistician, :fundraising, :'co-director', :registration ]
+  enum role: [ :director, :secretary, :treasurer, :'secretary-treasurer', :statistician, :fundraising, :'co-director', :registration, :'igbo-representative' ]
   enum notification_preference: [ :daily_summary, :individually ]
 end
