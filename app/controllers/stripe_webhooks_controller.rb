@@ -19,8 +19,10 @@ class StripeWebhooksController < ApplicationController
 
     render json: {}, status: :no_content
   rescue JSON::ParserError => e
+    Bugsnag.notify(e)
     render json: {}, status: :bad_request
   rescue Stripe::SignatureVerificationError => e
+    Bugsnag.notify(e)
     render json: {}, status: :bad_request
   end
 

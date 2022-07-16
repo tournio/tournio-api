@@ -29,6 +29,7 @@ module StripeUtilities
     StripeAccount.create(tournament_id: tournament.id, identifier: result.id)
   rescue Stripe::StripeError => e
     Rails.logger.info "Stripe error: #{e}"
+    Bugsnag.notify(e)
   end
 
   # assumes the existence of stripe_account
@@ -45,6 +46,7 @@ module StripeUtilities
     )
   rescue Stripe::StripeError => e
     Rails.logger.info "Stripe error: #{e}"
+    Bugsnag.notify(e)
   end
 
   # assumes the existence of stripe_account
@@ -52,6 +54,7 @@ module StripeUtilities
     Stripe::Account.retrieve(stripe_account.identifier)
   rescue Stripe::StripeError => e
     Rails.logger.info "Stripe error: #{e}"
+    Bugsnag.notify(e)
   end
 
   # assumes the existence of stripe_account

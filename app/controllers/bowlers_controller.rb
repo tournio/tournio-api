@@ -429,5 +429,8 @@ class BowlersController < ApplicationController
         stripe_account: stripe_account.identifier,
       },
     )
+  rescue Stripe::StripeError => e
+    Rails.logger.info "Stripe error: #{e}"
+    Bugsnag.notify(e)
   end
 end
