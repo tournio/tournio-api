@@ -10,7 +10,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema[7.0].define(version: 2022_06_14_184134) do
+ActiveRecord::Schema[7.0].define(version: 2022_07_17_194416) do
   # These are extensions that must be enabled in order to support this database
   enable_extension "plpgsql"
 
@@ -93,6 +93,7 @@ ActiveRecord::Schema[7.0].define(version: 2022_06_14_184134) do
     t.datetime "created_at", null: false
     t.datetime "updated_at", null: false
     t.integer "notification_preference", default: 0
+    t.integer "display_order"
     t.index ["tournament_id"], name: "index_contacts_on_tournament_id"
   end
 
@@ -189,12 +190,12 @@ ActiveRecord::Schema[7.0].define(version: 2022_06_14_184134) do
     t.bigint "purchasable_item_id"
     t.integer "amount", default: 0
     t.datetime "paid_at"
-    t.bigint "paypal_order_id"
     t.datetime "created_at", null: false
     t.datetime "updated_at", null: false
+    t.bigint "paypal_order_id"
     t.index ["bowler_id"], name: "index_purchases_on_bowler_id"
-    t.index ["identifier"], name: "index_purchases_on_identifier"
     t.index ["paypal_order_id"], name: "index_purchases_on_paypal_order_id"
+    t.index ["identifier"], name: "index_purchases_on_identifier"
     t.index ["purchasable_item_id"], name: "index_purchases_on_purchasable_item_id"
   end
 

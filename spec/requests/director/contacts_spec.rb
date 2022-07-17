@@ -32,6 +32,7 @@ describe Director::ContactsController, type: :request do
         notify_on_payment: false,
         notify_on_registration: true,
         notification_preference: 'daily_summary',
+        display_order: 4,
       }
     end
 
@@ -112,6 +113,7 @@ describe Director::ContactsController, type: :request do
         notify_on_payment: false,
         notify_on_registration: true,
         notification_preference: 'individually',
+        display_order: 3,
       }
     end
 
