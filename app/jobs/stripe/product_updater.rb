@@ -13,6 +13,11 @@ module Stripe
     def perform(purchasable_item_id)
       set_attributes(purchasable_item_id)
 
+      deactivate_price(
+        price_id: stripe_product.price_id,
+        account_identifier: stripe_account.identifier
+      )
+
       price = create_price(
         currency: tournament.currency,
         product_id: stripe_product.product_id,
@@ -23,7 +28,7 @@ module Stripe
       stripe_product.update(price_id: price[:id])
     rescue StripeError => e
       Bugsnag.notify(e)
-      Rails.logger.warn "Failed to associate PurchasableItem with Stripe Product or Price: #{e.message}"
+      Rails.logger.warn "Failed to update PurchasableItem with Stripe Product or Price: #{e.message}"
     end
 
     def set_attributes(purchasable_item_id)

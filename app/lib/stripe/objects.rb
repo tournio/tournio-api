@@ -12,5 +12,18 @@ module Stripe
         }
       )
     end
+
+    def deactivate_price(price_id:, account_identifier:)
+      Stripe::Price.update(
+        price_id,
+        {
+          active: false,
+        },
+        {
+          stripe_account: account_identifier,
+        }
+      )
+    end
+
   end
 end
