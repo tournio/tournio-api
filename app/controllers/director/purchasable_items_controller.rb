@@ -53,17 +53,23 @@ module Director
         return
       end
 
-      pi.update(purchasable_item_update_params)
-      if pi.errors
-        Rails.logger.info pi.errors.inspect
+      previous_amount = pi.value
+      pi.update!(purchasable_item_update_params)
+      new_amount = pi.value
+
+      if pi.bundle_discount? || pi.early_discount?
+        pi.stripe_coupon.destroy
+        Stripe::CouponCreator.perform_async(pi.id)
       else
-        # TODO: update Stripe product information
+        Stripe::ProductUpdater.perform_async(pi.id) if previous_amount != new_amount
       end
 
       render json: PurchasableItemBlueprint.render(pi.reload), status: :ok
     rescue ActiveRecord::RecordNotFound
       skip_authorization
       render json: nil, status: :not_found
+    rescue ActiveRecord::RecordInvalid => e
+      Bugsnag.notify(e)
     end
 
     def destroy
