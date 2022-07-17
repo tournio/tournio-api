@@ -36,4 +36,10 @@ namespace :igbo do
     end
     puts "Finished sending payment summaries."
   end
+
+  desc "Called by a scheduler, to delete old Stripe events"
+  task delete_old_stripe_events: :environment do
+    puts "Deleting old Stripe events"
+    DeleteOldStripeEventsJob.perform_async
+  end
 end

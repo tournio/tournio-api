@@ -10,7 +10,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema[7.0].define(version: 2022_07_17_194416) do
+ActiveRecord::Schema[7.0].define(version: 2022_07_17_203857) do
   # These are extensions that must be enabled in order to support this database
   enable_extension "plpgsql"
 
@@ -258,6 +258,13 @@ ActiveRecord::Schema[7.0].define(version: 2022_07_17_194416) do
     t.datetime "updated_at", null: false
     t.index ["coupon_id"], name: "index_stripe_coupons_on_coupon_id"
     t.index ["purchasable_item_id"], name: "index_stripe_coupons_on_purchasable_item_id"
+  end
+
+  create_table "stripe_events", force: :cascade do |t|
+    t.string "event_identifier"
+    t.datetime "created_at", null: false
+    t.datetime "updated_at", null: false
+    t.index ["event_identifier"], name: "index_stripe_events_on_event_identifier"
   end
 
   create_table "stripe_products", force: :cascade do |t|
