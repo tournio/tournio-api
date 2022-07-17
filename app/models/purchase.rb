@@ -11,14 +11,14 @@
 #  created_at          :datetime         not null
 #  updated_at          :datetime         not null
 #  bowler_id           :bigint
-#  paypal_order_id     :bigint
+#  external_payment_id :bigint
 #  purchasable_item_id :bigint
 #
 # Indexes
 #
 #  index_purchases_on_bowler_id            (bowler_id)
+#  index_purchases_on_external_payment_id  (external_payment_id)
 #  index_purchases_on_identifier           (identifier)
-#  index_purchases_on_paypal_order_id      (paypal_order_id)
 #  index_purchases_on_purchasable_item_id  (purchasable_item_id)
 #
 
