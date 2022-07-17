@@ -41,6 +41,7 @@ gem "rack-cors"
 gem 'aasm'                       # state machine behavior
 gem 'amazing_print'              # human-friendly printing of things on the console
 gem 'blueprinter'                # JSON serialization, but not JSON:API style
+gem 'bugsnag'                    # Error reporting
 gem 'devise', '~> 4.7'           # Authentication
 # gem 'devise-async'               # Background delivery of password-reset emails
 gem 'devise-jwt'                 # for JWT-based login
