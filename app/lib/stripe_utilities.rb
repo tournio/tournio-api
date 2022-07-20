@@ -6,7 +6,7 @@ module StripeUtilities
   end
 
   def client_host
-    Rails.env.production? ? 'https://www.igbo-reg.com' : 'http://localhost:3000'
+    Rails.env.production? ? 'https://www.tourn.io' : 'http://localhost:3000'
   end
 
   # assumes the existence of tournament

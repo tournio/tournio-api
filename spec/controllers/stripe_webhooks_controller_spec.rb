@@ -49,6 +49,19 @@ RSpec.describe StripeWebhooksController, type: :controller do
         expect { subject }.to change(Stripe::CheckoutSessionCompleted.jobs, :size).by(1)
       end
     end
+
+    context 'for an account.updated event' do
+      let(:event_type) { 'account.updated' }
+
+      it "succeeds" do
+        subject
+        expect(response).to have_http_status(:no_content)
+      end
+
+      it "hands the work off to a background job" do
+        expect { subject }.to change(Stripe::AccountUpdated.jobs, :size).by(1)
+      end
+    end
   end
 end
 

@@ -10,7 +10,8 @@ class StripeWebhooksController < ApplicationController
 
     # this lets us specify which event types we support
     case event[:type]
-    when 'checkout.session.completed'
+    when 'checkout.session.completed',
+         'account.updated'
     # other types here
       event_to_class(event[:type]).perform_async(event[:id], event[:account])
     else
