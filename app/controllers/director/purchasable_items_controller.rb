@@ -58,8 +58,10 @@ module Director
       new_amount = pi.value
 
       if pi.bundle_discount? || pi.early_discount?
-        Stripe::CouponDestroyer.perform_async(pi.stripe_coupon.coupon_id, tournament.stripe_account.identifier)
-        pi.stripe_coupon.destroy
+        if pi.stripe_coupon.present?
+          Stripe::CouponDestroyer.perform_async(pi.stripe_coupon.coupon_id, tournament.stripe_account.identifier)
+          pi.stripe_coupon.destroy
+        end
         Stripe::CouponCreator.perform_async(pi.id)
       else
         Stripe::ProductUpdater.perform_async(pi.id) if previous_amount != new_amount
@@ -81,10 +83,14 @@ module Director
 
       unless tournament.active? || tournament.demo?
         if pi.bundle_discount? || pi.early_discount?
-          Stripe::CouponDestroyer.perform_async(pi.stripe_coupon.coupon_id, tournament.stripe_account.identifier)
-          pi.stripe_coupon.destroy
+          if pi.stripe_coupon.present?
+            Stripe::CouponDestroyer.perform_async(pi.stripe_coupon.coupon_id, tournament.stripe_account.identifier)
+            pi.stripe_coupon.destroy
+          end
         else
-          Stripe::ProductDeactivator.perform_async(pi.stripe_product.id, tournament.stripe_account.identifier)
+          if pi.stripe_product.present?
+            Stripe::ProductDeactivator.perform_async(pi.stripe_product.id, tournament.stripe_account.identifier)
+          end
         end
 
         pi.destroy
