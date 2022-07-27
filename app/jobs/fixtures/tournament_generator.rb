@@ -6,17 +6,20 @@ module Fixtures
 
     MAX_TEAMS = 40
     MIN_TEAMS = 30
+    STARTING_TIME = 2.weeks.ago
 
     attr_accessor :tournament,
       :email_sequence,
       :team_sequence,
       :person_first_names,
-      :person_surnames
+      :person_surnames,
+      :interval
 
     def initialize
       super
       self.email_sequence = 0
       self.team_sequence = 0
+      self.interval = Time.zone.now.to_i - STARTING_TIME.to_i
     end
 
     def perform
@@ -37,6 +40,7 @@ module Fixtures
         :early_discount,
         :with_stripe_coupon,
         tournament: t,
+        value: Random.rand(10) + 5,
         configuration: {
           valid_until: 3.days.ago,
         }
@@ -99,22 +103,28 @@ module Fixtures
       team_name = "Team #{team_sequence}"
       team = FactoryBot.create :team, tournament: tournament, name: team_name
       count = Random.rand(tournament.team_size) + 1
+      registration_time = Time.at(STARTING_TIME + (interval * Random.rand(1.0)).to_i)
       count.times do |i|
-        create_bowler(team: team, position: i + 1)
+        create_bowler(team: team, position: i + 1, registered_at: registration_time)
       end
     end
 
-    def create_bowler (team: nil, position: nil)
+    def create_bowler (team: nil, position: nil, registered_at: nil)
       first_name_index = Random.rand(100)
       surname_index = Random.rand(100)
       person = FactoryBot.create :person,
         first_name: person_first_names[first_name_index],
         last_name: person_surnames[surname_index],
         email: email_address
-      bowler = FactoryBot.create :bowler, tournament: tournament, team: team, position: position, person: person
+      bowler = FactoryBot.create :bowler,
+        tournament: tournament,
+        team: team,
+        position: position,
+        person: person,
+        created_at: registered_at
       FactoryBot.create :bowler_shift, bowler: bowler, shift: tournament.shifts.first
       TournamentRegistration.purchase_entry_fee(bowler)
-      # TournamentRegistration.add_early_discount_to_ledger(bowler, registered_at)
+      TournamentRegistration.add_early_discount_to_ledger(bowler, registered_at)
     end
 
     def create_solo_bowlers
@@ -123,7 +133,8 @@ module Fixtures
 
       solo_bowler_quantity = Random.rand(remaining_capacity)
       solo_bowler_quantity.times do |i|
-        create_bowler
+        registration_time = Time.at(STARTING_TIME + (interval * Random.rand(1.0)).to_i)
+        create_bowler(registered_at: registration_time)
       end
     end
 
@@ -135,7 +146,8 @@ module Fixtures
       joining_bowler_quantity.times do |i|
         unless tournament.available_to_join.empty?
           team = tournament.available_to_join.sample
-          create_bowler(team: team, position: team.bowlers.count)
+          registration_time = Time.at(STARTING_TIME + (interval * Random.rand(1.0)).to_i)
+          create_bowler(team: team, position: team.bowlers.count, registered_at: registration_time)
         end
       end
     end
@@ -163,18 +175,40 @@ module Fixtures
     end
 
     def add_purchases_to_bowler(bowler:, items:)
-      # paid_at = Random.rand(2) > 0 ? create_payment(...).created_at : nil
+      make_payment = Random.rand(2) > 0
+      total = 0
+      paid_at = nil
+      if make_payment
+        window = Time.zone.now.to_i - bowler.created_at.to_i
+        paid_at = Time.at(bowler.created_at.to_i + (window * Random.rand(1.0)).to_i)
+      end
       items.each do |item|
+        total += item.value
+
         FactoryBot.create :purchase,
           purchasable_item: item,
           bowler: bowler,
-          amount: item.value
-          # paid_at: paid_at
+          amount: item.value,
+          paid_at: paid_at
 
         bowler.ledger_entries << LedgerEntry.new(
           debit: item.value,
           source: :purchase,
           identifier: item.name
+        )
+      end
+      if make_payment
+        payment = FactoryBot.create :external_payment, :from_stripe
+
+        # ledger entry for entry fee (minus early discount)
+        bowler.purchases.ledger.update_all(paid_at: paid_at)
+        total += bowler.purchases.entry_fee.sum(&:value) + bowler.purchases.late_fee.sum(&:value) - bowler.purchases.early_discount.sum(&:value)
+
+        # ledger entries for extra purchases
+        bowler.ledger_entries << LedgerEntry.new(
+          credit: total,
+          source: :stripe,
+          identifier: payment.identifier
         )
       end
     end
