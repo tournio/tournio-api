@@ -30,6 +30,7 @@ FactoryBot.define do
       category { :ledger }
       determination { :entry_fee }
       name { 'Entry fee' }
+      value { 109 }
       user_selectable { false }
     end
 

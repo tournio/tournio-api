@@ -55,7 +55,7 @@ FactoryBot.define do
 
     trait :one_shift do
       after(:create) do |t, _|
-        create :shift, tournament: t
+        create :shift, tournament: t, capacity: 160
       end
     end
 
