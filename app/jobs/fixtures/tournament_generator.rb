@@ -56,6 +56,7 @@ module Fixtures
       create_joining_bowlers
 
       add_purchases_to_bowlers
+      create_payments
     end
 
     def create_contacts
@@ -175,21 +176,11 @@ module Fixtures
     end
 
     def add_purchases_to_bowler(bowler:, items:)
-      make_payment = Random.rand(2) > 0
-      total = 0
-      paid_at = nil
-      if make_payment
-        window = Time.zone.now.to_i - bowler.created_at.to_i
-        paid_at = Time.at(bowler.created_at.to_i + (window * Random.rand(1.0)).to_i)
-      end
       items.each do |item|
-        total += item.value
-
         FactoryBot.create :purchase,
           purchasable_item: item,
           bowler: bowler,
-          amount: item.value,
-          paid_at: paid_at
+          amount: item.value
 
         bowler.ledger_entries << LedgerEntry.new(
           debit: item.value,
@@ -197,20 +188,34 @@ module Fixtures
           identifier: item.name
         )
       end
-      if make_payment
-        payment = FactoryBot.create :external_payment, :from_stripe
+    end
 
-        # ledger entry for entry fee (minus early discount)
-        bowler.purchases.ledger.update_all(paid_at: paid_at)
-        total += bowler.purchases.entry_fee.sum(&:value) + bowler.purchases.late_fee.sum(&:value) - bowler.purchases.early_discount.sum(&:value)
-
-        # ledger entries for extra purchases
-        bowler.ledger_entries << LedgerEntry.new(
-          credit: total,
-          source: :stripe,
-          identifier: payment.identifier
-        )
+    def create_payments
+      tournament.bowlers.each do |b|
+        make_payment = Random.rand(3) > 0
+        create_payment(bowler: b) unless make_payment
       end
+    end
+
+    def create_payment(bowler: )
+      window = Time.zone.now.to_i - bowler.created_at.to_i
+      paid_at = Time.at(bowler.created_at.to_i + (window * Random.rand(1.0)).to_i)
+
+      payment = FactoryBot.create :external_payment, :from_stripe
+
+      # ledger entry for entry fee (minus early discount)
+      purchases = bowler.purchases.unpaid
+      # multiplying the discount by 2 since it's included in the first sum, but still need to subtract it
+      total = purchases.sum(&:value) - purchases.early_discount.sum(&:value) * 2
+
+      purchases.update_all(paid_at: paid_at)
+
+      # ledger entries for extra purchases
+      bowler.ledger_entries << LedgerEntry.new(
+        credit: total,
+        source: :stripe,
+        identifier: payment.identifier
+      )
     end
 
     def person_first_names

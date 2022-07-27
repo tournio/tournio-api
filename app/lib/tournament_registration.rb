@@ -115,9 +115,9 @@ module TournamentRegistration
     bowler.purchases << Purchase.new(purchasable_item: entry_fee_item)
   end
 
-  def self.add_early_discount_to_ledger(bowler, _current_time = Time.zone.now)
+  def self.add_early_discount_to_ledger(bowler, current_time = Time.zone.now)
     tournament = bowler.tournament
-    return unless tournament.in_early_registration?(_current_time)
+    return unless tournament.in_early_registration?(current_time)
 
     early_discount_item = tournament.purchasable_items.early_discount&.first
     return unless early_discount_item.present?

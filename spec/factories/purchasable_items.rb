@@ -50,7 +50,7 @@ FactoryBot.define do
       category { :ledger }
       determination { :early_discount }
       name { 'Early registration discount' }
-      value { 25 }
+      value { 15 }
       user_selectable { false }
       configuration do
         {
