@@ -135,6 +135,10 @@ class TournamentBlueprint < Blueprinter::Base
         PurchasableItemBlueprint.render_as_hash(t.purchasable_items)
       end
     end
+
+    field :registrations_by_day do |t, _|
+      ChartDataQueries.last_week_registrations_by_day(t)
+    end
   end
 
   private
