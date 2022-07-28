@@ -4,8 +4,6 @@ module Fixtures
   class TournamentGenerator
     include Sidekiq::Job
 
-    MAX_TEAMS = 40
-    MIN_TEAMS = 30
     STARTING_TIME = 2.weeks.ago
 
     attr_accessor :tournament,
@@ -93,7 +91,9 @@ module Fixtures
     end
 
     def create_teams
-      teams_to_create = MIN_TEAMS + Random.rand(MAX_TEAMS - MIN_TEAMS)
+      max_teams = tournament.shifts.first.capacity / tournament.team_size
+      min_teams = max_teams - 10
+      teams_to_create = min_teams + Random.rand(11)
       teams_to_create.times do |i|
         create_team
       end
@@ -129,7 +129,7 @@ module Fixtures
     end
 
     def create_solo_bowlers
-      remaining_capacity = MAX_TEAMS * tournament.team_size - tournament.bowlers.count
+      remaining_capacity = tournament.shifts.first.capacity - tournament.bowlers.count
       return unless remaining_capacity.positive?
 
       solo_bowler_quantity = Random.rand(remaining_capacity)
@@ -140,7 +140,7 @@ module Fixtures
     end
 
     def create_joining_bowlers
-      remaining_capacity = MAX_TEAMS * tournament.team_size - tournament.bowlers.count
+      remaining_capacity = tournament.shifts.first.capacity - tournament.bowlers.count
       return unless remaining_capacity.positive?
 
       joining_bowler_quantity = Random.rand(remaining_capacity)
@@ -192,7 +192,7 @@ module Fixtures
 
     def create_payments
       tournament.bowlers.each do |b|
-        make_payment = Random.rand(3) > 0
+        make_payment = Random.rand(3) > 0 # we should have payments about 2/3 of the time
         create_payment(bowler: b) unless make_payment
       end
     end
@@ -216,6 +216,8 @@ module Fixtures
         source: :stripe,
         identifier: payment.identifier
       )
+
+      TournamentRegistration.try_confirming_bowler_shift(bowler)
     end
 
     def person_first_names
