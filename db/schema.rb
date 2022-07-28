@@ -10,7 +10,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema[7.0].define(version: 2022_07_17_203857) do
+ActiveRecord::Schema[7.0].define(version: 2022_07_28_212620) do
   # These are extensions that must be enabled in order to support this database
   enable_extension "plpgsql"
 
@@ -54,6 +54,7 @@ ActiveRecord::Schema[7.0].define(version: 2022_07_17_203857) do
     t.datetime "created_at", null: false
     t.datetime "updated_at", null: false
     t.jsonb "verified_data", default: {}
+    t.index ["created_at"], name: "index_bowlers_on_created_at"
     t.index ["doubles_partner_id"], name: "index_bowlers_on_doubles_partner_id"
     t.index ["identifier"], name: "index_bowlers_on_identifier"
     t.index ["person_id"], name: "index_bowlers_on_person_id"
@@ -95,6 +96,17 @@ ActiveRecord::Schema[7.0].define(version: 2022_07_17_203857) do
     t.integer "notification_preference", default: 0
     t.integer "display_order"
     t.index ["tournament_id"], name: "index_contacts_on_tournament_id"
+  end
+
+  create_table "data_points", force: :cascade do |t|
+    t.string "key", null: false
+    t.string "value", null: false
+    t.bigint "tournament_id"
+    t.datetime "created_at", null: false
+    t.datetime "updated_at", null: false
+    t.index ["created_at"], name: "index_data_points_on_created_at"
+    t.index ["key"], name: "index_data_points_on_key"
+    t.index ["tournament_id"], name: "index_data_points_on_tournament_id"
   end
 
   create_table "extended_form_fields", force: :cascade do |t|

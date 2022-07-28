@@ -17,6 +17,7 @@
 #
 # Indexes
 #
+#  index_bowlers_on_created_at          (created_at)
 #  index_bowlers_on_doubles_partner_id  (doubles_partner_id)
 #  index_bowlers_on_identifier          (identifier)
 #  index_bowlers_on_person_id           (person_id)
