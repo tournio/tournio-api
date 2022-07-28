@@ -27,12 +27,13 @@ module Fixtures
         :with_entry_fee,
         :with_scratch_competition_divisions,
         :with_extra_stuff,
-        start_date: Date.today + 30.days,
-        year: (Date.today + 30.days).year
+        start_date: Time.zone.today + 30,
+        year: (Time.zone.today + 30).year
       self.tournament = t
 
       FactoryBot.create :config_item, tournament: t, key: 'team_size', value: 4
       FactoryBot.create :config_item, tournament: t, key: 'image_path', value: '/images/retro_pins.jpg'
+      FactoryBot.create :config_item, tournament: t, key: 'time_zone', value: 'America/Chicago'
       FactoryBot.create :stripe_account, tournament: t, onboarding_completed_at: 2.months.ago
       FactoryBot.create :purchasable_item,
         :early_discount,

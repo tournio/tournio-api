@@ -2,6 +2,7 @@
 
 module TournamentBusiness
   DEFAULT_TEAM_SIZE = 4
+  DEFAULT_TIME_ZONE = 'America/New_York'
 
   def entry_fee
     purchasable_items.entry_fee.first.value
@@ -16,6 +17,10 @@ module TournamentBusiness
 
   def team_size
     config[:team_size]&.to_i || DEFAULT_TEAM_SIZE
+  end
+
+  def time_zone
+    config[:time_zone] || DEFAULT_TIME_ZONE
   end
 
   def max_bowlers_per_entry

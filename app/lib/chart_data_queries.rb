@@ -3,7 +3,7 @@ module ChartDataQueries
     return [] unless tournament.present?
     sql = <<-SQL
       SELECT 
-        TO_CHAR(DATE_TRUNC('day', b.created_at), 'YYYY-MM-DD') AS created_on,
+        TO_CHAR(DATE_TRUNC('day', b.created_at AT TIME ZONE :tz), 'YYYY-MM-DD') AS created_on,
         COUNT(b.id)
       FROM bowlers b
       WHERE tournament_id = :id
@@ -11,13 +11,19 @@ module ChartDataQueries
       GROUP BY created_on
       ORDER BY created_on ASC
     SQL
-    output = {}
+    output = week_starter
+    args = [
+      sql,
+      id: tournament.id,
+      tz: tournament.time_zone,
+    ]
 
     ActiveRecord::Base.connection.select_all(
-      ActiveRecord::Base.send(:sanitize_sql_array, [sql, id: tournament.id])
+      ActiveRecord::Base.send(:sanitize_sql_array, args)
     ).rows.each do |row|
-      output[Time.parse(row[0]).to_i] = row[1]
+      output[row[0]] = row[1]
     end
+
     output
   end
 
@@ -25,7 +31,7 @@ module ChartDataQueries
     return [] unless tournament.present?
     sql = <<-SQL
       SELECT 
-        TO_CHAR(DATE_TRUNC('day', ep.created_at), 'YYYY-MM-DD') AS created_on,
+        TO_CHAR(DATE_TRUNC('day', ep.created_at AT TIME ZONE :tz), 'YYYY-MM-DD') AS created_on,
         COUNT(ep.id)
       FROM external_payments ep
       WHERE ep.tournament_id = :id
@@ -33,13 +39,29 @@ module ChartDataQueries
       GROUP BY created_on
       ORDER BY created_on ASC
     SQL
-    output = {}
+    output = week_starter
+    args = [
+      sql,
+      id: tournament.id,
+      tz: tournament.time_zone,
+    ]
 
     ActiveRecord::Base.connection.select_all(
-      ActiveRecord::Base.send(:sanitize_sql_array, [sql, id: tournament.id])
+      ActiveRecord::Base.send(:sanitize_sql_array, args)
     ).rows.each do |row|
-      output[Time.parse(row[0]).to_i] = row[1]
+      output[row[0]] = row[1]
     end
+
     output
+  end
+
+  def self.week_starter
+    today = Time.zone.today
+    (0..7).map do |i|
+      days_back = 7 - i
+      day = today - days_back
+      day.strftime('%F')
+    end
+      .each_with_object({}) { |e, a| a[e] = 0 }
   end
 end
