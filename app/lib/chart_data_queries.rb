@@ -20,4 +20,26 @@ module ChartDataQueries
     end
     output
   end
+
+  def self.last_week_payments_by_day(tournament)
+    return [] unless tournament.present?
+    sql = <<-SQL
+      SELECT 
+        TO_CHAR(DATE_TRUNC('day', ep.created_at), 'YYYY-MM-DD') AS created_on,
+        COUNT(ep.id)
+      FROM external_payments ep
+      WHERE ep.tournament_id = :id
+      AND ep.created_at > CURRENT_DATE - 7
+      GROUP BY created_on
+      ORDER BY created_on ASC
+    SQL
+    output = {}
+
+    ActiveRecord::Base.connection.select_all(
+      ActiveRecord::Base.send(:sanitize_sql_array, [sql, id: tournament.id])
+    ).rows.each do |row|
+      output[Time.parse(row[0]).to_i] = row[1]
+    end
+    output
+  end
 end

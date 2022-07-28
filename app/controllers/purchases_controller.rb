@@ -27,7 +27,12 @@ class PurchasesController < ApplicationController
 
     paid_at = Time.zone.now
     # ppo = PaypalOrder.create(identifier: details[:paypal_details][:id], details: details[:paypal_details])
-    extp = ExternalPayment.create(payment_type: :paypal, identifier: details[:paypal_details][:id], details: details[:paypal_details])
+    extp = ExternalPayment.create(
+      payment_type: :paypal,
+      identifier: details[:paypal_details][:id],
+      details: details[:paypal_details],
+      tournament: tournament
+    )
 
     purchase_identifiers = details[:purchase_identifiers] || []
     matching_purchases = bowler.purchases.unpaid.where(identifier: purchase_identifiers)

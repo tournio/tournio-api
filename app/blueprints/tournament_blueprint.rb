@@ -136,8 +136,11 @@ class TournamentBlueprint < Blueprinter::Base
       end
     end
 
-    field :registrations_by_day do |t, _|
-      ChartDataQueries.last_week_registrations_by_day(t)
+    field :chart_data do |t, _|
+      {
+        last_week_registrations: ChartDataQueries.last_week_registrations_by_day(t),
+        last_week_payments: ChartDataQueries.last_week_payments_by_day(t),
+      }
     end
   end
 

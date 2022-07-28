@@ -110,7 +110,7 @@ module Fixtures
       end
     end
 
-    def create_bowler (team: nil, position: nil, registered_at: nil)
+    def create_bowler (team: nil, position: nil, registered_at: )
       first_name_index = Random.rand(100)
       surname_index = Random.rand(100)
       person = FactoryBot.create :person,
@@ -201,7 +201,10 @@ module Fixtures
       window = Time.zone.now.to_i - bowler.created_at.to_i
       paid_at = Time.at(bowler.created_at.to_i + (window * Random.rand(1.0)).to_i)
 
-      payment = FactoryBot.create :external_payment, :from_stripe
+      payment = FactoryBot.create :external_payment,
+        :from_stripe,
+        tournament: tournament,
+        created_at: paid_at
 
       # ledger entry for entry fee (minus early discount)
       purchases = bowler.purchases.unpaid

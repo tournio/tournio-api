@@ -4,6 +4,7 @@ class CreateExternalPayments < ActiveRecord::Migration[7.0]
       t.integer :payment_type, null: false
       t.string :identifier, index: true
       t.jsonb :details
+      t.references :tournament, index: true
 
       t.timestamps
     end

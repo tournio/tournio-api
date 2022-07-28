@@ -113,9 +113,11 @@ ActiveRecord::Schema[7.0].define(version: 2022_07_17_203857) do
     t.integer "payment_type", null: false
     t.string "identifier"
     t.jsonb "details"
+    t.bigint "tournament_id"
     t.datetime "created_at", null: false
     t.datetime "updated_at", null: false
     t.index ["identifier"], name: "index_external_payments_on_identifier"
+    t.index ["tournament_id"], name: "index_external_payments_on_tournament_id"
   end
 
   create_table "free_entries", force: :cascade do |t|

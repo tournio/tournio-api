@@ -14,10 +14,15 @@ module Stripe
       #  - event-linked late fees (maybe we don't need to?)
 
       cs = retrieve_stripe_object
-      self.external_payment = ExternalPayment.create(payment_type: :stripe, identifier: cs[:id], details: cs.to_hash)
       scp = StripeCheckoutSession.find_by(identifier: cs[:id])
       self.bowler = scp.bowler
       self.paid_at = Time.at(event[:created])
+      self.external_payment = ExternalPayment.create(
+        payment_type: :stripe,
+        identifier: cs[:id],
+        details: cs.to_hash,
+        tournament: bowler.tournament
+      )
 
       # TODO: any sanity-checking, e.g.,
       #  - in the event the SCP model shows it was already completed
