@@ -99,7 +99,7 @@ ActiveRecord::Schema[7.0].define(version: 2022_07_28_212620) do
   end
 
   create_table "data_points", force: :cascade do |t|
-    t.string "key", null: false
+    t.integer "key", null: false
     t.string "value", null: false
     t.bigint "tournament_id"
     t.datetime "created_at", null: false

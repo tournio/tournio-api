@@ -140,6 +140,7 @@ class TournamentBlueprint < Blueprinter::Base
       {
         last_week_registrations: ChartDataQueries.last_week_registrations_by_day(t),
         last_week_payments: ChartDataQueries.last_week_payments_by_day(t),
+        last_week_registration_types: ChartDataQueries.last_week_registration_types_by_day(t),
       }
     end
   end

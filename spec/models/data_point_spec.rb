@@ -3,7 +3,7 @@
 # Table name: data_points
 #
 #  id            :bigint           not null, primary key
-#  key           :string           not null
+#  key           :integer          not null
 #  value         :string           not null
 #  created_at    :datetime         not null
 #  updated_at    :datetime         not null

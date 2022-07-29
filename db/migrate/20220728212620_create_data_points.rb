@@ -1,7 +1,7 @@
 class CreateDataPoints < ActiveRecord::Migration[7.0]
   def change
     create_table :data_points do |t|
-      t.string :key, index: true, null: false
+      t.integer :key, index: true, null: false
       t.string :value, null: false
       t.references :tournament, index: true
 

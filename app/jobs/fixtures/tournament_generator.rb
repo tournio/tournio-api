@@ -4,23 +4,25 @@ module Fixtures
   class TournamentGenerator
     include Sidekiq::Job
 
-    STARTING_TIME = 2.weeks.ago
-
     attr_accessor :tournament,
       :email_sequence,
       :team_sequence,
       :person_first_names,
       :person_surnames,
+      :starting_time,
       :interval
 
     def initialize
       super
       self.email_sequence = 0
       self.team_sequence = 0
-      self.interval = Time.zone.now.to_i - STARTING_TIME.to_i
+      Time.zone = 'America/Chicago'
+      self.starting_time = Time.zone.now - 2.weeks
+      self.interval = Time.zone.now.to_i - starting_time.to_i
     end
 
     def perform
+
       t = FactoryBot.create :tournament,
         :active,
         :one_shift,
@@ -105,13 +107,13 @@ module Fixtures
       team_name = "Team #{team_sequence}"
       team = FactoryBot.create :team, tournament: tournament, name: team_name
       count = Random.rand(tournament.team_size) + 1
-      registration_time = Time.at(STARTING_TIME + (interval * Random.rand(1.0)).to_i)
+      registration_time = Time.zone.at(starting_time + (interval * Random.rand(1.0)).to_i)
       count.times do |i|
         create_bowler(team: team, position: i + 1, registered_at: registration_time)
       end
     end
 
-    def create_bowler (team: nil, position: nil, registered_at: )
+    def create_bowler (team: nil, position: nil, registration_type: 'new_team', registered_at: )
       first_name_index = Random.rand(100)
       surname_index = Random.rand(100)
       person = FactoryBot.create :person,
@@ -125,6 +127,14 @@ module Fixtures
         person: person,
         created_at: registered_at
       FactoryBot.create :bowler_shift, bowler: bowler, shift: tournament.shifts.first
+
+      DataPoint.create(
+        key: :registration_type,
+        value: registration_type,
+        tournament_id: tournament.id,
+        created_at: registered_at
+      )
+
       TournamentRegistration.purchase_entry_fee(bowler)
       TournamentRegistration.add_early_discount_to_ledger(bowler, registered_at)
     end
@@ -135,8 +145,8 @@ module Fixtures
 
       solo_bowler_quantity = Random.rand(remaining_capacity)
       solo_bowler_quantity.times do |i|
-        registration_time = Time.at(STARTING_TIME + (interval * Random.rand(1.0)).to_i)
-        create_bowler(registered_at: registration_time)
+        registration_time = Time.zone.at(starting_time + (interval * Random.rand(1.0)).to_i)
+        create_bowler(registered_at: registration_time, registration_type: 'solo')
       end
     end
 
@@ -148,8 +158,13 @@ module Fixtures
       joining_bowler_quantity.times do |i|
         unless tournament.available_to_join.empty?
           team = tournament.available_to_join.sample
-          registration_time = Time.at(STARTING_TIME + (interval * Random.rand(1.0)).to_i)
-          create_bowler(team: team, position: team.bowlers.count, registered_at: registration_time)
+          registration_time = Time.zone.at(starting_time + (interval * Random.rand(1.0)).to_i)
+          create_bowler(
+            team: team,
+            position: team.bowlers.count,
+            registered_at: registration_time,
+            registration_type: 'join_team'
+          )
         end
       end
     end
@@ -200,7 +215,7 @@ module Fixtures
 
     def create_payment(bowler: )
       window = Time.zone.now.to_i - bowler.created_at.to_i
-      paid_at = Time.at(bowler.created_at.to_i + (window * Random.rand(1.0)).to_i)
+      paid_at = Time.zone.at(bowler.created_at.to_i + (window * Random.rand(1.0)).to_i)
 
       payment = FactoryBot.create :external_payment,
         :from_stripe,

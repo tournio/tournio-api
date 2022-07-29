@@ -27,6 +27,7 @@ class Tournament < ApplicationRecord
   has_many :bowlers, dependent: :destroy
   has_many :config_items, dependent: :destroy
   has_many :contacts, -> { order(display_order: :asc)}, dependent: :destroy
+  has_many :data_points, dependent: :destroy
   has_many :extended_form_fields, through: :additional_questions
   has_many :external_payments, dependent: :destroy
   has_many :free_entries, dependent: :destroy
