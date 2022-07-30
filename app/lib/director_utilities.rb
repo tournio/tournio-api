@@ -120,13 +120,13 @@ module DirectorUtilities
 
       last_name: bowler.last_name,
       first_name: bowler.first_name,
-      nickname: bowler.nickname,
+      nickname: bowler.nickname.present? ? bowler.nickname : '',
 
       birth_day: bowler.birth_day,
       birth_month: bowler.birth_month,
 
       address1: bowler.address1,
-      address2: bowler.address2,
+      address2: bowler.address2.present? ? bowler.address2 : '',
       city: bowler.city,
       state: bowler.state,
       country: bowler.country,
@@ -134,8 +134,8 @@ module DirectorUtilities
       phone1: bowler.phone,
       email: bowler.email,
 
-      usbc_number: bowler.usbc_id,
-      igbotsid: bowler.igbo_id,
+      usbc_number: bowler.usbc_id.present? ? bowler.usbc_id : '',
+      igbotsid: bowler.igbo_id.present? ? bowler.igbo_id : '',
     }
   end
 
@@ -158,7 +158,7 @@ module DirectorUtilities
     team = bowler.team
     if team.present?
       {
-        team_id: team.identifier,
+        team_id: team.id, # team.identifier,
         team_name: team.name,
         team_order: bowler.position,
       }
@@ -251,7 +251,8 @@ module DirectorUtilities
   end
 
   def self.bowler_identifier(bowler)
-    Digest::SHA1.hexdigest("#{bowler.first_name} #{bowler.last_name} #{bowler.usbc_id} #{bowler.tournament.identifier}}") if bowler.present?
+    # Digest::SHA1.hexdigest("#{bowler.first_name} #{bowler.last_name} #{bowler.usbc_id} #{bowler.tournament.identifier}}") if bowler.present?
+    bowler.id
   end
 
   def self.csv_additional_questions(bowler:)
