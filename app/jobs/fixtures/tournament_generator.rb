@@ -26,12 +26,12 @@ module Fixtures
     def perform
       t = FactoryBot.create :tournament,
         :active,
-        # :one_shift,
-        :one_small_shift,
+        :one_shift,
+        # :one_small_shift,
         :with_entry_fee,
         :with_scratch_competition_divisions,
         :with_extra_stuff,
-        name: 'I Got Good Data',
+        name: 'Random Access Tournament',
         start_date: Time.zone.today + 30,
         year: (Time.zone.today + 30).year
       self.tournament = t
@@ -56,8 +56,8 @@ module Fixtures
       create_purchasable_items
 
       create_teams
-      # create_solo_bowlers
-      # create_joining_bowlers
+      create_solo_bowlers
+      create_joining_bowlers
 
       add_purchases_to_bowlers
       create_payments
@@ -98,9 +98,9 @@ module Fixtures
 
     def create_teams
       max_teams = tournament.shifts.first.capacity / tournament.team_size
-      min_teams = max_teams - 10
-      # teams_to_create = min_teams + Random.rand(11)
-      teams_to_create = tournament.shifts.first.capacity / 4
+      min_teams = max_teams - 15
+      teams_to_create = min_teams + Random.rand(11)
+      # teams_to_create = tournament.shifts.first.capacity / tournament.team_size
       teams_to_create.times do |i|
         create_team
       end
@@ -110,8 +110,9 @@ module Fixtures
       self.team_sequence += 1
       team_name = "Team #{team_sequence}"
       team = FactoryBot.create :team, tournament: tournament, name: team_name
-      # count = Random.rand(tournament.team_size) + 1
-      count = tournament.team_size
+      count = Random.rand(tournament.team_size) + 1
+      # count = tournament.team_size
+
       registration_time = Time.zone.at(starting_time + (interval * Random.rand(1.0)).to_i)
       count.times do |i|
         create_bowler(team: team, position: i + 1, registered_at: registration_time)
