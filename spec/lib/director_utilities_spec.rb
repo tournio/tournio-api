@@ -444,22 +444,6 @@ RSpec.describe DirectorUtilities do
         expect(subject.keys).to match_array(name_only_keys + additional_keys)
       end
     end
-
-    context 'with no partner present' do
-      let(:partner) { nil }
-
-      it 'contains the keys' do
-        expect(subject.keys).to match_array(name_only_keys)
-      end
-
-      context 'with extra details' do
-        let(:name_only?) { false }
-
-        it 'has the additional keys' do
-          expect(subject.keys).to match_array(name_only_keys + additional_keys)
-        end
-      end
-    end
   end
 
   describe '#csv_additional_questions' do

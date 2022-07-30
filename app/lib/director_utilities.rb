@@ -251,7 +251,6 @@ module DirectorUtilities
   end
 
   def self.bowler_identifier(bowler)
-    # Digest::SHA1.hexdigest("#{bowler.first_name} #{bowler.last_name} #{bowler.usbc_id} #{bowler.tournament.identifier}}") if bowler.present?
     bowler.id
   end
 
