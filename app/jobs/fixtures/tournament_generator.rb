@@ -10,12 +10,14 @@ module Fixtures
       :person_first_names,
       :person_surnames,
       :starting_time,
-      :interval
+      :interval,
+      :usbc_sequence
 
     def initialize
       super
       self.email_sequence = 0
       self.team_sequence = 0
+      self.usbc_sequence = 100
       Time.zone = 'America/Chicago'
       self.starting_time = Time.zone.now - 2.weeks
       self.interval = Time.zone.now.to_i - starting_time.to_i
@@ -29,7 +31,7 @@ module Fixtures
         :with_entry_fee,
         :with_scratch_competition_divisions,
         :with_extra_stuff,
-        name: 'Ooh La La',
+        name: 'I Got Good Data',
         start_date: Time.zone.today + 30,
         year: (Time.zone.today + 30).year
       self.tournament = t
@@ -119,10 +121,13 @@ module Fixtures
     def create_bowler (team: nil, position: nil, registration_type: 'new_team', registered_at: )
       first_name_index = Random.rand(100)
       surname_index = Random.rand(100)
+      usbc_id = "111-#{usbc_sequence}"
+      self.usbc_sequence += 1
       person = FactoryBot.create :person,
         first_name: person_first_names[first_name_index],
         last_name: person_surnames[surname_index],
-        email: email_address
+        email: email_address,
+        usbc_id: usbc_id
       bowler = FactoryBot.create :bowler,
         tournament: tournament,
         team: team,
