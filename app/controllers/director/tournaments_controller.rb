@@ -8,7 +8,8 @@ module Director
 
     rescue_from Pundit::NotAuthorizedError, with: :unauthorized
 
-    before_action :load_tournament, except: [:index]
+    before_action :load_tournament, except: %i(index)
+    before_action :set_time_zone, except: %i(index)
 
     MAX_STRIPE_ATTEMPTS = 10
 

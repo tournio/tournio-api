@@ -74,7 +74,6 @@ module ChartDataQueries
     args = [
       sql,
       id: tournament.id,
-      tz: tournament.time_zone,
       key: DataPoint.keys[:registration_type],
     ]
 
@@ -92,6 +91,56 @@ module ChartDataQueries
       index = output[:dates].index(row[0])
       next unless index.present?
       output[type][index] = amount
+    end
+
+    output
+  end
+
+  def self.last_week_item_purchases_by_day(tournament)
+    return {} unless tournament.present?
+    sql = <<-SQL
+      SELECT
+        TO_CHAR(DATE_TRUNC('day', p.paid_at), 'YYYY-MM-DD') AS bought_on,
+        pi.category,
+        pi.refinement,
+        pi.identifier AS item_identifier,
+        pi.id AS item_id,
+        COUNT(pi.id) AS total
+      FROM purchases p INNER JOIN purchasable_items pi ON (p.purchasable_item_id = pi.id)
+      WHERE pi.tournament_id = :tournament_id
+      AND NOT pi.id IN (:excluded_ids)
+      AND p.paid_at > CURRENT_DATE - interval '8 days'
+      GROUP BY bought_on, item_id
+      ORDER BY bought_on ASC
+    SQL
+    args = [
+      sql,
+      tournament_id: tournament.id,
+      excluded_ids: tournament.purchasable_items.ledger.pluck(:id)
+    ]
+
+    output = week_starter
+    output.delete(:values)
+    size = output[:dates].count
+    tournament.purchasable_items.where.not(category: :ledger).each do |pi|
+      index = pi.division? ? 'division' : pi.category
+      output[index] = {} unless output[index].present?
+      output[index][pi.identifier] = Array.new(size, 0)
+    end
+
+    ActiveRecord::Base.connection.select_all(
+      ActiveRecord::Base.send(:sanitize_sql_array, args)
+    ).rows.each do |row|
+      date = row[0]
+      category = row[1]
+      refinement = row[2]
+      identifier = row[3]
+      amount = row[5]
+
+      key = refinement == 'division' ? 'division' : category
+      index = output[:dates].index(date)
+      next unless index.present?
+      output[key][identifier][index] = amount
     end
 
     output
