@@ -59,7 +59,7 @@ describe Director::TournamentsController, type: :controller do
     it 'contains the expected values' do
       subject
       expect(json['link_url']).to eq(link_url)
-      expect(json['link_expires_at']).to eq(expires_at.strftime('%F %T UTC'))
+      expect(json['link_expires_at']).to eq(expires_at.strftime('%F %T %z'))
     end
 
     context 'when we already have a Stripe account' do
