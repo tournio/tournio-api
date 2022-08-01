@@ -26,7 +26,7 @@ FactoryBot.define do
     year { (Date.today + 90.days).year }
 
     after(:create) do |t, _|
-      create(:config_item, :entry_deadline, tournament: t, value: Date.today + 80.days)
+      create(:config_item, :entry_deadline, tournament: t, value: t.start_date - 7.days)
     end
 
     trait :demo do
