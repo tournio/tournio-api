@@ -129,7 +129,7 @@ class TournamentBlueprint < Blueprinter::Base
     end
 
     field :purchasable_items do |t, _|
-      if t.active?
+      if t.active? || t.closed?
         organized_purchasable_items(tournament: t)
       else
         PurchasableItemBlueprint.render_as_hash(t.purchasable_items)
