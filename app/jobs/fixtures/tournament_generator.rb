@@ -24,33 +24,7 @@ module Fixtures
     end
 
     def perform
-      t = FactoryBot.create :tournament,
-        :active,
-        :one_shift,
-        # :one_small_shift,
-        :with_entry_fee,
-        :with_scratch_competition_divisions,
-        :with_extra_stuff,
-        name: 'Random Access Tournament',
-        start_date: Time.zone.today + 30,
-        year: (Time.zone.today + 30).year
-      self.tournament = t
-
-      FactoryBot.create :config_item, tournament: t, key: 'team_size', value: 4
-      FactoryBot.create :config_item, tournament: t, key: 'image_path', value: '/images/retro_pins.jpg'
-      FactoryBot.create :config_item, tournament: t, key: 'time_zone', value: 'America/Chicago'
-      FactoryBot.create :stripe_account, tournament: t, onboarding_completed_at: 2.months.ago
-      FactoryBot.create :purchasable_item,
-        :early_discount,
-        :with_stripe_coupon,
-        tournament: t,
-        value: Random.rand(10) + 5,
-        configuration: {
-          valid_until: 3.days.ago,
-        }
-      t.purchasable_items.each do |pi|
-        FactoryBot.create :stripe_product, purchasable_item: pi
-      end
+      create_and_configure_tournament
 
       create_contacts
       create_purchasable_items
@@ -61,6 +35,36 @@ module Fixtures
 
       add_purchases_to_bowlers
       create_payments
+    end
+    
+    def create_and_configure_tournament
+      self.tournament = FactoryBot.create :tournament,
+        :active,
+        :one_shift,
+        # :one_small_shift,
+        :with_entry_fee,
+        :with_scratch_competition_divisions,
+        :with_extra_stuff,
+        name: 'Random Access Tournament',
+        start_date: Time.zone.today + 30,
+        year: (Time.zone.today + 30).year
+
+      FactoryBot.create :config_item, tournament: tournament, key: 'team_size', value: 4
+      FactoryBot.create :config_item, tournament: tournament, key: 'image_path', value: '/images/retro_pins.jpg'
+      FactoryBot.create :config_item, tournament: tournament, key: 'time_zone', value: 'America/Chicago'
+      FactoryBot.create :stripe_account, tournament: tournament, onboarding_completed_at: 2.months.ago
+
+      FactoryBot.create :purchasable_item,
+        :early_discount,
+        :with_stripe_coupon,
+        tournament: tournament,
+        value: Random.rand(10) + 5,
+        configuration: {
+          valid_until: 3.days.ago,
+        }
+      tournament.purchasable_items.each do |pi|
+        FactoryBot.create :stripe_product, purchasable_item: pi
+      end
     end
 
     def create_contacts
@@ -181,6 +185,7 @@ module Fixtures
     def add_purchases_to_bowlers
       single_items = tournament.purchasable_items.bowling.where(refinement: nil)
       division_items = tournament.purchasable_items.bowling.where(refinement: :division)
+      multi_use_items = tournament.purchasable_items.multi_use
 
       tournament.bowlers.each do |b|
         items_for_bowler = []
@@ -194,6 +199,12 @@ module Fixtures
         count = Random.rand(single_items.count)
         if count > 0
           items_for_bowler += single_items.sample(count)
+        end
+
+        # how about multi_use items?
+        count = Random.rand(multi_use_items.count)
+        if (count > 0)
+          items_for_bowler += multi_use_items.sample(count)
         end
 
         add_purchases_to_bowler(bowler: b, items: items_for_bowler) unless items_for_bowler.empty?

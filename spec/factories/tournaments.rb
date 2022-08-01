@@ -138,7 +138,7 @@ FactoryBot.define do
     trait :with_extra_stuff do
       after(:create) do |t, _|
         create(:purchasable_item, :banquet_entry, tournament: t)
-        create(:purchasable_item, :raffle_bundle, tournament: t)
+        create(:purchasable_item, :raffle_bundle, value: 75, tournament: t)
       end
     end
 
