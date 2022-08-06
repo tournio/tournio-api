@@ -113,7 +113,7 @@ class BowlerBlueprint < Blueprinter::Base
       :phone,
       :postal_code,
       :state,
-      :igbo_id,
+      # :igbo_id,
       :usbc_id
 
     field :display_name do |bowler, _|

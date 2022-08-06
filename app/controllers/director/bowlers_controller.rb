@@ -31,8 +31,20 @@ module Director
         return
       end
       authorize tournament, :show?
-      bowlers = policy_scope(tournament.bowlers).includes(:person, :free_entry, :team).order('people.last_name')
-      render json: BowlerBlueprint.render(bowlers, view: :director_list), status: :ok
+      include_details = params[:include_details].present?
+      bowlers = include_details ? policy_scope(tournament.bowlers).includes(
+        :ledger_entries,
+        :additional_question_responses,
+        :team,
+        :person,
+        :free_entry,
+        purchases: :purchasable_item,
+        doubles_partner: :person,
+        tournament: [:additional_questions]
+      ).order('people.last_name')
+                  : policy_scope(tournament.bowlers).includes(:person, :free_entry, :team).order('people.last_name')
+      blueprint_view = include_details ? :director_detail : :director_list
+      render json: BowlerBlueprint.render(bowlers, view: blueprint_view), status: :ok
     end
 
     def show
@@ -60,7 +72,6 @@ module Director
       try_updating_details
       try_updating_additional_question_responses
       try_reassigning
-
 
       if error.present?
         render json: { error: error }, status: :bad_request
