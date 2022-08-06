@@ -4,9 +4,9 @@ class TeamBlueprint < Blueprinter::Base
   identifier :identifier
 
   association :tournament, blueprint: TournamentBlueprint
-  association :shift, blueprint: ShiftBlueprint do |team, _|
-    team.bowlers.first&.shift
-  end
+  # association :shift, blueprint: ShiftBlueprint do |team, _|
+  #   team.bowlers.first&.shift
+  # end
 
   view :list do
     field :name do |t, _|
