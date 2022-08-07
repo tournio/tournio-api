@@ -60,12 +60,16 @@ describe Director::UsersController, type: :request do
     let(:requesting_user) { create(:user, :superuser) }
     let(:email) { 'a_new_user@tournament.org' }
     let(:role) { 'director' }
+    let(:first_name) { 'Kylie' }
+    let(:last_name) { 'Minogue' }
     let(:tournament) { create(:tournament) }
     let(:params) do
       {
         user: {
           email: email,
           role: role,
+          first_name: first_name,
+          last_name: last_name,
           tournament_ids: [tournament.id],
         }
       }
@@ -129,7 +133,7 @@ describe Director::UsersController, type: :request do
         expect(json['email']).to eq(new_email)
       end
 
-      context 'attempting to update something other than email/password' do
+      context 'attempting to update something they are not permitted to' do
         let(:params) do
           {
             user: {
@@ -158,6 +162,7 @@ describe Director::UsersController, type: :request do
           {
             user: {
               role: 'director',
+              first_name: 'Robyn',
               tournament_ids: [tournament.id],
             }
           }
