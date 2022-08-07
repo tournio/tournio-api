@@ -6,12 +6,16 @@ module Director
     NEW_USER_PARAMS = [
       :email,
       :role,
+      :first_name,
+      :last_name,
       tournament_ids: [],
     ].freeze
     UPDATE_USER_PARAMS = [
       :email,
       :role,
       :password,
+      :first_name,
+      :last_name,
       tournament_ids: [],
     ].freeze
 
