@@ -54,7 +54,6 @@ ActiveRecord::Schema[7.0].define(version: 2022_08_07_163508) do
     t.datetime "created_at", null: false
     t.datetime "updated_at", null: false
     t.jsonb "verified_data", default: {}
-    t.index ["created_at"], name: "index_bowlers_on_created_at"
     t.index ["doubles_partner_id"], name: "index_bowlers_on_doubles_partner_id"
     t.index ["identifier"], name: "index_bowlers_on_identifier"
     t.index ["person_id"], name: "index_bowlers_on_person_id"
@@ -98,17 +97,6 @@ ActiveRecord::Schema[7.0].define(version: 2022_08_07_163508) do
     t.index ["tournament_id"], name: "index_contacts_on_tournament_id"
   end
 
-  create_table "data_points", force: :cascade do |t|
-    t.integer "key", null: false
-    t.string "value", null: false
-    t.bigint "tournament_id"
-    t.datetime "created_at", null: false
-    t.datetime "updated_at", null: false
-    t.index ["created_at"], name: "index_data_points_on_created_at"
-    t.index ["key"], name: "index_data_points_on_key"
-    t.index ["tournament_id"], name: "index_data_points_on_tournament_id"
-  end
-
   create_table "extended_form_fields", force: :cascade do |t|
     t.string "name", null: false
     t.string "label", null: false
@@ -119,17 +107,6 @@ ActiveRecord::Schema[7.0].define(version: 2022_08_07_163508) do
     t.string "helper_url"
     t.datetime "created_at", null: false
     t.datetime "updated_at", null: false
-  end
-
-  create_table "external_payments", force: :cascade do |t|
-    t.integer "payment_type", null: false
-    t.string "identifier"
-    t.jsonb "details"
-    t.bigint "tournament_id"
-    t.datetime "created_at", null: false
-    t.datetime "updated_at", null: false
-    t.index ["identifier"], name: "index_external_payments_on_identifier"
-    t.index ["tournament_id"], name: "index_external_payments_on_tournament_id"
   end
 
   create_table "free_entries", force: :cascade do |t|
@@ -215,9 +192,9 @@ ActiveRecord::Schema[7.0].define(version: 2022_08_07_163508) do
     t.datetime "paid_at"
     t.datetime "created_at", null: false
     t.datetime "updated_at", null: false
-    t.bigint "external_payment_id"
+    t.bigint "paypal_order_id"
     t.index ["bowler_id"], name: "index_purchases_on_bowler_id"
-    t.index ["external_payment_id"], name: "index_purchases_on_external_payment_id"
+    t.index ["paypal_order_id"], name: "index_purchases_on_paypal_order_id"
     t.index ["identifier"], name: "index_purchases_on_identifier"
     t.index ["purchasable_item_id"], name: "index_purchases_on_purchasable_item_id"
   end
@@ -243,52 +220,6 @@ ActiveRecord::Schema[7.0].define(version: 2022_08_07_163508) do
     t.datetime "updated_at", null: false
     t.index ["identifier"], name: "index_shifts_on_identifier", unique: true
     t.index ["tournament_id"], name: "index_shifts_on_tournament_id"
-  end
-
-  create_table "stripe_accounts", primary_key: "identifier", id: :string, force: :cascade do |t|
-    t.bigint "tournament_id", null: false
-    t.datetime "onboarding_completed_at"
-    t.string "link_url"
-    t.datetime "link_expires_at"
-    t.datetime "created_at", null: false
-    t.datetime "updated_at", null: false
-    t.index ["tournament_id"], name: "index_stripe_accounts_on_tournament_id"
-  end
-
-  create_table "stripe_checkout_sessions", force: :cascade do |t|
-    t.bigint "bowler_id", null: false
-    t.string "identifier", null: false
-    t.integer "status", default: 0
-    t.datetime "created_at", null: false
-    t.datetime "updated_at", null: false
-    t.index ["bowler_id"], name: "index_stripe_checkout_sessions_on_bowler_id"
-    t.index ["identifier"], name: "index_stripe_checkout_sessions_on_identifier"
-  end
-
-  create_table "stripe_coupons", force: :cascade do |t|
-    t.bigint "purchasable_item_id", null: false
-    t.string "coupon_id"
-    t.datetime "created_at", null: false
-    t.datetime "updated_at", null: false
-    t.index ["coupon_id"], name: "index_stripe_coupons_on_coupon_id"
-    t.index ["purchasable_item_id"], name: "index_stripe_coupons_on_purchasable_item_id"
-  end
-
-  create_table "stripe_events", force: :cascade do |t|
-    t.string "event_identifier"
-    t.datetime "created_at", null: false
-    t.datetime "updated_at", null: false
-    t.index ["event_identifier"], name: "index_stripe_events_on_event_identifier"
-  end
-
-  create_table "stripe_products", force: :cascade do |t|
-    t.bigint "purchasable_item_id", null: false
-    t.string "product_id"
-    t.string "price_id"
-    t.datetime "created_at", null: false
-    t.datetime "updated_at", null: false
-    t.index ["product_id", "price_id"], name: "index_stripe_products_on_product_id_and_price_id"
-    t.index ["purchasable_item_id"], name: "index_stripe_products_on_purchasable_item_id"
   end
 
   create_table "teams", force: :cascade do |t|
