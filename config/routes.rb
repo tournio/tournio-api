@@ -27,6 +27,7 @@ Rails.application.routes.draw do
         post 'email_payment_reminders'
         get 'stripe_refresh'
         get 'stripe_status'
+        post 'logo_upload'
       end
       resources :bowlers, only: %i(index show destroy update), param: :identifier, shallow: true do
         resources :ledger_entries, only: %i(create), shallow: true

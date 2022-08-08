@@ -40,11 +40,13 @@ gem "rack-cors"
 
 gem 'aasm'                       # state machine behavior
 gem 'amazing_print'              # human-friendly printing of things on the console
+gem 'aws-sdk-s3', '~> 1.114.0'   # For using Backblazes S3-compatible API for asset storage
 gem 'blueprinter'                # JSON serialization, but not JSON:API style
 gem 'bugsnag'                    # Error reporting
 gem 'devise', '~> 4.7'           # Authentication
 # gem 'devise-async'               # Background delivery of password-reset emails
 gem 'devise-jwt'                 # for JWT-based login
+gem "image_processing", ">= 1.2" # image analysis and transformations
 gem 'newrelic_rpm'               # For New Relic app monitoring
 gem 'pundit'                     # Authorization
 gem 'sendgrid-ruby'              # For sending emails using SendGrid

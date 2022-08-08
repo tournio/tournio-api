@@ -204,6 +204,19 @@ module Director
       render json: StripeAccountBlueprint.render(stripe_account.reload), status: :ok
     end
 
+    def logo_upload
+      unless tournament.present?
+        render json: nil, status: :not_found
+        return
+      end
+
+      authorize tournament
+
+
+
+      render json: {}, status: :accepted
+    end
+
     private
 
     def load_tournament

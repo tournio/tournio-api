@@ -59,6 +59,10 @@ class TournamentPolicy < DirectorPolicy
     sufficient_access?
   end
 
+  def logo_upload?
+    sufficient_access?
+  end
+
   private
 
   def sufficient_role?
