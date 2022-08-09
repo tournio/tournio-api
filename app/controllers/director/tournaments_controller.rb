@@ -212,7 +212,7 @@ module Director
 
       authorize tournament
 
-
+      tournament.logo_image.attach(params['file'])
 
       render json: {}, status: :accepted
     end

@@ -39,6 +39,8 @@ class Tournament < ApplicationRecord
   has_one :payment_summary_send
   has_one :stripe_account, dependent: :destroy
 
+  has_one_attached :logo_image
+
   accepts_nested_attributes_for :additional_questions, allow_destroy: true
 
   before_create :generate_identifier, if: -> { identifier.blank? }

@@ -47,7 +47,8 @@ gem 'devise', '~> 4.7'           # Authentication
 # gem 'devise-async'               # Background delivery of password-reset emails
 gem 'devise-jwt'                 # for JWT-based login
 gem "image_processing", ">= 1.2" # image analysis and transformations
-gem 'newrelic_rpm'               # For New Relic app monitoring
+# gem 'newrelic_rpm'               # For New Relic app monitoring
+gem 'ruby-vips'                  # image analysis
 gem 'pundit'                     # Authorization
 gem 'sendgrid-ruby'              # For sending emails using SendGrid
 gem 'sidekiq'                    # The queueing system to use with ActiveJob

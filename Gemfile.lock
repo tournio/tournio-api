@@ -169,7 +169,6 @@ GEM
       digest
       net-protocol
       timeout
-    newrelic_rpm (8.9.0)
     nio4r (2.5.8)
     nokogiri (1.13.7-arm64-darwin)
       racc (~> 1.4)
@@ -285,7 +284,6 @@ DEPENDENCIES
   devise-jwt
   factory_bot_rails
   image_processing (>= 1.2)
-  newrelic_rpm
   pg (~> 1.1)
   puma (~> 5.0)
   pundit
@@ -293,6 +291,7 @@ DEPENDENCIES
   rails (~> 7.0.2, >= 7.0.2.4)
   redis (~> 4.0)
   rspec-rails
+  ruby-vips
   sendgrid-ruby
   shoulda-matchers
   sidekiq
