@@ -53,12 +53,12 @@ playground.contacts << Contact.new(
   role: :treasurer,
 )
 
-eff = ExtendedFormField.find_by(name: 'standings_link')
-playground.additional_questions << AdditionalQuestion.new(
-  extended_form_field: eff,
-  validation_rules: eff.validation_rules,
-  order: 2,
-)
+# eff = ExtendedFormField.find_by(name: 'standings_link')
+# playground.additional_questions << AdditionalQuestion.new(
+#   extended_form_field: eff,
+#   validation_rules: eff.validation_rules,
+#   order: 2,
+# )
 eff = ExtendedFormField.find_by(name: 'comment')
 playground.additional_questions << AdditionalQuestion.new(
   extended_form_field: eff,

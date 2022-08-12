@@ -50,10 +50,11 @@ module Fixtures
         year: (Time.zone.today + 30).year
 
       FactoryBot.create :config_item, tournament: tournament, key: 'team_size', value: 4
-      # FactoryBot.create :config_item, tournament: tournament, key: 'image_path', value: '/images/retro_pins.jpg'
-      # TODO: put images somewhere and attach one to the tournament here
       FactoryBot.create :config_item, tournament: tournament, key: 'time_zone', value: 'America/Chicago'
       FactoryBot.create :stripe_account, tournament: tournament, onboarding_completed_at: 2.months.ago
+
+      path = Rails.root.join('spec', 'support', 'images', 'retro_pins.jpg')
+      tournament.logo_image.attach(io: File.open(path), filename: 'random.jpg')
 
       FactoryBot.create :purchasable_item,
         :early_discount,
