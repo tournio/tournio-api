@@ -4,7 +4,7 @@ class TournamentsController < ApplicationController
 
   def index
     tournaments = Tournament.includes(:config_items).available.order(start_date: :asc)
-    render json: TournamentBlueprint.render(tournaments, view: :list)
+    render json: TournamentBlueprint.render(tournaments, view: :list, **url_options)
   end
 
   def show
@@ -14,7 +14,7 @@ class TournamentsController < ApplicationController
       return
     end
     set_time_zone
-    render json: TournamentBlueprint.render(tournament, view: :detail)
+    render json: TournamentBlueprint.render(tournament, view: :detail, **url_options)
   end
 
   private

@@ -20,7 +20,7 @@ module Director
                       policy_scope(Tournament).includes(:config_items).order(name: :asc)
                     end
       authorize(Tournament)
-      render json: TournamentBlueprint.render(tournaments, view: :director_list)
+      render json: TournamentBlueprint.render(tournaments, view: :director_list, **url_options)
     end
 
     def show
@@ -29,7 +29,7 @@ module Director
         return
       end
       authorize tournament
-      render json: TournamentBlueprint.render(tournament, view: :director_detail)
+      render json: TournamentBlueprint.render(tournament, view: :director_detail, **url_options)
     end
 
     def clear_test_data
@@ -85,7 +85,7 @@ module Director
       action_sym = "#{action}!".to_sym
       tournament.send(action_sym)
 
-      render json: TournamentBlueprint.render(tournament, view: :director_detail)
+      render json: TournamentBlueprint.render(tournament, view: :director_detail, **url_options)
     end
 
     def update
@@ -110,7 +110,7 @@ module Director
       end
       tournament.update(updates)
 
-      render json: TournamentBlueprint.render(tournament.reload, view: :director_detail)
+      render json: TournamentBlueprint.render(tournament.reload, view: :director_detail, **url_options)
     end
 
     def destroy
@@ -212,9 +212,10 @@ module Director
 
       authorize tournament
 
+      tournament.logo_image.purge if tournament.logo_image.attached?
       tournament.logo_image.attach(params['file'])
 
-      render json: {}, status: :accepted
+      render json: { image_url: url_for(tournament.logo_image) }, status: :accepted
     end
 
     private

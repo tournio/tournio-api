@@ -4,8 +4,10 @@ class TournamentBlueprint < Blueprinter::Base
   identifier :identifier
 
   fields :name, :year, :id
-  field :image_path do |t, _|
-    t.config[:image_path]
+  field :image_url do |t, options|
+    if options[:host].present? && t.logo_image.attached?
+      Rails.application.routes.url_helpers.rails_blob_url(t.logo_image, options)
+    end
   end
 
   view :list do
@@ -73,10 +75,6 @@ class TournamentBlueprint < Blueprinter::Base
 
   view :director_detail do
     include_view :director_list
-
-    field :image_path do |t, _|
-      t.config[:image_path]
-    end
 
     # throw everything in here
     association :config_items, blueprint: ConfigItemBlueprint

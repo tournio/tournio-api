@@ -10,10 +10,9 @@ backblaze:
   service: S3
   access_key_id: ''
   secret_access_key: ''
-#  region: ''
-#  endpoint: ''
-#  access_key_id: <%#= ENV['AWS_ACCESS_KEY_ID'] %>
-#  secret_access_key: <%#= ENV['AWS_SECRET_ACCESS_KEY'] %>
+  # These are read automatically:
+  #  access_key_id: <%#= ENV['AWS_ACCESS_KEY_ID'] %>
+  #  secret_access_key: <%#= ENV['AWS_SECRET_ACCESS_KEY'] %>
   region: <%= ENV['AWS_DEFAULT_REGION'] %>
   endpoint: <%= ENV['AWS_DEFAULT_ENDPOINT'] %>
   retry_limit: 5
