@@ -24,10 +24,6 @@ psdic.config_items += [
     value: 'America/Los_Angeles',
   ),
   ConfigItem.new(
-    key: 'image_path',
-    value: '/images/psdic.jpg',
-  ),
-  ConfigItem.new(
     key: 'team_size',
     value: '4',
   ),

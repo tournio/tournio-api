@@ -20,10 +20,6 @@ tournament.config_items += [
     value: 'America/Denver',
   ),
   ConfigItem.new(
-    key: 'image_path',
-    value: '/images/retro_pins.jpg',
-  ),
-  ConfigItem.new(
     key: 'team_size',
     value: 4,
   ),

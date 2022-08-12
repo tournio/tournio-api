@@ -8,10 +8,6 @@ trot = Tournament.create!(
 
 trot.config_items += [
   ConfigItem.new(
-    key: 'image_path',
-    value: '/images/trot.png',
-  ),
-  ConfigItem.new(
     key: 'team_size',
     value: '4',
   ),

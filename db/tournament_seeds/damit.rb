@@ -21,10 +21,6 @@ tournament.config_items += [
     value: 'America/Chicago',
   ),
   ConfigItem.new(
-    key: 'image_path',
-    value: '/images/damit.png',
-  ),
-  ConfigItem.new(
     key: 'website',
     value: 'https://www.facebook.com/Damitbowling',
   ),

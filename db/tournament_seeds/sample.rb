@@ -20,10 +20,6 @@ tournament.config_items += [
     value: 'America/New_York',
   ),
   ConfigItem.new(
-    key: 'image_path',
-    value: '/images/generic.jpg',
-  ),
-  ConfigItem.new(
     key: 'team_size',
     value: 4,
   ),

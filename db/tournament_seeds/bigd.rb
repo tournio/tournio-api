@@ -8,10 +8,6 @@ bigd = Tournament.create!(
 
 bigd.config_items += [
   ConfigItem.new(
-    key: 'image_path',
-    value: '/images/bigdclassic.jpg',
-  ),
-  ConfigItem.new(
     key: 'team_size',
     value: '4',
   ),
