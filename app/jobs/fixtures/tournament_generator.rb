@@ -51,6 +51,7 @@ module Fixtures
 
       FactoryBot.create :config_item, tournament: tournament, key: 'team_size', value: 4
       FactoryBot.create :config_item, tournament: tournament, key: 'time_zone', value: 'America/Chicago'
+      FactoryBot.create :config_item, tournament: tournament, key: 'display_capacity', value: 'true'
       FactoryBot.create :stripe_account, tournament: tournament, onboarding_completed_at: 2.months.ago
 
       path = Rails.root.join('spec', 'support', 'images', 'retro_pins.jpg')
