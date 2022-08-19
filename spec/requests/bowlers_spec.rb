@@ -86,6 +86,11 @@ describe BowlersController, type: :request do
             expect(json[0]['identifier']).to eq(bowler.identifier)
           end
 
+          it 'creates a join_team data point' do
+            subject
+            expect(DataPoint.last.value).to eq('join_team')
+          end
+
           context 'a team on a shift' do
             let(:shift) { create :shift, :high_demand, tournament: tournament }
 
@@ -179,6 +184,15 @@ describe BowlersController, type: :request do
         expect { subject }.not_to change(BowlerShift, :count)
       end
 
+      it 'creates a data point' do
+        expect { subject }.to change(DataPoint, :count).by(1)
+      end
+
+      it 'creates a solo data point' do
+        subject
+        expect(DataPoint.last.value).to eq('solo')
+      end
+
       context 'specifying a shift' do
         let(:shift) { create :shift, tournament: tournament }
         let(:bowler_params) do
@@ -246,6 +260,11 @@ describe BowlersController, type: :request do
             bowler = Bowler.last
             expect(target.reload.doubles_partner_id).to eq(bowler.id)
           end
+
+          it 'creates a partner data point' do
+            subject
+            expect(DataPoint.last.value).to eq('partner')
+          end
         end
       end
     end
@@ -277,6 +296,11 @@ describe BowlersController, type: :request do
         bowlers = Bowler.last(2)
         expect(bowlers[0].doubles_partner_id).to eq(bowlers[1].id)
         expect(bowlers[1].doubles_partner_id).to eq(bowlers[0].id)
+      end
+
+      it 'creates a new_pair data point' do
+        subject
+        expect(DataPoint.last.value).to eq('new_pair')
       end
     end
   end

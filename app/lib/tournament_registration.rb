@@ -95,11 +95,13 @@ module TournamentRegistration
     link_doubles_partners(team.bowlers)
   end
 
-  def self.register_bowler(bowler)
+  def self.register_bowler(bowler, registration_type='new_team')
     purchase_entry_fee(bowler)
     add_early_discount_to_ledger(bowler)
     add_late_fees_to_ledger(bowler)
     complete_doubles_link(bowler) if bowler.doubles_partner_id.present?
+
+    DataPoint.create(key: :registration_type, value: registration_type, tournament_id: bowler.tournament_id)
 
     send_confirmation_email(bowler)
     notify_registration_contacts(bowler)

@@ -178,6 +178,10 @@ RSpec.describe TournamentRegistration do
       expect(subject_class).to receive(:send_confirmation_email).with(bowler).once
       subject
     end
+
+    it 'creates a data point' do
+      expect { subject }.to change(DataPoint, :count).by(1)
+    end
   end
 
   describe '#purchase_entry_fee' do

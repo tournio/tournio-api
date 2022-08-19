@@ -74,6 +74,8 @@ class BowlersController < ApplicationController
       bowlers << a_bowler
     end
 
+    registration_type = 'solo'
+
     # now, are they joining a team, or registering solo?
     if team.present?
       # joining
@@ -81,17 +83,22 @@ class BowlersController < ApplicationController
         render json: { message: 'This team is full.' }, status: :bad_request
         return
       end
+      registration_type = 'join_team'
     else
-      # registering solo or doubles
-
+      # registering solo, doubles, or partner
+      if bowlers.count == 2
+        registration_type = 'new_pair'
+      elsif bowlers.first.doubles_partner_id.present?
+        registration_type = 'partner'
+      end
     end
 
     bowlers.each do |b|
       b.save
-      TournamentRegistration.register_bowler(b)
+      TournamentRegistration.register_bowler(b, registration_type)
     end
 
-    if bowlers.length == 2
+    if bowlers.count == 2
       bowlers[0].doubles_partner = bowlers[1]
       bowlers[1].doubles_partner = bowlers[0]
       bowlers.map(&:save)

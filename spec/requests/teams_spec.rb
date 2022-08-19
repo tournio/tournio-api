@@ -51,6 +51,26 @@ describe TeamsController, type: :request do
         expect(json['size']).to eq(4)
       end
 
+      it 'creates data points' do
+        expect { subject }.to change(DataPoint, :count).by(4)
+      end
+
+      it 'creates the right kinds of data points' do
+        subject
+        dp = DataPoint.last(4)
+        keys = dp.collect(&:key).uniq
+        values = dp.collect(&:value).uniq
+        expect(keys).to match_array(%w(registration_type))
+        expect(values).to match_array(%w(new_team))
+      end
+
+      it 'associates the data points with the tournament' do
+        subject
+        dp = DataPoint.last(4)
+        tournament_ids = dp.collect(&:tournament_id).uniq
+        expect(tournament_ids).to match_array([tournament.id])
+      end
+
       context 'a team on a shift' do
         let!(:shift) { create :shift, :high_demand, tournament: tournament, identifier: 'this-is-a-shift' }
 
