@@ -283,12 +283,12 @@ DEPENDENCIES
   devise (~> 4.7)
   devise-jwt
   factory_bot_rails
-  image_processing (>= 1.2)
+  image_processing (~> 1.2)
   pg (~> 1.1)
   puma (~> 5.0)
   pundit
   rack-cors
-  rails (~> 7.0.2, >= 7.0.2.4)
+  rails (~> 7.0.3, >= 7.0.3.1)
   redis (~> 4.0)
   rspec-rails
   ruby-vips
