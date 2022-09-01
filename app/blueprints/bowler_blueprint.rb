@@ -119,13 +119,7 @@ class BowlerBlueprint < Blueprinter::Base
     field :display_name do |bowler, _|
       TournamentRegistration.bowler_full_name(bowler)
     end
-    field :doubles_partner do |b, _|
-      if b.doubles_partner.present?
-        TournamentRegistration.bowler_full_name(b.doubles_partner)
-      else
-        ''
-      end
-    end
+    association :doubles_partner, blueprint: BowlerBlueprint
     field :created_at, name: :date_registered, datetime_format: "%F"
 
     field :amount_billed do |b, _|

@@ -43,6 +43,11 @@ module Director
         tournament: [:additional_questions]
       ).order('people.last_name')
                   : policy_scope(tournament.bowlers).includes(:person, :free_entry, :team).order('people.last_name')
+
+      if params[:unpartnered]
+        bowlers = bowlers.where(doubles_partner_id: nil)
+      end
+
       blueprint_view = include_details ? :director_detail : :director_list
       render json: BowlerBlueprint.render(bowlers, view: blueprint_view), status: :ok
     end
@@ -72,6 +77,7 @@ module Director
       try_updating_details
       try_updating_additional_question_responses
       try_reassigning
+      try_partnering
 
       if error.present?
         render json: { error: error }, status: :bad_request
@@ -142,7 +148,9 @@ module Director
     end
 
     def bowler_params
-      params.require(:bowler).permit(team: %i(identifier),
+      params.require(:bowler).permit(
+        team: %i(identifier),
+        doubles_partner: %i(identifier),
         person_attributes: PERSON_ATTRS,
         additional_question_responses: %i(name response),
         verified_data: %i(verified_average handicap igbo_member),
@@ -166,6 +174,19 @@ module Director
       end
 
       DirectorUtilities.reassign_bowler(bowler: bowler, to_team: new_team)
+    end
+
+    def try_partnering
+      bowler_data = bowler_params
+      return unless bowler_data[:doubles_partner].present?
+
+      new_partner = tournament.bowlers.find_by(identifier: bowler_data[:doubles_partner][:identifier])
+      unless new_partner.present?
+        self.error = 'Could not find the desired bowler to partner up with'
+        return
+      end
+
+      DirectorUtilities.assign_partner(bowler: bowler, new_partner: new_partner)
     end
 
     def try_updating_details

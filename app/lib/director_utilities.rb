@@ -37,6 +37,20 @@ module DirectorUtilities
     bowler.update(team: to_team)
   end
 
+  def self.assign_partner(bowler: , new_partner:)
+    tournament = bowler.tournament
+    return unless tournament.config[:event_selection]
+    return unless tournament.purchasable_items.event.doubles.any?
+
+    original_partner = bowler.doubles_partner
+    if (original_partner.present?)
+      original_partner.update(doubles_partner_id: nil)
+    end
+
+    bowler.update(doubles_partner: new_partner)
+    new_partner.update(doubles_partner: bowler)
+  end
+
   def self.igbots_hash(tournament:)
     {
       peoples: igbots_people(tournament: tournament),
