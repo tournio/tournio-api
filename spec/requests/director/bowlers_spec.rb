@@ -242,10 +242,8 @@ describe Director::BowlersController, type: :request do
     let(:bowler) { create :bowler, tournament: tournament, team: team }
     let(:bowler_identifier) { bowler.identifier }
     let(:person_attributes) { { nickname: 'Freddy' } }
-    let(:team_params) { nil
-
-    }
-    let(:partner_params) { nil }
+    let(:team_params) { {} }
+    let(:partner_params) { {} }
     let(:additional_question_response_params) { {} }
     let(:verified_data_params) { {} }
     let(:params) do
