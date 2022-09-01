@@ -98,6 +98,15 @@ describe Director::PurchasableItemsController, type: :request do
       end
     end
 
+    context 'an event item' do
+      let(:refinement) { 'singles' }
+
+      it 'succeeds' do
+        subject
+        expect(json.first).to have_key('identifier')
+      end
+    end
+
     context 'a ledger item' do
       let(:category) { 'ledger' }
 

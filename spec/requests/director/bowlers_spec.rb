@@ -23,6 +23,12 @@ describe Director::BowlersController, type: :request do
       10.times do
         create :bowler, tournament: tournament, team: create(:team, tournament: tournament)
       end
+      for i in 0..4 do
+        src = tournament.bowlers[i*2]
+        partner = tournament.bowlers[i*2 + 1]
+        src.update(doubles_partner_id: partner.id)
+        partner.update(doubles_partner_id: src.id)
+      end
     end
 
     include_examples 'an authorized action'
@@ -35,6 +41,21 @@ describe Director::BowlersController, type: :request do
     it 'includes all registered bowlers in the response' do
       subject
       expect(json.length).to eq(10);
+    end
+
+    context 'retrieving only unpartnered bowlers' do
+      let(:uri) { "/director/tournaments/#{tournament_identifier}/bowlers?unpartnered=true" }
+
+      before do
+        7.times do
+          create :bowler, tournament: tournament, team: create(:team, tournament: tournament)
+        end
+      end
+
+      it 'includes all unpartnered bowlers in the response' do
+        subject
+        expect(json.length).to eq(7)
+      end
     end
 
     context 'as an unpermitted user' do
@@ -222,6 +243,7 @@ describe Director::BowlersController, type: :request do
     let(:bowler_identifier) { bowler.identifier }
     let(:person_attributes) { { nickname: 'Freddy' } }
     let(:team_params) { {} }
+    let(:partner_params) { {} }
     let(:additional_question_response_params) { {} }
     let(:verified_data_params) { {} }
     let(:params) do
@@ -229,6 +251,7 @@ describe Director::BowlersController, type: :request do
         bowler: {
           person_attributes: person_attributes,
           team: team_params,
+          doubles_partner: partner_params,
           additional_question_responses: additional_question_response_params,
           verified_data: verified_data_params,
         },
@@ -318,6 +341,22 @@ describe Director::BowlersController, type: :request do
           subject
           expect(json['team']['name']).to eq('Dudes Who Dance')
         end
+      end
+    end
+
+    context 'assigning a new doubles partner' do
+      let(:tournament) { create :tournament, :active, :with_event_selection, :one_shift, :with_a_doubles_event }
+      let(:new_partner) { create :bowler, tournament: tournament }
+      let(:partner_params) { { identifier: new_partner.identifier } }
+
+      it 'succeeds with a 200 OK' do
+        subject
+        expect(response).to have_http_status(:ok)
+      end
+
+      it 'includes the updated doubles partner in the response' do
+        subject
+        expect(json['doubles_partner']['full_name']).to eq(TournamentRegistration.person_display_name(new_partner.person))
       end
     end
 

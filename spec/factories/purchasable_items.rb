@@ -82,8 +82,22 @@ FactoryBot.define do
     trait :bowling_event do
       category { :bowling }
       determination { :event }
+      refinement { :singles }
       name { 'A fundamental event' }
       value { 100 }
+      configuration do
+        {
+          order: 1,
+        }
+      end
+    end
+
+    trait :doubles_event do
+      category { :bowling }
+      determination { :event }
+      refinement { :doubles }
+      name { 'A fundamental doubles event' }
+      value { 79 }
       configuration do
         {
           order: 1,

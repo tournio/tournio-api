@@ -144,7 +144,13 @@ FactoryBot.define do
 
     trait :with_a_bowling_event do
       after(:create) do |t, _|
-        create(:purchasable_item, :bowling_event)
+        create(:purchasable_item, :bowling_event, tournament: t)
+      end
+    end
+
+    trait :with_a_doubles_event do
+      after(:create) do |t, _|
+        create(:purchasable_item, :doubles_event, tournament: t)
       end
     end
   end
