@@ -79,6 +79,60 @@ RSpec.describe DirectorUtilities do
     end
   end
 
+  describe '#assign_partner' do
+    subject { described_class.assign_partner(bowler: bowler, new_partner: new_partner) }
+
+    let(:tournament) { create :tournament, :with_event_selection, :one_shift, :with_a_doubles_event }
+    let(:bowler) { create(:bowler, tournament: tournament, person: create(:person)) }
+    let(:new_partner) { create(:bowler, tournament: tournament, person: create(:person)) }
+
+    it 'results in the two bowlers being partners' do
+      subject
+      expect(bowler.reload.doubles_partner_id).to eq(new_partner.id)
+      expect(new_partner.reload.doubles_partner_id).to eq(bowler.id)
+    end
+
+    context 'when the tournament does not include event selection' do
+      let(:tournament) { create :tournament, :one_shift }
+
+      it 'does nothing' do
+        subject
+        expect(bowler.reload.doubles_partner_id).to be_nil
+        expect(new_partner.reload.doubles_partner_id).to be_nil
+      end
+    end
+
+    context 'when the tournament does not include a doubles event' do
+      let(:tournament) { create :tournament, :with_event_selection }
+
+      it 'does nothing' do
+        subject
+        expect(bowler.reload.doubles_partner_id).to be_nil
+        expect(new_partner.reload.doubles_partner_id).to be_nil
+      end
+    end
+
+    context 'when the bowler already has a partner' do
+      let(:existing_partner) { create :bowler, tournament: tournament, person: create(:person) }
+
+      before do
+        bowler.update(doubles_partner: existing_partner)
+        existing_partner.update(doubles_partner: bowler)
+      end
+
+      it 'changes the partner assignment correctly' do
+        subject
+        expect(bowler.reload.doubles_partner_id).to eq(new_partner.id)
+        expect(new_partner.reload.doubles_partner_id).to eq(bowler.id)
+      end
+
+      it 'leaves the previous partner with no partner' do
+        subject
+        expect(existing_partner.reload.doubles_partner_id).to be_nil
+      end
+    end
+  end
+
   describe '#reassign_bowler' do
     subject { described_class.reassign_bowler(bowler: moving_bowler, to_team: destination_team) }
 
