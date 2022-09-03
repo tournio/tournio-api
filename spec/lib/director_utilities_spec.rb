@@ -335,7 +335,7 @@ RSpec.describe DirectorUtilities do
 
     require 'csv'
 
-    let(:csv_headers) { %w[id last_name first_name nickname birth_day birth_month address1 address2 city state country postal_code phone email usbc_number igbotsid team_id team_name team_order entry_fee_paid registered_at doubles_last_name doubles_first_name] }
+    let(:csv_headers) { %w[id last_name first_name nickname birth_day birth_month address1 address2 city state country postal_code phone email usbc_number igbotsid team_id team_name team_order entry_fee_paid registered_at doubles_last_name doubles_first_name average] }
 
     let(:tournament) { create :tournament }
     let(:team) { create :team, tournament: tournament }
