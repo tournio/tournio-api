@@ -18,7 +18,7 @@ module Fixtures
       self.email_sequence = 0
       self.team_sequence = 0
       self.usbc_sequence = 100
-      Time.zone = 'America/Chicago'
+      Time.zone = 'America/New_York'
       self.starting_time = Time.zone.now - 2.weeks
       self.interval = Time.zone.now.to_i - starting_time.to_i
     end
@@ -45,18 +45,17 @@ module Fixtures
         :with_entry_fee,
         :with_scratch_competition_divisions,
         :with_extra_stuff,
-        # name: 'Random Access Tournament',
-        name: 'Digital Online Tourmament',
+        name: 'Bowlers Invitational Tournament',
         start_date: Time.zone.today + 30,
         year: (Time.zone.today + 30).year
 
       FactoryBot.create :config_item, tournament: tournament, key: 'team_size', value: 4
-      FactoryBot.create :config_item, tournament: tournament, key: 'location', value: 'Omaha, NE'
-      FactoryBot.create :config_item, tournament: tournament, key: 'time_zone', value: 'America/Chicago'
-      FactoryBot.create :config_item, tournament: tournament, key: 'display_capacity', value: 'true'
+      FactoryBot.create :config_item, tournament: tournament, key: 'location', value: 'Atlanta, GA'
+      FactoryBot.create :config_item, tournament: tournament, key: 'time_zone', value: 'America/New_York'
+      FactoryBot.create :config_item, tournament: tournament, key: 'display_capacity', value: 'false'
       FactoryBot.create :stripe_account, tournament: tournament, onboarding_completed_at: 2.months.ago
 
-      path = Rails.root.join('spec', 'support', 'images', 'retro_bowl.jpg')
+      path = Rails.root.join('spec', 'support', 'images', 'retro_pins.jpg')
       tournament.logo_image.attach(io: File.open(path), filename: 'digital.jpg')
 
       FactoryBot.create :purchasable_item,
@@ -73,9 +72,9 @@ module Fixtures
     end
 
     def create_contacts
-      FactoryBot.create :contact, tournament: tournament, display_order: 1, email: 'director@igbo-factory.org', name: 'Director Person', role: :director
-      FactoryBot.create :contact, tournament: tournament, display_order: 2, email: 'secretary@igbo-factory.org', name: 'Secretary Person', role: :secretary
-      FactoryBot.create :contact, tournament: tournament, display_order: 3, email: 'treasurer@igbo-factory.org', name: 'Treasurer Person', role: :treasurer
+      FactoryBot.create :contact, tournament: tournament, display_order: 1, email: 'director@igbo-factory.org', name: 'Kylie Minogue', role: :director
+      FactoryBot.create :contact, tournament: tournament, display_order: 2, email: 'secretary@igbo-factory.org', name: 'Dorothy Gale', role: :secretary
+      FactoryBot.create :contact, tournament: tournament, display_order: 3, email: 'treasurer@igbo-factory.org', name: 'Stevie Nicks', role: :treasurer
     end
 
     def create_purchasable_items
