@@ -45,18 +45,19 @@ module Fixtures
         :with_entry_fee,
         :with_scratch_competition_divisions,
         :with_extra_stuff,
-        name: 'Random Access Tournament',
+        # name: 'Random Access Tournament',
+        name: 'Digital Online Tourmament',
         start_date: Time.zone.today + 30,
         year: (Time.zone.today + 30).year
 
       FactoryBot.create :config_item, tournament: tournament, key: 'team_size', value: 4
-      FactoryBot.create :config_item, tournament: tournament, key: 'location', valye: 'Omaha, NE'
+      FactoryBot.create :config_item, tournament: tournament, key: 'location', value: 'Omaha, NE'
       FactoryBot.create :config_item, tournament: tournament, key: 'time_zone', value: 'America/Chicago'
       FactoryBot.create :config_item, tournament: tournament, key: 'display_capacity', value: 'true'
       FactoryBot.create :stripe_account, tournament: tournament, onboarding_completed_at: 2.months.ago
 
-      path = Rails.root.join('spec', 'support', 'images', 'retro_pins.jpg')
-      tournament.logo_image.attach(io: File.open(path), filename: 'random.jpg')
+      path = Rails.root.join('spec', 'support', 'images', 'retro_bowl.jpg')
+      tournament.logo_image.attach(io: File.open(path), filename: 'digital.jpg')
 
       FactoryBot.create :purchasable_item,
         :early_discount,
@@ -117,9 +118,13 @@ module Fixtures
     def create_team
       self.team_sequence += 1
       team_name = "Team #{team_sequence}"
-      team = FactoryBot.create :team, tournament: tournament, name: team_name
       count = Random.rand(tournament.team_size) + 1
-      # count = tournament.team_size
+
+      place_with_others = count < tournament.team_size ? Random.rand(2) > 0 : false
+      team = FactoryBot.create :team,
+        tournament: tournament,
+        name: team_name,
+        options: { place_with_others: place_with_others }
 
       registration_time = Time.zone.at(starting_time + (interval * Random.rand(1.0)).to_i)
       count.times do |i|
