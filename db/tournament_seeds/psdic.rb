@@ -2,8 +2,8 @@
 
 psdic = Tournament.create!(
   name: 'Palm Springs Desert Invitational Classic',
-  year: 2019,
-  start_date: '2019-10-18',
+  year: 2023,
+  start_date: '2023-10-20',
 )
 
 psdic.config_items += [
@@ -13,11 +13,11 @@ psdic.config_items += [
   ),
   ConfigItem.new(
     key: 'late_fee_applies_at',
-    value: '2019-09-10T23:59:59-05:00',
+    value: '2023-09-12T23:59:59-05:00',
   ),
   ConfigItem.new(
     key: 'entry_deadline',
-    value: '2019-10-10T23:59:59-05:00',
+    value: '2023-10-12T23:59:59-05:00',
   ),
   ConfigItem.new(
     key: 'time_zone',

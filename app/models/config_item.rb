@@ -18,4 +18,5 @@
 
 class ConfigItem < ApplicationRecord
   belongs_to :tournament
+  default_scope { order(key: :asc) }
 end
