@@ -47,7 +47,7 @@ describe Director::ContactsController, type: :request do
 
     it 'return the created contact' do
       subject
-      expect(json).to have_key('id')
+      expect(json).to have_key('identifier')
     end
 
     it 'includes the new item in the response' do
@@ -101,7 +101,7 @@ describe Director::ContactsController, type: :request do
 
     let(:tournament) { create :tournament }
     let(:contact) { create :contact, tournament: tournament, name: 'JoJo Rabbit', email: 'jojo@rabbit.org', role: :director }
-    let(:contact_id) { contact.id }
+    let(:contact_id) { contact.identifier }
 
     let(:params) do
       {
@@ -128,7 +128,7 @@ describe Director::ContactsController, type: :request do
 
     it 'return the created contact' do
       subject
-      expect(json).to have_key('id')
+      expect(json).to have_key('identifier')
     end
 
     it 'updates the contact correctly' do

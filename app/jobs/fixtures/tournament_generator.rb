@@ -45,7 +45,8 @@ module Fixtures
         :with_entry_fee,
         :with_scratch_competition_divisions,
         :with_extra_stuff,
-        name: 'Bowlers Invitational Tournament',
+        # name: 'Bowlers Invitational Tournament',
+        name: 'These Punks Are Daft',
         start_date: Time.zone.today + 30,
         year: (Time.zone.today + 30).year
 
@@ -55,7 +56,7 @@ module Fixtures
       FactoryBot.create :config_item, tournament: tournament, key: 'display_capacity', value: 'false'
       FactoryBot.create :stripe_account, tournament: tournament, onboarding_completed_at: 2.months.ago
 
-      path = Rails.root.join('spec', 'support', 'images', 'retro_pins.jpg')
+      path = Rails.root.join('spec', 'support', 'images', 'retro_bowl.jpg')
       tournament.logo_image.attach(io: File.open(path), filename: 'digital.jpg')
 
       FactoryBot.create :purchasable_item,

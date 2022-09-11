@@ -7,6 +7,7 @@
 #  id                      :bigint           not null, primary key
 #  display_order           :integer
 #  email                   :string
+#  identifier              :string
 #  name                    :string
 #  notes                   :text
 #  notification_preference :integer          default("daily_summary")
@@ -20,6 +21,7 @@
 #
 # Indexes
 #
+#  index_contacts_on_identifier     (identifier) UNIQUE
 #  index_contacts_on_tournament_id  (tournament_id)
 #
 

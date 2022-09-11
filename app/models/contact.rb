@@ -7,6 +7,7 @@
 #  id                      :bigint           not null, primary key
 #  display_order           :integer
 #  email                   :string
+#  identifier              :string
 #  name                    :string
 #  notes                   :text
 #  notification_preference :integer          default("daily_summary")
@@ -20,11 +21,14 @@
 #
 # Indexes
 #
+#  index_contacts_on_identifier     (identifier) UNIQUE
 #  index_contacts_on_tournament_id  (tournament_id)
 #
 
 class Contact < ApplicationRecord
   belongs_to :tournament
+
+  before_create :generate_identifier
 
   scope :registration_notifiable, -> { where(notify_on_registration: true) }
   scope :payment_notifiable, -> { where(notify_on_payment: true) }
@@ -43,4 +47,10 @@ class Contact < ApplicationRecord
     :'member-at-large',
   ]
   enum notification_preference: [ :daily_summary, :individually ]
+
+  private
+
+  def generate_identifier
+    self.identifier = SecureRandom.uuid
+  end
 end
