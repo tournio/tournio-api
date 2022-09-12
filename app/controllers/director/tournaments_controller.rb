@@ -25,6 +25,7 @@ module Director
 
     def show
       unless tournament.present?
+        skip_authorization
         render json: nil, status: 404
         return
       end

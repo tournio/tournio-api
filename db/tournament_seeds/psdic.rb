@@ -12,10 +12,6 @@ psdic.config_items += [
     value: 'Palm Springs, CA',
   ),
   ConfigItem.new(
-    key: 'late_fee_applies_at',
-    value: '2023-09-12T23:59:59-05:00',
-  ),
-  ConfigItem.new(
     key: 'entry_deadline',
     value: '2023-10-12T23:59:59-05:00',
   ),

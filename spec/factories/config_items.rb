@@ -23,11 +23,6 @@ FactoryBot.define do
       value { 'Denver, CO' }
     end
 
-    trait :late_fee_applies_at do
-      key { 'late_fee_applies_at' }
-      value { '2018-12-28T18:27:00-07:00' }
-    end
-
     trait :entry_deadline do
       key { 'entry_deadline' }
       value { '2018-12-31T23:59:59-07:00' }
