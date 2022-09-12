@@ -45,21 +45,21 @@ psdic.contacts += [
   Contact.new(
     name: 'PSDIC Director',
     email: 'psdic-director@igbo-reg.com',
-    notes: 'Director',
+    role: :director,
   ),
   Contact.new(
     name: 'Secretary',
     email: 'psdic-secretary@igbo-reg.com',
-    notes: 'Secretary',
+    role: :secretary,
   ),
   Contact.new(
     name: 'Treasurer',
     email: 'psdic-moneys@igbo-reg.com',
-    notes: 'Treasurer',
+    role: :treasurer,
   ),
   Contact.new(
     name: 'IGBO Representative',
     email: 'psdic-igbo@igbo-reg.com',
-    notes: 'IGBO Rep',
+    role: :'igbo-representative',
   ),
 ]

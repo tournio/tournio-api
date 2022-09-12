@@ -66,6 +66,7 @@ class TournamentBlueprint < Blueprinter::Base
   end
 
   view :director_list do
+    field :id
     field :aasm_state, name: :state
     field :start_date, datetime_format: '%B %-d, %Y'
     field :status do |t, _|
@@ -75,8 +76,6 @@ class TournamentBlueprint < Blueprinter::Base
 
   view :director_detail do
     include_view :director_list
-
-    field :id
 
     # throw everything in here
     association :config_items, blueprint: ConfigItemBlueprint
