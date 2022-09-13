@@ -40,7 +40,7 @@ Rails.application.routes.draw do
           post 'confirm_shift'
         end
       end
-      resources :free_entries, only: %i(index create destroy update), shallow: true do
+      resources :free_entries, only: %i(index create destroy update), param: :identifier, shallow: true do
         member do
           post 'confirm'
         end

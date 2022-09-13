@@ -45,7 +45,7 @@ module Director
     end
 
     def destroy
-      fe = FreeEntry.find(params[:id])
+      fe = FreeEntry.find_by!(identifier: params[:identifier])
 
       authorize fe.tournament, :update?
 
@@ -63,7 +63,7 @@ module Director
     end
 
     def confirm
-      free_entry = FreeEntry.find(params[:id])
+      free_entry = FreeEntry.find_by!(identifier: params[:identifier])
 
       authorize free_entry.tournament, :update?
 
@@ -81,7 +81,7 @@ module Director
     end
 
     def update
-      free_entry = FreeEntry.includes(:tournament).find(params[:id])
+      free_entry = FreeEntry.includes(:tournament).find_by!(identifier: params[:identifier])
       tournament = free_entry.tournament
       authorize free_entry.tournament, :update?
 

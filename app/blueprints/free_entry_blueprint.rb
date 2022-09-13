@@ -1,8 +1,8 @@
 # frozen_string_literal: true
 
 class FreeEntryBlueprint < Blueprinter::Base
-  identifier :id
-  fields :unique_code, :confirmed
+  identifier :identifier
+  fields :id, :unique_code, :confirmed
 
   view :director_list do
     association :bowler, blueprint: BowlerBlueprint

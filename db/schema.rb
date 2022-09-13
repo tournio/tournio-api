@@ -10,7 +10,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema[7.0].define(version: 2022_09_11_175359) do
+ActiveRecord::Schema[7.0].define(version: 2022_09_13_193809) do
   # These are extensions that must be enabled in order to support this database
   enable_extension "plpgsql"
 
@@ -169,7 +169,9 @@ ActiveRecord::Schema[7.0].define(version: 2022_09_11_175359) do
     t.boolean "confirmed", default: false
     t.datetime "created_at", null: false
     t.datetime "updated_at", null: false
+    t.string "identifier"
     t.index ["bowler_id"], name: "index_free_entries_on_bowler_id"
+    t.index ["identifier"], name: "index_free_entries_on_identifier", unique: true
     t.index ["tournament_id"], name: "index_free_entries_on_tournament_id"
   end
 

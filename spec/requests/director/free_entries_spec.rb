@@ -163,12 +163,12 @@ describe Director::FreeEntriesController, type: :request do
   describe '#update' do
     subject { patch uri, headers: auth_headers, params: params, as: :json }
 
-    let(:uri) { "/director/free_entries/#{free_entry_id}" }
+    let(:uri) { "/director/free_entries/#{free_entry_identifier}" }
 
     let(:tournament_identifier) { tournament.identifier }
     let(:tournament) { create :tournament, :active }
     let(:free_entry) { create :free_entry, tournament: tournament }
-    let(:free_entry_id) { free_entry.id }
+    let(:free_entry_identifier) { free_entry.identifier }
     let(:team) { create :team, tournament: tournament }
     let(:bowler) { create :bowler, tournament: tournament, team: team }
     let(:bowler_identifier) { bowler.identifier }
@@ -268,7 +268,7 @@ describe Director::FreeEntriesController, type: :request do
 
     context 'error scenarios' do
       context 'an unrecognized free entry id' do
-        let(:free_entry_id) { 'say-what-now' }
+        let(:free_entry_identifier) { 'say-what-now' }
 
         it 'yields a 404 Not Found' do
           subject
@@ -299,13 +299,13 @@ describe Director::FreeEntriesController, type: :request do
   describe '#confirm' do
     subject { post uri, headers: auth_headers, as: :json }
 
-    let(:uri) { "/director/free_entries/#{free_entry_id}/confirm" }
+    let(:uri) { "/director/free_entries/#{free_entry_identifier}/confirm" }
 
     let(:tournament) { create :tournament, :active }
     let(:team) { create :team, tournament: tournament }
     let(:bowler) { create :bowler, tournament: tournament, team: team }
     let(:free_entry) { create :free_entry, tournament: tournament, bowler: bowler }
-    let(:free_entry_id) { free_entry.id }
+    let(:free_entry_identifier) { free_entry.identifier }
 
     include_examples 'an authorized action'
 
@@ -343,7 +343,7 @@ describe Director::FreeEntriesController, type: :request do
 
     context 'error scenarios' do
       context 'an unrecognized id' do
-        let(:free_entry_id) { 99999 }
+        let(:free_entry_identifier) { 99999 }
 
         it 'yields a 404 Not Found' do
           subject
@@ -374,11 +374,11 @@ describe Director::FreeEntriesController, type: :request do
   describe '#destroy' do
     subject { delete uri, headers: auth_headers, as: :json }
 
-    let(:uri) { "/director/free_entries/#{free_entry_id}" }
+    let(:uri) { "/director/free_entries/#{free_entry_identifier}" }
 
     let(:tournament) { create :tournament, :active }
     let(:free_entry) { create :free_entry, tournament: tournament }
-    let(:free_entry_id) { free_entry.id }
+    let(:free_entry_identifier) { free_entry.identifier }
 
     include_examples 'an authorized action'
 
@@ -416,7 +416,7 @@ describe Director::FreeEntriesController, type: :request do
 
     context 'error scenarios' do
       context 'an unrecognized id' do
-        let(:free_entry_id) { 99999 }
+        let(:free_entry_identifier) { 99999 }
 
         it 'yields a 404 Not Found' do
           subject
