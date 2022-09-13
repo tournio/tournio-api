@@ -2,9 +2,10 @@
 
 class FreeEntryBlueprint < Blueprinter::Base
   identifier :identifier
-  fields :id, :unique_code, :confirmed
+  fields :unique_code, :confirmed
 
   view :director_list do
+    field :id
     association :bowler, blueprint: BowlerBlueprint
   end
 end
