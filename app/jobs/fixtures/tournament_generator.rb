@@ -36,6 +36,28 @@ module Fixtures
       add_purchases_to_bowlers
       create_payments
     end
+
+    def random_name
+      names = [
+        'These Punks Are Daft',
+        'Big Bowling Fundraiser',
+        'Gutterholics Anonymous',
+        'No-Tap Generational',
+        'Goofball Nationals',
+        'IGBO Winter Formal',
+        'IGBO Homecoming Invitational',
+        'All Classics, No Filler',
+        'Unity Fellowship Inclusion',
+        'Fashion Faire',
+        'Gathering of Avid Geeks',
+        'The Quest for 300',
+      ]
+      name = nil
+      begin
+        name = names.sample
+      end until !Tournament.exists?(name: name)
+      name
+    end
     
     def create_and_configure_tournament
       self.tournament = FactoryBot.create :tournament,
@@ -45,10 +67,9 @@ module Fixtures
         :with_entry_fee,
         :with_scratch_competition_divisions,
         :with_extra_stuff,
-        # name: 'Bowlers Invitational Tournament',
-        name: 'These Punks Are Daft',
-        start_date: Time.zone.today + 30,
-        year: (Time.zone.today + 30).year
+        name: random_name,
+        start_date: Time.zone.today + 90,
+        year: (Time.zone.today + 90).year
 
       FactoryBot.create :config_item, tournament: tournament, key: 'team_size', value: 4
       FactoryBot.create :config_item, tournament: tournament, key: 'location', value: 'Atlanta, GA'
@@ -56,8 +77,8 @@ module Fixtures
       FactoryBot.create :config_item, tournament: tournament, key: 'display_capacity', value: 'false'
       FactoryBot.create :stripe_account, tournament: tournament, onboarding_completed_at: 2.months.ago
 
-      path = Rails.root.join('spec', 'support', 'images', 'retro_bowl.jpg')
-      tournament.logo_image.attach(io: File.open(path), filename: 'digital.jpg')
+      image_path = Rails.root.join('spec', 'support', 'images').children.sample
+      tournament.logo_image.attach(io: File.open(image_path), filename: 'digital.jpg')
 
       FactoryBot.create :purchasable_item,
         :early_discount,
