@@ -676,7 +676,6 @@ RSpec.describe TournamentRegistration do
 
     before do
       create :ledger_entry, bowler: bowler, debit: entry_fee, identifier: 'entry fee'
-      # allow(tournament).to receive(:entry_fee).and_return(entry_fee)
     end
 
     it 'marks the free entry as confirmed' do
@@ -695,14 +694,14 @@ RSpec.describe TournamentRegistration do
     end
 
     context 'when the bowler got an early registration discount' do
-      let(:early_registration_discount) { -40 }
+      let(:early_registration_discount) { 40 }
       let(:early_purchasable_item) do
         create :purchasable_item, :early_discount, value: early_registration_discount, tournament: tournament
       end
       let!(:early_purchase) { create :purchase, purchasable_item: early_purchasable_item, bowler: bowler }
 
       before do
-        create :ledger_entry, bowler: bowler, credit: early_registration_discount * (-1), identifier: 'early registration'
+        create :ledger_entry, bowler: bowler, credit: early_registration_discount, identifier: 'early registration'
       end
 
       it 'updates paid_at on the entry-fee purchase' do
