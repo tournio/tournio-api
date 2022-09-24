@@ -60,6 +60,9 @@ module Fixtures
     end
     
     def create_and_configure_tournament
+      location = locations_and_time_zones.sample
+      name = random_name
+      abbr = name.scan(/[[:upper:]]/).join unless name.nil?
       self.tournament = FactoryBot.create :tournament,
         :active,
         :one_shift,
@@ -67,14 +70,13 @@ module Fixtures
         :with_entry_fee,
         :with_scratch_competition_divisions,
         :with_extra_stuff,
-        name: random_name,
-        start_date: Time.zone.today + 90,
-        year: (Time.zone.today + 90).year
+        name: name,
+        abbreviation: abbr,
+        identifier: "#{abbr.downcase}-#{(Date.today + 90.days).year}",
+        location: location[:location],
+        timezone: location[:timezone]
 
       FactoryBot.create :config_item, tournament: tournament, key: 'team_size', value: 4
-      FactoryBot.create :config_item, tournament: tournament, key: 'location', value: 'Atlanta, GA'
-      FactoryBot.create :config_item, tournament: tournament, key: 'timezone', value: 'America/New_York'
-      FactoryBot.create :config_item, tournament: tournament, key: 'display_capacity', value: 'false'
       FactoryBot.create :stripe_account, tournament: tournament, onboarding_completed_at: 2.months.ago
 
       image_path = Rails.root.join('spec', 'support', 'images').children.sample
@@ -161,6 +163,7 @@ module Fixtures
       person = FactoryBot.create :person,
         first_name: person_first_names[first_name_index],
         last_name: person_surnames[surname_index],
+        nickname: registration_type == 'new_team' ? nil : "Joiner",
         email: email_address,
         usbc_id: usbc_id
       bowler = FactoryBot.create :bowler,
@@ -204,7 +207,7 @@ module Fixtures
           registration_time = Time.zone.at(starting_time + (interval * Random.rand(1.0)).to_i)
           create_bowler(
             team: team,
-            position: team.bowlers.count,
+            position: team.bowlers.count + 1,
             registered_at: registration_time,
             registration_type: 'join_team'
           )
@@ -318,7 +321,7 @@ module Fixtures
         },
         {
           location: 'Anchorage, AK',
-          timezone: 'America/Adak',
+          timezone: 'America/Anchorage',
         },
         {
           location: 'San Diego, CA',
