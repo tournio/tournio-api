@@ -390,7 +390,7 @@ class BowlersController < ApplicationController
     @total_to_charge = purchases_total + items_total + total_discount + total_fees
 
     # Disallow a purchase if there's nothing owed
-    if (total_to_charge == 0)
+    if total_to_charge == 0
       raise PurchaseError.new('Total to charge is zero', :precondition_failed)
     end
   end

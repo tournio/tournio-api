@@ -153,6 +153,8 @@ module Fixtures
       count.times do |i|
         create_bowler(team: team, position: i + 1, registered_at: registration_time)
       end
+
+      assign_doubles_partners(team: team) unless count == 1
     end
 
     def create_bowler (team: nil, position: nil, registration_type: 'new_team', registered_at: )
@@ -163,7 +165,7 @@ module Fixtures
       person = FactoryBot.create :person,
         first_name: person_first_names[first_name_index],
         last_name: person_surnames[surname_index],
-        nickname: registration_type == 'new_team' ? nil : "Joiner",
+        nickname: registration_type == 'join_team' ? "Joiner" : nil,
         email: email_address,
         usbc_id: usbc_id
       bowler = FactoryBot.create :bowler,
@@ -183,6 +185,20 @@ module Fixtures
 
       TournamentRegistration.purchase_entry_fee(bowler)
       TournamentRegistration.add_early_discount_to_ledger(bowler, registered_at)
+
+      bowler
+    end
+
+    # pre-req: team.bowlers.count > 1
+    def assign_doubles_partners(team:)
+      bowlers = team.bowlers.to_a.shuffle!
+
+      while bowlers.count > 1 do
+        b1 = bowlers.shift
+        b2 = bowlers.shift
+        b1.update(doubles_partner_id: b2.id)
+        b2.update(doubles_partner_id: b1.id)
+      end
     end
 
     def create_solo_bowlers
@@ -205,12 +221,18 @@ module Fixtures
         unless tournament.available_to_join.empty?
           team = tournament.available_to_join.sample
           registration_time = Time.zone.at(starting_time + (interval * Random.rand(1.0)).to_i)
-          create_bowler(
+          bowler = create_bowler(
             team: team,
             position: team.bowlers.count + 1,
             registered_at: registration_time,
             registration_type: 'join_team'
           )
+          if team.bowlers.reload.count % 2 == 0
+            # double up with the team's unpartnered bowler
+            partner = team.bowlers.find_by(doubles_partner_id: nil)
+            bowler.update(doubles_partner_id: partner.id)
+            partner.update(doubles_partner_id: bowler.id)
+          end
         end
       end
     end
