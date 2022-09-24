@@ -16,7 +16,7 @@ t.config_items += [
     value: '2020-08-15T23:59:59-07:00',
   ),
   ConfigItem.new(
-    key: 'time_zone',
+    key: 'timezone',
     value: 'America/Los_Angeles',
   ),
   ConfigItem.new(

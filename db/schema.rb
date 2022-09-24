@@ -10,7 +10,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema[7.0].define(version: 2022_09_13_193809) do
+ActiveRecord::Schema[7.0].define(version: 2022_09_23_231743) do
   # These are extensions that must be enabled in order to support this database
   enable_extension "plpgsql"
 
@@ -347,9 +347,14 @@ ActiveRecord::Schema[7.0].define(version: 2022_09_13_193809) do
     t.integer "year", null: false
     t.string "identifier", null: false
     t.string "aasm_state", null: false
-    t.date "start_date"
     t.datetime "created_at", null: false
     t.datetime "updated_at", null: false
+    t.date "start_date"
+    t.string "abbreviation"
+    t.string "location"
+    t.date "end_date"
+    t.string "timezone", default: "America/New_York"
+    t.datetime "entry_deadline"
     t.index ["aasm_state"], name: "index_tournaments_on_aasm_state"
     t.index ["identifier"], name: "index_tournaments_on_identifier"
   end

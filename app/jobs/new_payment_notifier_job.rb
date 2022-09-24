@@ -17,8 +17,8 @@ class NewPaymentNotifierJob < MailerJob
 
     self.tournament = bowler.tournament
 
-    time_zone = tournament.config[:time_zone]
-    self.received_at = received_at.in_time_zone(time_zone).strftime('%b %-d %l:%M%P %Z')
+    timezone = tournament.timezone
+    self.received_at = received_at.in_time_zone(timezone).strftime('%b %-d %l:%M%P %Z')
 
     send
   end

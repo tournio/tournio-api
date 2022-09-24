@@ -3,27 +3,38 @@
 class TournamentBlueprint < Blueprinter::Base
   identifier :identifier
 
-  fields :name, :year
+  fields :name, :year, :abbreviation, :start_date, :end_date, :location, :timezone
   field :image_url do |t, options|
     if options[:host].present? && t.logo_image.attached?
       Rails.application.routes.url_helpers.rails_blob_url(t.logo_image, options)
     end
   end
 
+  field :entry_deadline do |t, _|
+    datetime_with_timezone(t.entry_deadline, t)
+  end
+
+  field :team_size do |t,_|
+    t.team_size
+  end
+
+  field :display_capacity do |t,_|
+    t.config[:display_capacity]
+  end
+  field :email_in_dev do |t,_|
+    t.config[:email_in_dev]
+  end
+  field :website do |t,_|
+    t.config[:website]
+  end
+
   view :list do
     field :aasm_state, name: :state
-    field :start_date, datetime_format: '%B %-d, %Y'
-    field :location do |t, options|
-      t.config[:location]
-    end
     field :status do |t, _|
       TournamentRegistration.display_status(t)
     end
     field :late_fee_applies_at do |t, _|
       datetime_with_timezone(t.late_fee_applies_at, t)
-    end
-    field :entry_deadline do |t, _|
-      datetime_with_timezone(t.entry_deadline, t)
     end
   end
 
@@ -33,7 +44,6 @@ class TournamentBlueprint < Blueprinter::Base
     association :contacts, blueprint: ContactBlueprint
     association :shifts, blueprint: ShiftBlueprint
     association :config_items, blueprint: ConfigItemBlueprint
-    transform ConfigItemsFilter
 
     field :additional_questions do |t, _|
       t.additional_questions.order(:order).each_with_object({}) { |aq, obj| obj[aq.name] = AdditionalQuestionBlueprint.render_as_hash(aq) }
@@ -50,9 +60,6 @@ class TournamentBlueprint < Blueprinter::Base
     field :early_registration_ends do |t, _|
       t.early_registration_ends.present? ? datetime_with_timezone(t.early_registration_ends, t) : nil
     end
-    field :website do |t, _|
-      t.config[:website]
-    end
     field :max_bowlers_per_entry, name: :max_bowlers
     field :registration_fee do |t, _|
       t.purchasable_items.entry_fee.take&.value
@@ -68,7 +75,6 @@ class TournamentBlueprint < Blueprinter::Base
   view :director_list do
     field :id
     field :aasm_state, name: :state
-    field :start_date, datetime_format: '%B %-d, %Y'
     field :status do |t, _|
       TournamentRegistration.display_status(t)
     end
@@ -79,7 +85,6 @@ class TournamentBlueprint < Blueprinter::Base
 
     # throw everything in here
     association :config_items, blueprint: ConfigItemBlueprint
-    transform ConfigItemsFilter
     association :contacts, blueprint: ContactBlueprint
     association :testing_environment, blueprint: TestingEnvironmentBlueprint
     association :shifts, blueprint: ShiftBlueprint
@@ -149,8 +154,8 @@ class TournamentBlueprint < Blueprinter::Base
 
   def self.datetime_with_timezone(datetime, tournament)
     return unless datetime.present?
-    time_zone = tournament.config[:time_zone]
-    datetime.in_time_zone(time_zone).strftime('%b %-d, %Y %l:%M%P %Z')
+    timezone = tournament.timezone
+    datetime.in_time_zone(timezone).strftime('%b %-d, %Y %l:%M%P %Z')
   end
 
   def self.organized_purchasable_items(tournament:)

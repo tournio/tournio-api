@@ -4,14 +4,19 @@
 #
 # Table name: tournaments
 #
-#  id         :bigint           not null, primary key
-#  aasm_state :string           not null
-#  identifier :string           not null
-#  name       :string           not null
-#  start_date :date
-#  year       :integer          not null
-#  created_at :datetime         not null
-#  updated_at :datetime         not null
+#  id             :bigint           not null, primary key
+#  aasm_state     :string           not null
+#  abbreviation   :string
+#  end_date       :date
+#  entry_deadline :datetime
+#  identifier     :string           not null
+#  location       :string
+#  name           :string           not null
+#  start_date     :date
+#  timezone       :string           default("America/New_York")
+#  year           :integer          not null
+#  created_at     :datetime         not null
+#  updated_at     :datetime         not null
 #
 # Indexes
 #

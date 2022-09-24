@@ -39,7 +39,6 @@ module DirectorUtilities
 
   def self.assign_partner(bowler: , new_partner:)
     tournament = bowler.tournament
-    return unless tournament.config[:event_selection]
     return unless tournament.purchasable_items.event.doubles.any?
 
     original_partner = bowler.doubles_partner
@@ -215,10 +214,10 @@ module DirectorUtilities
 
   def self.csv_specific_data(bowler:)
     t = bowler.tournament
-    time_zone = t.present? ? t.config[:time_zone] : 'America/Los_Angeles'
+    timezone = t.present? ? t.timezone : 'America/Los_Angeles'
     {
       entry_fee_paid: bowler.purchases.entry_fee.first&.paid_at.present? ? 'Y' : 'N',
-      registered_at: bowler.created_at.in_time_zone(time_zone).strftime('%Y %b %-d %l:%M%P %Z'),
+      registered_at: bowler.created_at.in_time_zone(timezone).strftime('%Y %b %-d %l:%M%P %Z'),
     }.merge(csv_additional_questions(bowler: bowler))
       .merge(csv_purchases(bowler: bowler))
   end

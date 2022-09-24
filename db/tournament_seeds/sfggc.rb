@@ -16,7 +16,7 @@ tournament.config_items += [
     value: '2023-02-11T23:59:59-08:00',
   ),
   ConfigItem.new(
-    key: 'time_zone',
+    key: 'timezone',
     value: 'America/Los_Angeles',
   ),
   ConfigItem.new(

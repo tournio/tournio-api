@@ -19,7 +19,7 @@ describe Director::TournamentsController, type: :request do
     let!(:setup_tournament) { create :tournament }
     let!(:testing_tournament) { create :tournament, :testing }
     let!(:active_tournament) { create :tournament, :active }
-    let!(:closed_tournament) { create :tournament, :closed }
+    let!(:closed_tournament) { create :tournament, :closed, :past }
 
     include_examples 'an authorized action'
 

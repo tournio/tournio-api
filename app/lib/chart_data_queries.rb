@@ -14,7 +14,7 @@ module ChartDataQueries
     args = [
       sql,
       id: tournament.id,
-      tz: tournament.time_zone,
+      tz: tournament.timezone,
     ]
 
     ActiveRecord::Base.connection.select_all(
@@ -43,7 +43,7 @@ module ChartDataQueries
     args = [
       sql,
       id: tournament.id,
-      tz: tournament.time_zone,
+      tz: tournament.timezone,
     ]
 
     ActiveRecord::Base.connection.select_all(

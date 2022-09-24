@@ -4,14 +4,19 @@
 #
 # Table name: tournaments
 #
-#  id         :bigint           not null, primary key
-#  aasm_state :string           not null
-#  identifier :string           not null
-#  name       :string           not null
-#  start_date :date
-#  year       :integer          not null
-#  created_at :datetime         not null
-#  updated_at :datetime         not null
+#  id             :bigint           not null, primary key
+#  aasm_state     :string           not null
+#  abbreviation   :string
+#  end_date       :date
+#  entry_deadline :datetime
+#  identifier     :string           not null
+#  location       :string
+#  name           :string           not null
+#  start_date     :date
+#  timezone       :string           default("America/New_York")
+#  year           :integer          not null
+#  created_at     :datetime         not null
+#  updated_at     :datetime         not null
 #
 # Indexes
 #
@@ -44,9 +49,9 @@ class Tournament < ApplicationRecord
   accepts_nested_attributes_for :additional_questions, allow_destroy: true
 
   before_create :generate_identifier, if: -> { identifier.blank? }
-  after_create :initiate_testing_environment
+  after_create :initiate_testing_environment, :create_default_config
 
-  scope :upcoming, ->(right_now = Time.zone.now) { where('start_date > ?', right_now) }
+  scope :upcoming, ->(right_now = Time.zone.now) { where('end_date > ?', right_now) }
   scope :available, -> { upcoming.where(aasm_state: %w[active closed]) }
 
   aasm do
@@ -101,6 +106,11 @@ class Tournament < ApplicationRecord
 
   def initiate_testing_environment
     self.testing_environment = TestingEnvironment.new(conditions: TestingEnvironment.defaultConditions)
+  end
+
+  def create_default_config
+    self.config_items << ConfigItem.new(key: 'display_capacity', value: 'false')
+    self.config_items << ConfigItem.new(key: 'email_in_dev', value: 'false') if Rails.env.development?
   end
 
   def clear_data

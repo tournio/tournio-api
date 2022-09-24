@@ -16,7 +16,7 @@ psdic.config_items += [
     value: '2023-10-12T23:59:59-05:00',
   ),
   ConfigItem.new(
-    key: 'time_zone',
+    key: 'timezone',
     value: 'America/Los_Angeles',
   ),
   ConfigItem.new(

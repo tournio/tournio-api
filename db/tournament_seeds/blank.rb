@@ -17,7 +17,7 @@ tournament.config_items += [
     value: '2022-12-25T23:59:59-04:00',
   ),
   ConfigItem.new(
-    key: 'time_zone',
+    key: 'timezone',
     value: 'America/Denver',
   ),
   ConfigItem.new(

@@ -2,7 +2,7 @@ class ConfigItemBlueprint < Blueprinter::Base
   fields :id, :key
 
   field :value do |c, _|
-    if %w(email_in_dev display_capacity event_selection).include?(c.key)
+    if %w(email_in_dev display_capacity).include?(c.key)
       %w(true t T).include?(c.value)
     else
       c.value

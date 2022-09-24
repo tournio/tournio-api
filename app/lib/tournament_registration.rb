@@ -50,8 +50,8 @@ module TournamentRegistration
   def self.display_time(datetime:, tournament: nil)
     return 'n/a' unless datetime.present?
 
-    time_zone = tournament.present? ? tournament.config[:time_zone] : 'America/Los_Angeles'
-    datetime.in_time_zone(time_zone).strftime('%b %-d %l:%M%P %Z')
+    timezone = tournament.present? ? tournament.timezone : 'America/New_York'
+    datetime.in_time_zone(timezone).strftime('%b %-d %l:%M%P %Z')
   end
 
   def self.early_offset_time(datetime)

@@ -73,7 +73,7 @@ module Fixtures
 
       FactoryBot.create :config_item, tournament: tournament, key: 'team_size', value: 4
       FactoryBot.create :config_item, tournament: tournament, key: 'location', value: 'Atlanta, GA'
-      FactoryBot.create :config_item, tournament: tournament, key: 'time_zone', value: 'America/New_York'
+      FactoryBot.create :config_item, tournament: tournament, key: 'timezone', value: 'America/New_York'
       FactoryBot.create :config_item, tournament: tournament, key: 'display_capacity', value: 'false'
       FactoryBot.create :stripe_account, tournament: tournament, onboarding_completed_at: 2.months.ago
 
@@ -300,6 +300,75 @@ module Fixtures
     def email_address
       self.email_sequence += 1
       "bowler_#{email_sequence}@example.org"
+    end
+
+    def locations_and_time_zones
+      @locations ||= [
+        {
+          location: 'Atlanta, GA',
+          timezone: 'America/New_York',
+        },
+        {
+          location: 'Seattle, WA',
+          timezone: 'America/Los_Angeles',
+        },
+        {
+          location: 'Honolulu',
+          timezone: 'Pacific/Honolulu',
+        },
+        {
+          location: 'Anchorage, AK',
+          timezone: 'America/Adak',
+        },
+        {
+          location: 'San Diego, CA',
+          timezone: 'America/Los_Angeles',
+        },
+        {
+          location: 'Denver, CO',
+          timezone: 'America/Denver',
+        },
+        {
+          location: 'Chicago, IL',
+          timezone: 'America/Chicago',
+        },
+        {
+          location: 'Austin, TX',
+          timezone: 'America/Chicago',
+        },
+        {
+          location: 'Dallas, TX',
+          timezone: 'America/Chicago',
+        },
+        {
+          location: 'Fort Lauderdale, FL',
+          timezone: 'America/New_York',
+        },
+        {
+          location: 'Phoenix, AZ',
+          timezone: 'America/Phoenix',
+        },
+        {
+          location: 'Boston, MA',
+          timezone: 'America/New_York',
+        },
+        {
+          location: 'Palm Springs, CA',
+          timezone: 'America/Los_Angeles',
+        },
+        {
+          location: 'San Francisco, CA',
+          timezone: 'America/Los_Angeles',
+        },
+        {
+          location: 'Nashville, TN',
+          timezone: 'America/Chicago',
+        },
+        {
+          location: 'Minneapolis, MN',
+          timezone: 'America/Chicago',
+        },
+      ]
     end
   end
 end

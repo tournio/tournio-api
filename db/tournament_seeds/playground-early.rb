@@ -16,7 +16,7 @@ playground.config_items += [
     value: '2022-12-20T23:59:59-05:00',
   ),
   ConfigItem.new(
-    key: 'time_zone',
+    key: 'timezone',
     value: 'America/New_York',
   ),
   ConfigItem.new(

@@ -82,7 +82,7 @@ RSpec.describe DirectorUtilities do
   describe '#assign_partner' do
     subject { described_class.assign_partner(bowler: bowler, new_partner: new_partner) }
 
-    let(:tournament) { create :tournament, :with_event_selection, :one_shift, :with_a_doubles_event }
+    let(:tournament) { create :tournament, :one_shift, :with_a_doubles_event }
     let(:bowler) { create(:bowler, tournament: tournament, person: create(:person)) }
     let(:new_partner) { create(:bowler, tournament: tournament, person: create(:person)) }
 
@@ -103,7 +103,7 @@ RSpec.describe DirectorUtilities do
     end
 
     context 'when the tournament does not include a doubles event' do
-      let(:tournament) { create :tournament, :with_event_selection }
+      let(:tournament) { create :tournament, :with_a_bowling_event }
 
       it 'does nothing' do
         subject

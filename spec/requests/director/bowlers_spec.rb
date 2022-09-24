@@ -345,7 +345,7 @@ describe Director::BowlersController, type: :request do
     end
 
     context 'assigning a new doubles partner' do
-      let(:tournament) { create :tournament, :active, :with_event_selection, :one_shift, :with_a_doubles_event }
+      let(:tournament) { create :tournament, :active, :one_shift, :with_a_doubles_event }
       let(:new_partner) { create :bowler, tournament: tournament }
       let(:partner_params) { { identifier: new_partner.identifier } }
 

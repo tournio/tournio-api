@@ -2,7 +2,6 @@
 
 module TournamentBusiness
   DEFAULT_TEAM_SIZE = 4
-  DEFAULT_TIME_ZONE = 'America/New_York'
 
   def entry_fee
     purchasable_items.entry_fee.first.value
@@ -17,10 +16,6 @@ module TournamentBusiness
 
   def team_size
     config[:team_size]&.to_i || DEFAULT_TEAM_SIZE
-  end
-
-  def time_zone
-    config[:time_zone] || DEFAULT_TIME_ZONE
   end
 
   def max_bowlers_per_entry
@@ -45,10 +40,6 @@ module TournamentBusiness
     end
   end
 
-  def entry_deadline
-    DateTime.parse(config['entry_deadline'])
-  end
-
   def late_fee_applies_at
     # Using &. because there may not be a late_fee item
     pi = purchasable_items.late_fee&.first
@@ -63,10 +54,6 @@ module TournamentBusiness
     return unless pi.present?
     timestamp = pi.configuration['valid_until']
     DateTime.parse(timestamp)
-  end
-
-  def paypal_client_id
-    config['paypal_client_id']
   end
 
   def available_to_join

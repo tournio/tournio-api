@@ -43,7 +43,6 @@ class RegistrationConfirmationNotifierJob < TemplateMailerJob
       amount_due: amount_due_text,
       payment_url: payment_page,
       additional_questions: [],
-      event_selection: tournament.config['event_selection'],
     }
     if team_info.any?
       data.merge!({

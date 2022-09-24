@@ -47,13 +47,10 @@ RSpec.describe TournamentRegistration do
   describe '#display_time' do
     subject { subject_class.display_time(datetime: time_arg, tournament: tournament) }
 
-    let(:tournament) { create :tournament }
-    let(:config) { { time_zone: 'America/New_York' } }
+    let(:tournament) { create :tournament, timezone: 'America/New_York' }
     let(:time_arg) { DateTime.parse('2018-07-04T12:05:22-04:00') }
 
     context 'when the tournament exists' do
-      before { allow(tournament).to receive(:config).and_return(config) }
-
       it "formats the given time for the tournament's time zone" do
         expect(subject[-3, 3]).to eq('EDT')
       end
@@ -75,8 +72,8 @@ RSpec.describe TournamentRegistration do
         expect(subject.length).to be > 0
       end
 
-      it 'formats the given time for the Pacific time zone' do
-        expect(subject[-3, 3]).to eq('PDT')
+      it 'formats the given time for the Eastern time zone' do
+        expect(subject[-3, 3]).to eq('EDT')
       end
     end
   end
@@ -311,7 +308,7 @@ RSpec.describe TournamentRegistration do
     # The creation of event purchases creates any associated late-fee purchases.
     # We don't want this method to create any late fee purchases or ledger entries.
     context 'a tournament with event-linked late fees' do
-      let(:tournament) { create :tournament, :active, :with_event_selection }
+      let(:tournament) { create :tournament, :active, :with_a_bowling_event }
       let!(:purchasable_item) { create(:purchasable_item, :event_late_fee, value: late_fee, tournament: tournament, configuration: configuration) }
 
       context 'not in late registration' do
@@ -794,7 +791,10 @@ RSpec.describe TournamentRegistration do
       before { allow(Rails.env).to receive(:development?).and_return(true) }
 
       context 'with email_in_dev configured to be true' do
-        before { create(:config_item, :email_in_dev, tournament: tournament) }
+        before do
+          tournament.config_items.find_by(key: 'email_in_dev').destroy
+          create :config_item, :email_in_dev, tournament: tournament
+        end
 
         it 'sends to the development address' do
           expect(RegistrationConfirmationNotifierJob).to receive(:perform_async).with(bowler.id, MailerJob::FROM)
@@ -803,8 +803,6 @@ RSpec.describe TournamentRegistration do
       end
 
       context 'with email_in_dev configured to be false' do
-        before { create(:config_item, :email_in_dev, tournament: tournament, value: 'false') }
-
         it 'sends no notification' do
           expect(RegistrationConfirmationNotifierJob).not_to receive(:perform_async)
           subject
