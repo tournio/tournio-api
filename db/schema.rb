@@ -10,7 +10,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema[7.0].define(version: 2022_09_23_231743) do
+ActiveRecord::Schema[7.0].define(version: 2022_09_25_010149) do
   # These are extensions that must be enabled in order to support this database
   enable_extension "plpgsql"
 
@@ -139,6 +139,25 @@ ActiveRecord::Schema[7.0].define(version: 2022_09_23_231743) do
     t.index ["tournament_id"], name: "index_data_points_on_tournament_id"
   end
 
+  create_table "events", force: :cascade do |t|
+    t.bigint "tournament_id", null: false
+    t.integer "roster_type", null: false
+    t.string "name", null: false
+    t.boolean "required", default: true
+    t.boolean "scratch", default: false
+    t.boolean "permit_multiple_entries", default: false
+    t.integer "game_count"
+    t.datetime "created_at", null: false
+    t.datetime "updated_at", null: false
+    t.index ["tournament_id"], name: "index_events_on_tournament_id"
+  end
+
+  create_table "events_scratch_divisions", id: false, force: :cascade do |t|
+    t.bigint "event_id", null: false
+    t.bigint "scratch_division_id", null: false
+    t.index ["event_id", "scratch_division_id"], name: "event_division_idx", unique: true
+  end
+
   create_table "extended_form_fields", force: :cascade do |t|
     t.string "name", null: false
     t.string "label", null: false
@@ -259,6 +278,17 @@ ActiveRecord::Schema[7.0].define(version: 2022_09_23_231743) do
     t.datetime "last_sent_at", precision: nil, null: false
     t.integer "bowler_count", default: 0
     t.index ["tournament_id"], name: "index_registration_summary_sends_on_tournament_id"
+  end
+
+  create_table "scratch_divisions", force: :cascade do |t|
+    t.bigint "tournament_id", null: false
+    t.string "key", null: false
+    t.string "name"
+    t.integer "low_average", default: 0, null: false
+    t.integer "high_average", default: 300, null: false
+    t.datetime "created_at", null: false
+    t.datetime "updated_at", null: false
+    t.index ["tournament_id"], name: "index_scratch_divisions_on_tournament_id"
   end
 
   create_table "shifts", force: :cascade do |t|
