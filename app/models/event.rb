@@ -20,4 +20,6 @@
 class Event < ApplicationRecord
   belongs_to :tournament
   has_and_belongs_to_many :scratch_divisions
+
+  enum roster_type: %i(single double trio team)
 end
