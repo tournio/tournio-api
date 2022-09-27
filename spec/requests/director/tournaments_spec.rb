@@ -356,6 +356,43 @@ describe Director::TournamentsController, type: :request do
     end
   end
 
+  describe '#create' do
+    subject { post uri, headers: auth_headers, params: params, as: :json }
+
+    let(:uri) { "/director/tournaments" }
+    let(:params) do
+      {
+        tournament: {
+          name: 'Fingers In Holes In Balls',
+          abbreviation: 'FIHIB',
+          year: 2023,
+        }
+      }
+    end
+
+    include_examples 'an authorized action'
+
+    it 'responds with Created' do
+      subject
+      expect(response).to have_http_status(:created)
+    end
+
+    it 'includes the necessary stuff in the response' do
+      subject
+      expect(json['identifier']).to eq(Tournament.last.identifier)
+      expect(json['name']).to eq(params[:tournament][:name])
+    end
+
+    context 'as a director' do
+      let(:requesting_user) { create(:user, :director) }
+
+      it 'puts the new tournament in my list of tournaments' do
+        subject
+        expect(requesting_user.tournaments).to include(Tournament.last)
+      end
+    end
+  end
+
   describe '#update' do
     subject { patch uri, headers: auth_headers, params: params, as: :json }
 
@@ -482,6 +519,39 @@ describe Director::TournamentsController, type: :request do
         subject
         eff_key_count = eff.validation_rules.keys.count
         expect(AdditionalQuestion.last.validation_rules.keys.count).to eq(eff_key_count + 1)
+      end
+    end
+
+    context 'setting two properties and adding a config item' do
+      let(:params) do
+        {
+          tournament: {
+            location: 'Maui, HI',
+            timezone: 'Pacific/Honolulu',
+            config_items_attributes: [
+              {
+                key: 'website',
+                value: 'http://maui.hawaii.us',
+              },
+            ],
+          },
+        }
+      end
+
+      it 'updates the two properties' do
+        subject
+        tournament.reload
+        expect(tournament.location).to eq('Maui, HI')
+        expect(tournament.timezone).to eq('Pacific/Honolulu')
+      end
+
+      it 'creates a new config item' do
+        expect{ subject }.to change(tournament.config_items, :count).by(1)
+      end
+
+      it 'creates a website config item' do
+        subject
+        expect(tournament.config[:website]).to eq('http://maui.hawaii.us')
       end
     end
 

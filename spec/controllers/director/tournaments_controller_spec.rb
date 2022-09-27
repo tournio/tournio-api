@@ -11,6 +11,8 @@ describe Director::TournamentsController, type: :controller do
   end
   let(:auth_headers) { Devise::JWT::TestHelpers.auth_headers(headers, requesting_user) }
 
+
+
   describe '#stripe_refresh' do
     subject do
       request.headers.merge!(auth_headers)

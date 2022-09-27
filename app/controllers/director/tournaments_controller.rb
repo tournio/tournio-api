@@ -8,10 +8,31 @@ module Director
 
     rescue_from Pundit::NotAuthorizedError, with: :unauthorized
 
-    before_action :load_tournament, except: %i(index)
-    before_action :set_time_zone, except: %i(index)
+    before_action :load_tournament, except: %i(index create)
+    before_action :set_time_zone, except: %i(index create)
 
     MAX_STRIPE_ATTEMPTS = 10
+    TOURNAMENT_PARAMS = [
+      :name,
+      :abbreviation,
+      :year,
+      :start_date,
+      :end_date,
+      :entry_deadline,
+      :location,
+      :timezone,
+      additional_questions_attributes: [
+        :id,
+        :extended_form_field_id,
+        :order,
+        :_destroy,
+        validation_rules: {}
+      ],
+      config_items_attributes: [
+        :key,
+        :value,
+      ]
+    ]
 
     def index
       tournaments = if params[:upcoming]
@@ -89,6 +110,24 @@ module Director
       render json: TournamentBlueprint.render(tournament, view: :director_detail, **url_options)
     end
 
+    def create
+      authorize Tournament
+
+      tournament = Tournament.new(create_params)
+      if tournament.valid?
+        tournament.save
+      else
+        render json: { error: tournament.errors.full_messages.join(' ') }, status: :unprocessable_entity
+        return
+      end
+
+      if current_user.director?
+        current_user.tournaments << tournament
+      end
+
+      render json: TournamentBlueprint.render(tournament, view: :director_detail, **url_options), status: :created
+    end
+
     def update
       unless tournament.present?
         render json: nil, status: 404
@@ -108,7 +147,7 @@ module Director
           eff = ExtendedFormField.find(aqa[:extended_form_field_id])
           aqa[:validation_rules] = eff.validation_rules.merge(aqa[:validation_rules])
         end
-      end
+      end if updates[:additional_questions_attributes].present?
       tournament.update(updates)
 
       render json: TournamentBlueprint.render(tournament.reload, view: :director_detail, **url_options)
@@ -237,7 +276,11 @@ module Director
     end
 
     def update_params
-      params.require(:tournament).permit(additional_questions_attributes: [:id, :extended_form_field_id, :order, :_destroy, validation_rules: {}])
+      params.require(:tournament).permit(TOURNAMENT_PARAMS)
+    end
+
+    def create_params
+      params.require(:tournament).permit(TOURNAMENT_PARAMS)
     end
   end
 end

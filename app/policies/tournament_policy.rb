@@ -63,6 +63,10 @@ class TournamentPolicy < DirectorPolicy
     sufficient_access?
   end
 
+  def create?
+    sufficient_role?
+  end
+
   private
 
   def sufficient_role?
