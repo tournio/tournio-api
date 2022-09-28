@@ -2,8 +2,8 @@
 
 psdic = Tournament.create!(
   name: 'Palm Springs Desert Invitational Classic',
-  year: 2019,
-  start_date: '2019-10-18',
+  year: 2023,
+  start_date: '2023-10-20',
 )
 
 psdic.config_items += [
@@ -12,20 +12,12 @@ psdic.config_items += [
     value: 'Palm Springs, CA',
   ),
   ConfigItem.new(
-    key: 'late_fee_applies_at',
-    value: '2019-09-10T23:59:59-05:00',
-  ),
-  ConfigItem.new(
     key: 'entry_deadline',
-    value: '2019-10-10T23:59:59-05:00',
+    value: '2023-10-12T23:59:59-05:00',
   ),
   ConfigItem.new(
-    key: 'time_zone',
+    key: 'timezone',
     value: 'America/Los_Angeles',
-  ),
-  ConfigItem.new(
-    key: 'image_path',
-    value: '/images/psdic.jpg',
   ),
   ConfigItem.new(
     key: 'team_size',
@@ -49,21 +41,21 @@ psdic.contacts += [
   Contact.new(
     name: 'PSDIC Director',
     email: 'psdic-director@igbo-reg.com',
-    notes: 'Director',
+    role: :director,
   ),
   Contact.new(
     name: 'Secretary',
     email: 'psdic-secretary@igbo-reg.com',
-    notes: 'Secretary',
+    role: :secretary,
   ),
   Contact.new(
     name: 'Treasurer',
     email: 'psdic-moneys@igbo-reg.com',
-    notes: 'Treasurer',
+    role: :treasurer,
   ),
   Contact.new(
     name: 'IGBO Representative',
     email: 'psdic-igbo@igbo-reg.com',
-    notes: 'IGBO Rep',
+    role: :'igbo-representative',
   ),
 ]

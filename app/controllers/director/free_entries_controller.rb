@@ -45,7 +45,7 @@ module Director
     end
 
     def destroy
-      fe = FreeEntry.find(params[:id])
+      fe = FreeEntry.find_by!(identifier: params[:identifier])
 
       authorize fe.tournament, :update?
 
@@ -63,7 +63,7 @@ module Director
     end
 
     def confirm
-      free_entry = FreeEntry.find(params[:id])
+      free_entry = FreeEntry.find_by!(identifier: params[:identifier])
 
       authorize free_entry.tournament, :update?
 
@@ -81,7 +81,7 @@ module Director
     end
 
     def update
-      free_entry = FreeEntry.includes(:tournament).find(params[:id])
+      free_entry = FreeEntry.includes(:tournament).find_by!(identifier: params[:identifier])
       tournament = free_entry.tournament
       authorize free_entry.tournament, :update?
 
@@ -102,7 +102,7 @@ module Director
         TournamentRegistration.try_confirming_bowler_shift(bowler)
       end
 
-      render json: FreeEntryBlueprint.render(free_entry), status: :ok
+      render json: FreeEntryBlueprint.render(free_entry, view: :director_list), status: :ok
     rescue ActiveRecord::RecordNotFound
       skip_authorization
       render json: nil, status: :not_found

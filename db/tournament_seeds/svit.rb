@@ -16,12 +16,8 @@ svit.config_items += [
     value: '2020-03-08T23:59:59-05:00',
   ),
   ConfigItem.new(
-    key: 'time_zone',
+    key: 'timezone',
     value: 'America/Los_Angeles',
-  ),
-  ConfigItem.new(
-    key: 'image_path',
-    value: '/images/svit.jpg',
   ),
   ConfigItem.new(
     key: 'team_size',

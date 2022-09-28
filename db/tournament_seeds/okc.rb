@@ -16,12 +16,8 @@ okc.config_items += [
     value: '2023-04-03T23:59:59-05:00',
   ),
   ConfigItem.new(
-    key: 'time_zone',
+    key: 'timezone',
     value: 'America/Chicago',
-  ),
-  ConfigItem.new(
-    key: 'image_path',
-    value: '/images/okclassic.jpg',
   ),
   ConfigItem.new(
     key: 'team_size',

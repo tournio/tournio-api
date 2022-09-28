@@ -18,13 +18,13 @@ describe Director::ConfigItemsController, type: :request do
 
     let(:tournament_identifier) { tournament.identifier }
     let(:tournament) { create :tournament }
-    let(:config_item) { create :config_item, :location, tournament: tournament }
+    let(:config_item) { create :config_item, :website, tournament: tournament }
     let(:config_item_id) { config_item.id }
 
     let(:params) do
       {
         config_item: {
-          value: 'Anchorage, AK',
+          value: 'www.tourn.io',
         }
       }
     end
@@ -45,11 +45,11 @@ describe Director::ConfigItemsController, type: :request do
       end
 
       context 'unless the item is allowed to be changed while the tournament is active' do
-        let(:config_item) { create :config_item, :location, tournament: tournament, key: 'display_capacity' }
+        let(:config_item) { tournament.config_items.find_by(key: 'display_capacity') }
         let(:params) do
           {
             config_item: {
-              value: true,
+              value: false,
             }
           }
         end

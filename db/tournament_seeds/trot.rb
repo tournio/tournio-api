@@ -8,10 +8,6 @@ trot = Tournament.create!(
 
 trot.config_items += [
   ConfigItem.new(
-    key: 'image_path',
-    value: '/images/trot.png',
-  ),
-  ConfigItem.new(
     key: 'team_size',
     value: '4',
   ),
@@ -28,7 +24,7 @@ trot.config_items += [
     value: '2023-02-06T23:59:59-06:00',
   ),
   ConfigItem.new(
-    key: 'time_zone',
+    key: 'timezone',
     value: 'America/Chicago',
   ),
   ConfigItem.new(

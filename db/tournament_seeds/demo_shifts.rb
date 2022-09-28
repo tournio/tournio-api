@@ -16,12 +16,8 @@ tournament.config_items += [
     value: '2022-09-09T23:59:59-06:00',
   ),
   ConfigItem.new(
-    key: 'time_zone',
+    key: 'timezone',
     value: 'America/Denver',
-  ),
-  ConfigItem.new(
-    key: 'image_path',
-    value: '/images/retro_bowl.jpg',
   ),
   ConfigItem.new(
     key: 'team_size',

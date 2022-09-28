@@ -33,9 +33,10 @@ class Bowler < ApplicationRecord
   has_one :free_entry
   has_one :bowler_shift, dependent: :destroy
   has_one :shift, through: :bowler_shift
+  has_many :additional_question_responses, dependent: :destroy
   has_many :ledger_entries, dependent: :destroy
   has_many :purchases, dependent: :destroy
-  has_many :additional_question_responses
+  has_many :stripe_checkout_sessions
 
   attr_accessor :doubles_partner_num
 

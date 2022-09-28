@@ -2,9 +2,16 @@
 
 module Director
   class TournamentsController < BaseController
+    # this gives us attributes: tournament, stripe_account
+    # as well as some methods
+    include StripeUtilities
+
     rescue_from Pundit::NotAuthorizedError, with: :unauthorized
 
-    before_action :load_tournament, except: [:index]
+    before_action :load_tournament, except: %i(index)
+    before_action :set_time_zone, except: %i(index)
+
+    MAX_STRIPE_ATTEMPTS = 10
 
     def index
       tournaments = if params[:upcoming]
@@ -13,16 +20,17 @@ module Director
                       policy_scope(Tournament).includes(:config_items).order(name: :asc)
                     end
       authorize(Tournament)
-      render json: TournamentBlueprint.render(tournaments, view: :director_list)
+      render json: TournamentBlueprint.render(tournaments, view: :director_list, **url_options)
     end
 
     def show
       unless tournament.present?
+        skip_authorization
         render json: nil, status: 404
         return
       end
       authorize tournament
-      render json: TournamentBlueprint.render(tournament, view: :director_detail)
+      render json: TournamentBlueprint.render(tournament, view: :director_detail, **url_options)
     end
 
     def clear_test_data
@@ -78,7 +86,7 @@ module Director
       action_sym = "#{action}!".to_sym
       tournament.send(action_sym)
 
-      render json: TournamentBlueprint.render(tournament, view: :director_detail)
+      render json: TournamentBlueprint.render(tournament, view: :director_detail, **url_options)
     end
 
     def update
@@ -103,7 +111,7 @@ module Director
       end
       tournament.update(updates)
 
-      render json: TournamentBlueprint.render(tournament.reload, view: :director_detail)
+      render json: TournamentBlueprint.render(tournament.reload, view: :director_detail, **url_options)
     end
 
     def destroy
@@ -143,9 +151,75 @@ module Director
       render json: nil, status: :ok
     end
 
-    private
+    def stripe_refresh
+      unless tournament.present?
+        render json: nil, status: :not_found
+        return
+      end
 
-    attr_accessor :tournament
+      authorize tournament
+
+      load_stripe_account
+      unless stripe_account.present?
+        self.stripe_account = create_stripe_account
+      end
+      unless stripe_account.present?
+        render json: { error: 'Failed to create a Stripe account in time.' }, status: :service_unavailable
+        return
+      end
+
+      # this will update the stripe_account's attributes if it's successful
+      get_updated_account_link
+
+      unless stripe_account.link_expires_at.to_i > Time.zone.now.to_i
+        render json: { error: 'Failed to get an account link in time.'}, status: :service_unavailable
+        return
+      end
+
+      render json: StripeAccountBlueprint.render(stripe_account), status: :ok
+    end
+
+    def stripe_status
+      unless tournament.present?
+        render json: nil, status: :not_found
+        return
+      end
+
+      authorize tournament
+
+      load_stripe_account
+
+      unless stripe_account.present?
+        render json: { error: 'No Stripe account exists yet.' }, status: :precondition_failed
+        return
+      end
+
+      result = get_account_details
+      unless result.present?
+        render json: { error: 'Failed to retrieve account status from Stripe.' }, status: :service_unavailable
+        return
+      end
+
+      update_account_details(result)
+
+      render json: StripeAccountBlueprint.render(stripe_account.reload), status: :ok
+    end
+
+    def logo_upload
+      unless tournament.present?
+        render json: nil, status: :not_found
+        return
+      end
+
+      authorize tournament
+
+      tournament.logo_image.purge if tournament.logo_image.attached?
+      tournament.logo_image.attach(params['file'])
+
+      render json: { image_url: url_for(tournament.logo_image) }, status: :accepted
+    end
+
+    private
 
     def load_tournament
       params.require(:identifier)
@@ -157,6 +231,7 @@ module Director
                                             :bowlers,
                                             :free_entries,
                                             :shifts,
+                                            :stripe_account,
                                             additional_questions: [:extended_form_field])
                                   .find_by_identifier(id)
     end

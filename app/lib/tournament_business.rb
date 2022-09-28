@@ -22,6 +22,11 @@ module TournamentBusiness
     team_size
   end
 
+  # This will allow us to change it later when it becomes a config item
+  def currency
+    'usd'
+  end
+
   def config
     @config ||= config_items.each_with_object(HashWithIndifferentAccess.new) do |item, config_hash|
       symbolized_key = item.key.to_sym
@@ -33,10 +38,6 @@ module TournamentBusiness
                                       item.value
                                     end
     end
-  end
-
-  def entry_deadline
-    DateTime.parse(config['entry_deadline'])
   end
 
   def late_fee_applies_at
@@ -53,10 +54,6 @@ module TournamentBusiness
     return unless pi.present?
     timestamp = pi.configuration['valid_until']
     DateTime.parse(timestamp)
-  end
-
-  def paypal_client_id
-    config['paypal_client_id']
   end
 
   def available_to_join

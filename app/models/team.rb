@@ -25,7 +25,7 @@ class Team < ApplicationRecord
 
   before_create :generate_identifier
 
-  delegate :time_zone, to: :tournament
+  delegate :timezone, to: :tournament
 
   # This allows us to use the team's identifier instead of numeric ID as its helper parameter
   def to_param

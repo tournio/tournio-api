@@ -128,12 +128,6 @@ RSpec.describe TournamentBusiness do
     end
   end
 
-  describe '#entry_deadline' do
-    subject { dummy_obj.entry_deadline }
-
-    it { is_expected.to be_instance_of DateTime }
-  end
-
   describe '#late_fee_applies_at' do
     subject { dummy_obj.late_fee_applies_at }
 
@@ -178,20 +172,6 @@ RSpec.describe TournamentBusiness do
 
       it { is_expected.to eq(DateTime.new(1976, 12, 28, 18, 37, 0, '-7')) }
     end
-  end
-
-  describe '#paypal_client_id' do
-    subject { dummy_obj.paypal_client_id }
-
-    let(:value) { 'lay all your love on me' }
-
-    before do
-      create(:config_item, :paypal_client_id, tournament: tournament, value: value)
-    end
-
-    it { is_expected.to be_instance_of String }
-
-    it { is_expected.to eq(value) }
   end
 
   describe '#available_to_join' do

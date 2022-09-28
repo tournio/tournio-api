@@ -25,6 +25,9 @@ Rails.application.routes.draw do
         get 'csv_download'
         get 'igbots_download'
         post 'email_payment_reminders'
+        get 'stripe_refresh'
+        get 'stripe_status'
+        post 'logo_upload'
       end
       resources :bowlers, only: %i(index show destroy update), param: :identifier, shallow: true do
         resources :ledger_entries, only: %i(create), shallow: true
@@ -37,7 +40,7 @@ Rails.application.routes.draw do
           post 'confirm_shift'
         end
       end
-      resources :free_entries, only: %i(index create destroy update), shallow: true do
+      resources :free_entries, only: %i(index create destroy update), param: :identifier, shallow: true do
         member do
           post 'confirm'
         end
@@ -45,7 +48,7 @@ Rails.application.routes.draw do
       resource :testing_environment, only: %i(update)
       resources :config_items, only: %i(update), shallow: true
       resources :purchasable_items, only: %i(create update destroy), param: :identifier, shallow: true
-      resources :contacts, only: %i(create update), shallow: true
+      resources :contacts, only: %i(create update), param: :identifier, shallow: true
       resources :shifts, only: %i(create update destroy), param: :identifier, shallow: true
     end
   end
@@ -53,13 +56,16 @@ Rails.application.routes.draw do
   resources :tournaments, only: %i(index show), param: :identifier do
     resources :bowlers, only: %i(create show index), param: :identifier, shallow: true
     resources :free_entries, only: %i(create), shallow: true
-    resources :teams, only: %i(create index show), param: :identifier, shallow: true do
-      resources :bowlers, only: %i(create show), param: :identifier, shallow: true do
-        member do
-          post 'purchase_details'
-        end
-        resources :purchases, only: %i(create), param: :identifier, shallow: true
+    resources :teams, only: %i(create index show), param: :identifier, shallow: true
+    resources :bowlers, only: %i(create show), param: :identifier, shallow: true do
+      member do
+        post 'purchase_details'
+        post 'stripe_checkout'
       end
+      resources :purchases, only: %i(create), param: :identifier, shallow: true
     end
   end
+  resources :checkout_sessions, only: %i(show), param: :identifier
+
+  post 'stripe_webhook', to: 'stripe_webhooks#webhook'
 end

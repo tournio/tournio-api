@@ -18,39 +18,17 @@
 
 FactoryBot.define do
   factory :config_item do
-    trait :location do
-      key   { 'location' }
-      value { 'Denver, CO' }
-    end
-
-    trait :late_fee_applies_at do
-      key { 'late_fee_applies_at' }
-      value { '2018-12-28T18:27:00-07:00' }
-    end
-
-    trait :entry_deadline do
-      key { 'entry_deadline' }
-      value { '2018-12-31T23:59:59-07:00' }
-    end
-
-    trait :time_zone do
-      key { 'time_zone' }
-      value { 'America/Denver' }
-    end
-
-    trait :paypal_client_id do
-      key { 'paypal_client_id' }
-      value { 'a-tournament-client-id' }
-    end
-
     trait :email_in_dev do
       key { 'email_in_dev'}
       value { 'true' }
     end
-
-    trait :event_selection do
-      key { 'event_selection' }
+    trait :display_capacity do
+      key { 'display_capacity'}
       value { 'true' }
+    end
+    trait :website do
+      key { 'website'}
+      value { 'www.igbo.org' }
     end
   end
 end

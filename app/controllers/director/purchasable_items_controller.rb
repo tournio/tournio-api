@@ -18,6 +18,15 @@ module Director
 
       PurchasableItem.transaction do
         self.items = PurchasableItem.create!(purchasable_item_create_params)
+
+        items.each do |i|
+          if i.bundle_discount? || i.early_discount?
+            Stripe::CouponCreator.perform_async(i.id)
+          else
+            Stripe::ProductCreator.perform_async(i.id)
+          end
+        end
+
         render json: PurchasableItemBlueprint.render(items), status: :created
       end
 
@@ -27,7 +36,7 @@ module Director
     rescue ActiveRecord::RecordInvalid => exception
       if exception.message.include? 'Determination'
         render json: {error: 'Determination already present'}, status: :conflict
-        return;
+        return
       end
 
       render json: {error: 'Invalid item configuration'}, status: :unprocessable_entity
@@ -44,25 +53,48 @@ module Director
         return
       end
 
-      pi.update(purchasable_item_update_params)
-      if pi.errors
-        Rails.logger.info pi.errors.inspect
+      previous_amount = pi.value
+      pi.update!(purchasable_item_update_params)
+      new_amount = pi.value
+
+      if pi.bundle_discount? || pi.early_discount?
+        if pi.stripe_coupon.present?
+          Stripe::CouponDestroyer.perform_async(pi.stripe_coupon.coupon_id, tournament.stripe_account.identifier)
+          pi.stripe_coupon.destroy
+        end
+        Stripe::CouponCreator.perform_async(pi.id)
+      else
+        Stripe::ProductUpdater.perform_async(pi.id) if previous_amount != new_amount
       end
 
       render json: PurchasableItemBlueprint.render(pi.reload), status: :ok
     rescue ActiveRecord::RecordNotFound
       skip_authorization
       render json: nil, status: :not_found
+    rescue ActiveRecord::RecordInvalid => e
+      Bugsnag.notify(e)
     end
 
     def destroy
-      pi = PurchasableItem.includes(:tournament).find_by!(identifier: params[:identifier])
+      pi = PurchasableItem.includes(:tournament, :stripe_product, :stripe_coupon).find_by!(identifier: params[:identifier])
       self.tournament = pi.tournament
 
       authorize tournament, :update?
 
       unless tournament.active? || tournament.demo?
+        if pi.bundle_discount? || pi.early_discount?
+          if pi.stripe_coupon.present?
+            Stripe::CouponDestroyer.perform_async(pi.stripe_coupon.coupon_id, tournament.stripe_account.identifier)
+            pi.stripe_coupon.destroy
+          end
+        else
+          if pi.stripe_product.present?
+            Stripe::ProductDeactivator.perform_async(pi.stripe_product.id, tournament.stripe_account.identifier)
+          end
+        end
+
         pi.destroy
+
         render json: {}, status: :no_content
         return
       end

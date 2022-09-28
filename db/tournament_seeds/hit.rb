@@ -8,10 +8,6 @@ hit = Tournament.create!(
 
 hit.config_items += [
   ConfigItem.new(
-    key: 'image_path',
-    value: '/images/houston.jpg',
-  ),
-  ConfigItem.new(
     key: 'team_size',
     value: '4',
   ),
@@ -28,7 +24,7 @@ hit.config_items += [
     value: '2022-06-29T23:59:59-05:00',
   ),
   ConfigItem.new(
-    key: 'time_zone',
+    key: 'timezone',
     value: 'America/Chicago',
   ),
   ConfigItem.new(

@@ -50,8 +50,8 @@ module TournamentRegistration
   def self.display_time(datetime:, tournament: nil)
     return 'n/a' unless datetime.present?
 
-    time_zone = tournament.present? ? tournament.config[:time_zone] : 'America/Los_Angeles'
-    datetime.in_time_zone(time_zone).strftime('%b %-d %l:%M%P %Z')
+    timezone = tournament.present? ? tournament.timezone : 'America/New_York'
+    datetime.in_time_zone(timezone).strftime('%b %-d %l:%M%P %Z')
   end
 
   def self.early_offset_time(datetime)
@@ -95,11 +95,13 @@ module TournamentRegistration
     link_doubles_partners(team.bowlers)
   end
 
-  def self.register_bowler(bowler)
+  def self.register_bowler(bowler, registration_type='new_team')
     purchase_entry_fee(bowler)
     add_early_discount_to_ledger(bowler)
     add_late_fees_to_ledger(bowler)
     complete_doubles_link(bowler) if bowler.doubles_partner_id.present?
+
+    DataPoint.create(key: :registration_type, value: registration_type, tournament_id: bowler.tournament_id)
 
     send_confirmation_email(bowler)
     notify_registration_contacts(bowler)
@@ -115,14 +117,14 @@ module TournamentRegistration
     bowler.purchases << Purchase.new(purchasable_item: entry_fee_item)
   end
 
-  def self.add_early_discount_to_ledger(bowler, _current_time = Time.zone.now)
+  def self.add_early_discount_to_ledger(bowler, current_time = Time.zone.now)
     tournament = bowler.tournament
-    return unless tournament.in_early_registration?
+    return unless tournament.in_early_registration?(current_time)
 
     early_discount_item = tournament.purchasable_items.early_discount&.first
     return unless early_discount_item.present?
 
-    early_discount = early_discount_item.value * (-1)
+    early_discount = early_discount_item.value
     bowler.ledger_entries << LedgerEntry.new(credit: early_discount, identifier: 'early registration')
     bowler.purchases << Purchase.new(purchasable_item: early_discount_item)
   end
@@ -185,14 +187,19 @@ module TournamentRegistration
 
     bowler = free_entry.bowler
     # This includes all mandatory items: entry fee, early-registration discount, late-registration fee
-    affected_purchases = bowler.purchases.ledger
-    total_credit = affected_purchases.sum(&:value)
+    affected_purchases = bowler.purchases.entry_fee + bowler.purchases.late_fee
+    affected_discounts = bowler.purchases.early_discount + bowler.purchases.bundle_discount
+    total_credit = affected_purchases.sum(&:value) - affected_discounts.sum(&:value)
+
+    # affected_purchases = bowler.purchases.ledger
+    # total_credit = affected_purchases.sum(&:value)
 
     identifier = confirmed_by.present? ? "Free entry confirmed by #{confirmed_by}" : 'Free entry confirmed by no one'
     free_entry.update(confirmed: true)
     bowler.ledger_entries << LedgerEntry.new(credit: total_credit, identifier: identifier, source: :free_entry)
 
-    affected_purchases.update_all(paid_at: Time.zone.now)
+    affected_purchases.map { |p| p.update(paid_at: Time.zone.now) }
+    affected_discounts.map { |p| p.update(paid_at: Time.zone.now) }
 
     free_entry.update(confirmed: true)
   end
@@ -211,7 +218,7 @@ module TournamentRegistration
     recipients.each { |r| RegistrationConfirmationNotifierJob.perform_async(bowler.id, r) }
   end
 
-  def self.send_receipt_email(bowler, paypal_order_identifier)
+  def self.send_receipt_email(bowler, external_order_id)
     tournament = bowler.tournament
     if Rails.env.development? && !tournament.config[:email_in_dev]
       Rails.logger.info "========= Not sending receipt email, dev config says not to."
@@ -226,7 +233,7 @@ module TournamentRegistration
                 end
 
     if recipient.present?
-      PaymentReceiptNotifierJob.perform_async(paypal_order_identifier, recipient)
+      PaymentReceiptNotifierJob.perform_async(external_order_id, recipient)
     end
   end
 

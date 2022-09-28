@@ -19,7 +19,7 @@ describe Director::TournamentsController, type: :request do
     let!(:setup_tournament) { create :tournament }
     let!(:testing_tournament) { create :tournament, :testing }
     let!(:active_tournament) { create :tournament, :active }
-    let!(:closed_tournament) { create :tournament, :closed }
+    let!(:closed_tournament) { create :tournament, :closed, :past }
 
     include_examples 'an authorized action'
 
@@ -553,15 +553,6 @@ describe Director::TournamentsController, type: :request do
         end
       end
     end
-  end
-
-
-  describe '#csv_download' do
-
-  end
-
-  describe '#igbots_download' do
-
   end
 
   describe '#email_payment_reminders' do

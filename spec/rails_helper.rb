@@ -34,7 +34,7 @@ rescue ActiveRecord::PendingMigrationError => e
 end
 RSpec.configure do |config|
   # Remove this line if you're not using ActiveRecord or ActiveRecord fixtures
-  config.fixture_path = "#{::Rails.root}/spec/fixtures"
+  # config.fixture_path = "#{::Rails.root}/spec/fixtures"
 
   # If you're not using ActiveRecord, or you'd prefer not to run each of your
   # examples within a transaction, remove the following line or assign false
@@ -66,6 +66,8 @@ RSpec.configure do |config|
 
   # Added by me
   config.include ApiHelpers
+  config.include StripeApiHelpers
+  config.include StripeApiHelpers::CheckoutSessionCompleted
 
   config.before(:suite) do
     DatabaseCleaner.strategy = :transaction

@@ -44,6 +44,8 @@ describe Director::PurchasableItemsController, type: :request do
       }
     end
 
+    before { Sidekiq::Job.clear_all }
+
     ###############
 
     include_examples 'an authorized action'
@@ -62,6 +64,16 @@ describe Director::PurchasableItemsController, type: :request do
     it 'includes the new item in the response' do
       subject
       expect(json.first).to have_key('identifier')
+    end
+
+    it 'kicks off a Stripe::ProductCreator job' do
+      subject
+      expect(Stripe::ProductCreator.jobs.size).to eq(1)
+    end
+
+    it 'does not kick off a Stripe::CouponCreator job' do
+      subject
+      expect(Stripe::CouponCreator.jobs.size).to eq(0)
     end
 
     context 'a collection of division items' do
@@ -96,6 +108,16 @@ describe Director::PurchasableItemsController, type: :request do
         expect(json).to be_a_kind_of(Array)
         expect(json.count).to eq(5)
       end
+
+      it 'kicks off a Stripe::ProductCreator job for each item' do
+        subject
+        expect(Stripe::ProductCreator.jobs.size).to eq(5)
+      end
+
+      it 'does not kick off a Stripe::CouponCreator job' do
+        subject
+        expect(Stripe::CouponCreator.jobs.size).to eq(0)
+      end
     end
 
     context 'an event item' do
@@ -124,12 +146,32 @@ describe Director::PurchasableItemsController, type: :request do
           expect(response).to have_http_status(:created)
         end
 
+        it 'kicks off a Stripe::ProductCreator job' do
+          subject
+          expect(Stripe::ProductCreator.jobs.size).to eq(1)
+        end
+
+        it 'does not kick off a Stripe::CouponCreator job' do
+          subject
+          expect(Stripe::CouponCreator.jobs.size).to eq(0)
+        end
+
         context 'when an entry fee already exists' do
           before { create :purchasable_item, :entry_fee, tournament: tournament }
 
           it 'fails with a Conflict' do
             subject
             expect(response).to have_http_status(:conflict)
+          end
+
+          it 'does not kick off a Stripe::ProductCreator job' do
+            subject
+            expect(Stripe::ProductCreator.jobs.size).to eq(0)
+          end
+
+          it 'does not kick off a Stripe::CouponCreator job' do
+            subject
+            expect(Stripe::CouponCreator.jobs.size).to eq(0)
           end
         end
       end
@@ -149,6 +191,16 @@ describe Director::PurchasableItemsController, type: :request do
           expect(response).to have_http_status(:created)
         end
 
+        it 'kicks off a Stripe::ProductCreator job' do
+          subject
+          expect(Stripe::ProductCreator.jobs.size).to eq(1)
+        end
+
+        it 'does not kick off a Stripe::CouponCreator job' do
+          subject
+          expect(Stripe::CouponCreator.jobs.size).to eq(0)
+        end
+
         context 'without providing an applies_at timestamp' do
           let(:configuration_param) do
             {
@@ -162,6 +214,16 @@ describe Director::PurchasableItemsController, type: :request do
             subject
             expect(response).to have_http_status(:unprocessable_entity)
           end
+
+          it 'does not kick off a Stripe::ProductCreator job' do
+            subject
+            expect(Stripe::ProductCreator.jobs.size).to eq(0)
+          end
+
+          it 'does not kick off a Stripe::CouponCreator job' do
+            subject
+            expect(Stripe::CouponCreator.jobs.size).to eq(0)
+          end
         end
 
         context 'when a late fee already exists' do
@@ -170,6 +232,16 @@ describe Director::PurchasableItemsController, type: :request do
           it 'fails with a Conflict' do
             subject
             expect(response).to have_http_status(:conflict)
+          end
+
+          it 'does not kick off a Stripe::ProductCreator job' do
+            subject
+            expect(Stripe::ProductCreator.jobs.size).to eq(0)
+          end
+
+          it 'does not kick off a Stripe::CouponCreator job' do
+            subject
+            expect(Stripe::CouponCreator.jobs.size).to eq(0)
           end
         end
       end
@@ -189,6 +261,16 @@ describe Director::PurchasableItemsController, type: :request do
           expect(response).to have_http_status(:created)
         end
 
+        it 'does not kick off a Stripe::ProductCreator job' do
+          subject
+          expect(Stripe::ProductCreator.jobs.size).to eq(0)
+        end
+
+        it 'kicks off a Stripe::CouponCreator job' do
+          subject
+          expect(Stripe::CouponCreator.jobs.size).to eq(1)
+        end
+
         context 'without providing a valid_until timestamp' do
           let(:configuration_param) do
             {
@@ -202,6 +284,16 @@ describe Director::PurchasableItemsController, type: :request do
             subject
             expect(response).to have_http_status(:unprocessable_entity)
           end
+
+          it 'does not kick off a Stripe::ProductCreator job' do
+            subject
+            expect(Stripe::ProductCreator.jobs.size).to eq(0)
+          end
+
+          it 'does not kick off a Stripe::CouponCreator job' do
+            subject
+            expect(Stripe::CouponCreator.jobs.size).to eq(0)
+          end
         end
 
         context 'when a discount already exists' do
@@ -210,6 +302,16 @@ describe Director::PurchasableItemsController, type: :request do
           it 'fails with a Conflict' do
             subject
             expect(response).to have_http_status(:conflict)
+          end
+
+          it 'does not kick off a Stripe::ProductCreator job' do
+            subject
+            expect(Stripe::ProductCreator.jobs.size).to eq(0)
+          end
+
+          it 'does not kick off a Stripe::CouponCreator job' do
+            subject
+            expect(Stripe::CouponCreator.jobs.size).to eq(0)
           end
         end
       end
@@ -260,6 +362,16 @@ describe Director::PurchasableItemsController, type: :request do
           subject
           expect(json[0]['configuration']).to have_key('applies_at')
         end
+
+        it 'kicks off a Stripe::ProductCreator job' do
+          subject
+          expect(Stripe::ProductCreator.jobs.size).to eq(1)
+        end
+
+        it 'does not kick off a Stripe::CouponCreator job' do
+          subject
+          expect(Stripe::CouponCreator.jobs.size).to eq(0)
+        end
       end
     end
 
@@ -296,6 +408,16 @@ describe Director::PurchasableItemsController, type: :request do
         expect(response).to have_http_status(:created)
       end
 
+      it 'kicks off a Stripe::ProductCreator job' do
+        subject
+        expect(Stripe::ProductCreator.jobs.size).to eq(1)
+      end
+
+      it 'does not kick off a Stripe::CouponCreator job' do
+        subject
+        expect(Stripe::CouponCreator.jobs.size).to eq(0)
+      end
+
       context 'without providing a denomination' do
         let(:configuration_param) do
           {
@@ -308,6 +430,16 @@ describe Director::PurchasableItemsController, type: :request do
         it 'fails with unprocessable entity' do
           subject
           expect(response).to have_http_status(:unprocessable_entity)
+        end
+
+        it 'does not kick off a Stripe::ProductCreator job' do
+          subject
+          expect(Stripe::ProductCreator.jobs.size).to eq(0)
+        end
+
+        it 'does not kick off a Stripe::CouponCreator job' do
+          subject
+          expect(Stripe::CouponCreator.jobs.size).to eq(0)
         end
       end
     end

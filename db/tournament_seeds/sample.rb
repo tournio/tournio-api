@@ -16,12 +16,8 @@ tournament.config_items += [
     value: '2022-09-26T23:59:59-04:00',
   ),
   ConfigItem.new(
-    key: 'time_zone',
+    key: 'timezone',
     value: 'America/New_York',
-  ),
-  ConfigItem.new(
-    key: 'image_path',
-    value: '/images/generic.jpg',
   ),
   ConfigItem.new(
     key: 'team_size',

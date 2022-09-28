@@ -26,6 +26,9 @@ class PurchasableItem < ApplicationRecord
   belongs_to :tournament
   has_many :purchases
 
+  has_one :stripe_product, dependent: :destroy
+  has_one :stripe_coupon, dependent: :destroy
+
   enum category: {
     bowling: 'bowling', # optional bowling events
     ledger: 'ledger', # mandatory items, e.g., registration, late fee, early discount

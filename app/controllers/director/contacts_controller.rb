@@ -18,7 +18,7 @@ module Director
     end
 
     def update
-      contact = Contact.includes(:tournament).find(params[:id])
+      contact = Contact.includes(:tournament).find_by_identifier!(params[:identifier])
       self.tournament = contact.tournament
 
       authorize tournament, :update?

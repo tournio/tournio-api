@@ -4,14 +4,19 @@
 #
 # Table name: tournaments
 #
-#  id         :bigint           not null, primary key
-#  aasm_state :string           not null
-#  identifier :string           not null
-#  name       :string           not null
-#  start_date :date
-#  year       :integer          not null
-#  created_at :datetime         not null
-#  updated_at :datetime         not null
+#  id             :bigint           not null, primary key
+#  aasm_state     :string           not null
+#  abbreviation   :string
+#  end_date       :date
+#  entry_deadline :datetime
+#  identifier     :string           not null
+#  location       :string
+#  name           :string           not null
+#  start_date     :date
+#  timezone       :string           default("America/New_York")
+#  year           :integer          not null
+#  created_at     :datetime         not null
+#  updated_at     :datetime         not null
 #
 # Indexes
 #
@@ -22,12 +27,12 @@
 FactoryBot.define do
   factory :tournament do
     name { 'An IGBO Tournament' }
-    start_date { Date.today + 90.days }
+    location { 'Atlanta, GA' }
+    timezone { 'America/New_York' }
     year { (Date.today + 90.days).year }
-
-    after(:create) do |t, _|
-      create(:config_item, :entry_deadline, tournament: t, value: Date.today + 80.days)
-    end
+    start_date { Date.today + 90.days }
+    end_date { Date.today + 92.days }
+    entry_deadline { Date.today + 80.days }
 
     trait :demo do
       aasm_state { :demo }
@@ -43,19 +48,24 @@ FactoryBot.define do
 
     trait :closed do
       aasm_state { :closed }
-      start_date { Date.today - 30.days }
-      year { (Date.today - 30.days).year }
     end
 
-    trait :future_closed do
-      aasm_state { :closed }
-      start_date { Date.today + 10.days }
-      year { (Date.today + 10.days).year }
+    trait :past do
+      start_date { Date.today - 10.days }
+      end_date { Date.today - 8.days }
+      year { (Date.today - 10.days).year }
+      entry_deadline { Date.today - 20.days }
     end
 
     trait :one_shift do
       after(:create) do |t, _|
-        create :shift, tournament: t
+        create :shift, tournament: t, capacity: 160
+      end
+    end
+
+    trait :one_small_shift do
+      after(:create) do |t, _|
+        create :shift, tournament: t, capacity: 16
       end
     end
 
@@ -63,12 +73,6 @@ FactoryBot.define do
       after(:create) do |t, _|
         create :shift, tournament: t, name: 'Shift 1'
         create :shift, tournament: t, name: 'Shift 2', display_order: 2
-      end
-    end
-
-    trait :accepting_payments do
-      after(:create) do |t, _|
-        create(:config_item, :paypal_client_id, tournament: t)
       end
     end
 
@@ -132,13 +136,7 @@ FactoryBot.define do
     trait :with_extra_stuff do
       after(:create) do |t, _|
         create(:purchasable_item, :banquet_entry, tournament: t)
-        create(:purchasable_item, :raffle_bundle, tournament: t)
-      end
-    end
-
-    trait :with_event_selection do
-      after(:create) do |t, _|
-        create(:config_item, :event_selection, tournament: t)
+        create(:purchasable_item, :raffle_bundle, value: 75, tournament: t)
       end
     end
 

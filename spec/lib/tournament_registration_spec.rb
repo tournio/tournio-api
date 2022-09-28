@@ -47,13 +47,10 @@ RSpec.describe TournamentRegistration do
   describe '#display_time' do
     subject { subject_class.display_time(datetime: time_arg, tournament: tournament) }
 
-    let(:tournament) { create :tournament }
-    let(:config) { { time_zone: 'America/New_York' } }
+    let(:tournament) { create :tournament, timezone: 'America/New_York' }
     let(:time_arg) { DateTime.parse('2018-07-04T12:05:22-04:00') }
 
     context 'when the tournament exists' do
-      before { allow(tournament).to receive(:config).and_return(config) }
-
       it "formats the given time for the tournament's time zone" do
         expect(subject[-3, 3]).to eq('EDT')
       end
@@ -75,8 +72,8 @@ RSpec.describe TournamentRegistration do
         expect(subject.length).to be > 0
       end
 
-      it 'formats the given time for the Pacific time zone' do
-        expect(subject[-3, 3]).to eq('PDT')
+      it 'formats the given time for the Eastern time zone' do
+        expect(subject[-3, 3]).to eq('EDT')
       end
     end
   end
@@ -177,6 +174,10 @@ RSpec.describe TournamentRegistration do
     it 'queues up an email notification to the bowler' do
       expect(subject_class).to receive(:send_confirmation_email).with(bowler).once
       subject
+    end
+
+    it 'creates a data point' do
+      expect { subject }.to change(DataPoint, :count).by(1)
     end
   end
 
@@ -307,7 +308,7 @@ RSpec.describe TournamentRegistration do
     # The creation of event purchases creates any associated late-fee purchases.
     # We don't want this method to create any late fee purchases or ledger entries.
     context 'a tournament with event-linked late fees' do
-      let(:tournament) { create :tournament, :active, :with_event_selection }
+      let(:tournament) { create :tournament, :active, :with_a_bowling_event }
       let!(:purchasable_item) { create(:purchasable_item, :event_late_fee, value: late_fee, tournament: tournament, configuration: configuration) }
 
       context 'not in late registration' do
@@ -368,7 +369,7 @@ RSpec.describe TournamentRegistration do
           subject
           ledger_entry = LedgerEntry.last
           expect(ledger_entry.debit).to be_zero
-          expect(ledger_entry.credit).to eq(discount_amount * (-1))
+          expect(ledger_entry.credit).to eq(discount_amount)
           expect(ledger_entry.identifier).to eq('early registration')
         end
 
@@ -672,7 +673,6 @@ RSpec.describe TournamentRegistration do
 
     before do
       create :ledger_entry, bowler: bowler, debit: entry_fee, identifier: 'entry fee'
-      # allow(tournament).to receive(:entry_fee).and_return(entry_fee)
     end
 
     it 'marks the free entry as confirmed' do
@@ -691,14 +691,14 @@ RSpec.describe TournamentRegistration do
     end
 
     context 'when the bowler got an early registration discount' do
-      let(:early_registration_discount) { -40 }
+      let(:early_registration_discount) { 40 }
       let(:early_purchasable_item) do
         create :purchasable_item, :early_discount, value: early_registration_discount, tournament: tournament
       end
       let!(:early_purchase) { create :purchase, purchasable_item: early_purchasable_item, bowler: bowler }
 
       before do
-        create :ledger_entry, bowler: bowler, credit: early_registration_discount * (-1), identifier: 'early registration'
+        create :ledger_entry, bowler: bowler, credit: early_registration_discount, identifier: 'early registration'
       end
 
       it 'updates paid_at on the entry-fee purchase' do
@@ -791,7 +791,10 @@ RSpec.describe TournamentRegistration do
       before { allow(Rails.env).to receive(:development?).and_return(true) }
 
       context 'with email_in_dev configured to be true' do
-        before { create(:config_item, :email_in_dev, tournament: tournament) }
+        before do
+          tournament.config_items.find_by(key: 'email_in_dev').destroy
+          create :config_item, :email_in_dev, tournament: tournament
+        end
 
         it 'sends to the development address' do
           expect(RegistrationConfirmationNotifierJob).to receive(:perform_async).with(bowler.id, MailerJob::FROM)
@@ -800,8 +803,6 @@ RSpec.describe TournamentRegistration do
       end
 
       context 'with email_in_dev configured to be false' do
-        before { create(:config_item, :email_in_dev, tournament: tournament, value: 'false') }
-
         it 'sends no notification' do
           expect(RegistrationConfirmationNotifierJob).not_to receive(:perform_async)
           subject

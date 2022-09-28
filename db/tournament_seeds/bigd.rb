@@ -8,10 +8,6 @@ bigd = Tournament.create!(
 
 bigd.config_items += [
   ConfigItem.new(
-    key: 'image_path',
-    value: '/images/bigdclassic.jpg',
-  ),
-  ConfigItem.new(
     key: 'team_size',
     value: '4',
   ),
@@ -28,7 +24,7 @@ bigd.config_items += [
     value: '2022-08-03T23:59:59-05:00',
   ),
   ConfigItem.new(
-    key: 'time_zone',
+    key: 'timezone',
     value: 'America/Chicago',
   ),
   ConfigItem.new(

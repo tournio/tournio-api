@@ -42,7 +42,6 @@ FactoryBot.define do
     phone       { '1-800-555-5555' }
     state       { 'CO' }
     postal_code { '80237' }
-    igbo_id     { 'AM-123456789' }
     usbc_id     { '1234-56789' }
   end
 end

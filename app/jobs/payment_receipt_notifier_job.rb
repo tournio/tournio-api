@@ -3,16 +3,16 @@
 class PaymentReceiptNotifierJob < TemplateMailerJob
   include ActionView::Helpers::NumberHelper
 
-  attr_accessor :recipient, :paypal_order, :bowler, :tournament, :purchases
+  attr_accessor :recipient, :external_payment, :bowler, :tournament, :purchases
 
-  def perform(paypal_order_identifier, recipient_email)
+  def perform(external_order_id, recipient_email)
     self.recipient = recipient_email
     return unless recipient.present?
 
-    self.paypal_order = PaypalOrder.includes(purchases: [:purchasable_item, { bowler: [:person, tournament: [:contacts]] }]).find_by(identifier: paypal_order_identifier)
-    return unless paypal_order.present?
+    self.external_payment = ExternalPayment.includes(purchases: [:purchasable_item, { bowler: [:person, tournament: [:contacts]] }]).find(external_order_id)
+    return unless external_payment.present?
 
-    self.purchases = paypal_order.purchases
+    self.purchases = external_payment.purchases
 
     self.bowler = purchases.first&.bowler
     return unless bowler.present?
@@ -27,18 +27,17 @@ class PaymentReceiptNotifierJob < TemplateMailerJob
   end
 
   def personalization_data
-    data = {
+    {
       tournament_name: tournament.name,
       bowler_preferred_name: bowler.nickname || bowler.first_name,
       bowler_full_name: TournamentRegistration.bowler_full_name(bowler),
-      receipt_date: paypal_order.created_at.strftime('%Y %b %-d %r'),
-      order_identifier: paypal_order.identifier,
+      receipt_date: external_payment.created_at.strftime('%Y %b %-d %r'),
+      order_identifier: external_payment.identifier,
       order_total: number_to_currency(purchases.sum(&:amount), precision: 0),
       treasurer_contact: treasurer_contact,
       items: populate_item_list(purchases),
       tournament_url: tournament_page,
     }
-    data
   end
 
   def populate_item_list(purchases)

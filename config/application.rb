@@ -35,5 +35,8 @@ module IgboRegistrationApi
     # Middleware like session, flash, cookies can be added back manually.
     # Skip views, helpers and assets when generating a new resource.
     config.api_only = true
+
+    # Configuration added by us
+    config.active_storage.routes_prefix = '/files'
   end
 end

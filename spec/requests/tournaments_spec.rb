@@ -18,8 +18,8 @@ describe TournamentsController, type: :request do
     let!(:setup_tournament) { create :tournament }
     let!(:testing_tournament) { create :tournament, :testing }
     let!(:active_tournament) { create :tournament, :active }
-    let!(:closed_tournament) { create :tournament, :closed }
-    let!(:future_closed_tournament) { create :tournament, :future_closed }
+    let!(:closed_tournament) { create :tournament, :closed, :past }
+    let!(:future_closed_tournament) { create :tournament, :closed }
 
     it 'returns an array' do
       subject

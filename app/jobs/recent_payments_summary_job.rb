@@ -46,11 +46,11 @@ class RecentPaymentsSummaryJob < TemplateMailerJob
   end
 
   def personalization_data
-    time_zone = tournament.config[:time_zone]
+    timezone = tournament.timezone
 
     {
       tournament_name: tournament.name,
-      report_date: report_time.in_time_zone(time_zone).strftime('%F'),
+      report_date: report_time.in_time_zone(timezone).strftime('%F'),
       bowler_count: bowlers.count,
       bowlers: bowlers.collect do |bowler|
         {

@@ -25,7 +25,7 @@
 class Purchase < ApplicationRecord
   belongs_to :bowler
   belongs_to :purchasable_item
-  belongs_to :paypal_order, optional: true, dependent: :destroy
+  belongs_to :external_payment, optional: true, dependent: :destroy
 
   delegate :name, :value, :configuration, :determination, :category, :refinement, to: :purchasable_item
 
@@ -39,6 +39,7 @@ class Purchase < ApplicationRecord
   scope :ledger, -> { joins(:purchasable_item).where(purchasable_items: {category: :ledger}) }
   scope :event, -> { joins(:purchasable_item).where(purchasable_item: {determination: :event}) }
   scope :bundle_discount, -> { joins(:purchasable_item).where(purchasable_item: {category: :ledger, determination: :bundle_discount}) }
+  scope :early_discount, -> { joins(:purchasable_item).where(purchasable_item: {category: :ledger, determination: :early_discount}) }
   scope :late_fee, -> { joins(:purchasable_item).where(purchasable_item: {category: :ledger, determination: :late_fee})}
   scope :event_linked, -> { joins(:purchasable_item).where(purchasable_item: {refinement: :event_linked})}
 
