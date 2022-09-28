@@ -1,12 +1,12 @@
-# igbo-registration-api
+# tournio-api
 
-This is the code for the API backend of my registration system for IGBO bowling tournaments. The repository for the frontend is at `igbo-registration-client`.
+This is the code for the API backend of my registration system for IGBO bowling tournaments. The repository for the frontend is at `tournio-web-client`.
 
 This was built using a fresh instance of a Rails API-only application.
 
 ## Ruby version
 
-3.1.1.
+3.1.2.
 
 I endeavor to be on the latest versions of the language and framework. As such, you can expect to see frequent updates for Ruby, Rails, and gem version updates.
 

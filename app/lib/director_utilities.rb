@@ -147,8 +147,10 @@ module DirectorUtilities
       phone1: bowler.phone,
       email: bowler.email,
 
-      usbc_number: bowler.usbc_id.present? ? bowler.usbc_id : '',
-      igbotsid: bowler.igbo_id.present? ? bowler.igbo_id : '',
+      usbc_number: bowler.usbc_id,
+      igbotsid: bowler.igbo_id,
+      average: bowler.verified_data['verified_average'] || '',
+      handicap: bowler.verified_data['handicap'],
     }
   end
 
