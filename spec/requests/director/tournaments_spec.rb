@@ -555,6 +555,70 @@ describe Director::TournamentsController, type: :request do
       end
     end
 
+    context 'adding a config item and scratch divisions' do
+      let(:params) do
+        {
+          tournament: {
+            config_items_attributes: [
+              {
+                key: 'handicap_rule',
+                value: '90%225',
+              },
+            ],
+            scratch_divisions_attributes: [
+              {
+                key: 'A',
+                name: 'ABBA',
+                low_average: 211,
+                high_average: 300,
+              },
+              {
+                key: 'B',
+                name: 'Beyonce',
+                low_average: 191,
+                high_average: 210,
+              },
+              {
+                key: 'C',
+                name: 'Carly Rae Jepsen',
+                low_average: 171,
+                high_average: 190,
+              },
+              {
+                key: 'D',
+                name: 'Diana Ross',
+                low_average: 151,
+                high_average: 170,
+              },
+              {
+                key: 'E',
+                name: 'Erasure',
+                low_average: 0,
+                high_average: 150,
+              },
+            ]
+          },
+        }
+      end
+
+      it 'creates a new config item' do
+        expect{ subject }.to change(tournament.config_items, :count).by(1)
+      end
+
+      it 'creates the right config item' do
+        subject
+        expect(tournament.config[:handicap_rule]).to eq('90%225')
+      end
+
+      it 'creates 5 scratch divisions' do
+        expect { subject }.to change(ScratchDivision, :count).by(5)
+      end
+
+      it 'links the new scratch divisions with the tournament' do
+        expect { subject }.to change{ tournament.scratch_divisions.count }.by(5)
+      end
+    end
+
     context 'Other tournament modes' do
       context 'Testing' do
         let(:tournament) { create :tournament, :testing }

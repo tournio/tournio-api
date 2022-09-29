@@ -31,7 +31,13 @@ module Director
       config_items_attributes: [
         :key,
         :value,
-      ]
+      ],
+      scratch_divisions_attributes: [
+        :key,
+        :name,
+        :low_average,
+        :high_average,
+      ],
     ]
 
     def index
