@@ -38,6 +38,10 @@ module Director
         :low_average,
         :high_average,
       ],
+      events_attributes: [
+        :roster_type,
+        :name,
+      ],
     ]
 
     def index

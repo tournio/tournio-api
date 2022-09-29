@@ -90,6 +90,7 @@ class TournamentBlueprint < Blueprinter::Base
     association :shifts, blueprint: ShiftBlueprint
     association :stripe_account, blueprint: StripeAccountBlueprint
     association :scratch_divisions, blueprint: ScratchDivisionBlueprint
+    association :events, blueprint: EventBlueprint
 
     field :available_conditions do |t, _|
       output = {}

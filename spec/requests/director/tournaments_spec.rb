@@ -619,6 +619,41 @@ describe Director::TournamentsController, type: :request do
       end
     end
 
+    context 'adding required events' do
+      let(:params) do
+        {
+          tournament: {
+            events_attributes: [
+              {
+                roster_type: 'single',
+                name: 'Singles',
+              },
+              {
+                roster_type: 'double',
+                name: 'Doubles',
+              },
+              {
+                roster_type: 'team',
+                name: 'Team',
+              },
+            ],
+          },
+        }
+      end
+
+      it 'creates 3 events' do
+        expect { subject }.to change(Event, :count).by(3)
+      end
+
+      it 'links the new events with the tournament' do
+        expect { subject }.to change{ tournament.events.count }.by(3)
+      end
+
+      it 'marks them as required events' do
+        expect { subject }.to change{ tournament.events.required.count }.by(3)
+      end
+    end
+
     context 'Other tournament modes' do
       context 'Testing' do
         let(:tournament) { create :tournament, :testing }

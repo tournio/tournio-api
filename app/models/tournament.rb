@@ -33,6 +33,7 @@ class Tournament < ApplicationRecord
   has_many :config_items, dependent: :destroy
   has_many :contacts, -> { order(display_order: :asc)}, dependent: :destroy
   has_many :data_points, dependent: :destroy
+  has_many :events, dependent: :destroy
   has_many :extended_form_fields, through: :additional_questions
   has_many :external_payments, dependent: :destroy
   has_many :free_entries, dependent: :destroy
@@ -50,6 +51,7 @@ class Tournament < ApplicationRecord
   accepts_nested_attributes_for :additional_questions, allow_destroy: true
   accepts_nested_attributes_for :config_items, allow_destroy: true
   accepts_nested_attributes_for :scratch_divisions, allow_destroy: true
+  accepts_nested_attributes_for :events, allow_destroy: true
 
   before_create :generate_identifier, if: -> { identifier.blank? }
   after_create :initiate_testing_environment, :create_default_config
