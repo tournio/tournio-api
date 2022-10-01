@@ -29,16 +29,19 @@ module Director
         validation_rules: {}
       ],
       config_items_attributes: [
+        :id,
         :key,
         :value,
       ],
       scratch_divisions_attributes: [
+        :id,
         :key,
         :name,
         :low_average,
         :high_average,
       ],
       events_attributes: [
+        :id,
         :roster_type,
         :name,
       ],
