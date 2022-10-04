@@ -8,10 +8,51 @@ module Director
 
     rescue_from Pundit::NotAuthorizedError, with: :unauthorized
 
-    before_action :load_tournament, except: %i(index)
-    before_action :set_time_zone, except: %i(index)
+    before_action :load_tournament, except: %i(index create)
+    before_action :set_time_zone, except: %i(index create)
 
     MAX_STRIPE_ATTEMPTS = 10
+    TOURNAMENT_PARAMS = [
+      :name,
+      :abbreviation,
+      :year,
+      :start_date,
+      :end_date,
+      :entry_deadline,
+      :location,
+      :timezone,
+      additional_questions_attributes: [
+        :id,
+        :extended_form_field_id,
+        :order,
+        :_destroy,
+        validation_rules: {}
+      ],
+      config_items_attributes: [
+        :id,
+        :key,
+        :value,
+      ],
+      scratch_divisions_attributes: [
+        :id,
+        :key,
+        :name,
+        :low_average,
+        :high_average,
+      ],
+      events_attributes: [
+        :id,
+        :roster_type,
+        :name,
+        :required,
+        :scratch,
+        :entry_fee, # not a model attribute
+        scratch_division_entry_fees: [ # not a model attribute
+          :id,
+          :entry_fee,
+        ]
+      ],
+    ]
 
     def index
       tournaments = if params[:upcoming]
@@ -89,6 +130,24 @@ module Director
       render json: TournamentBlueprint.render(tournament, view: :director_detail, **url_options)
     end
 
+    def create
+      authorize Tournament
+
+      tournament = Tournament.new(create_params)
+      if tournament.valid?
+        tournament.save
+      else
+        render json: { error: tournament.errors.full_messages.join(' ') }, status: :unprocessable_entity
+        return
+      end
+
+      if current_user.director?
+        current_user.tournaments << tournament
+      end
+
+      render json: TournamentBlueprint.render(tournament, view: :director_detail, **url_options), status: :created
+    end
+
     def update
       unless tournament.present?
         render json: nil, status: 404
@@ -108,10 +167,56 @@ module Director
           eff = ExtendedFormField.find(aqa[:extended_form_field_id])
           aqa[:validation_rules] = eff.validation_rules.merge(aqa[:validation_rules])
         end
-      end
+      end if updates[:additional_questions_attributes].present?
+
+      purchasable_items_to_create = []
+      updates[:events_attributes].each do |ea|
+        if !ea[:required].nil? && (ea[:required] == 'false' || !ea[:required])
+          if ea[:scratch_division_entry_fees].present?
+            ea[:scratch_division_entry_fees].each do |sdef|
+              division = tournament.scratch_divisions.find(sdef[:id])
+              note = "Averages "
+              if division.low_average == 0
+                note += "#{division.high_average} and under"
+              elsif division.high_average == 300
+                note += "#{division.low_average} and up"
+              else
+                note += "#{division.low_average} - #{division.high_average}"
+              end
+              purchasable_items_to_create << PurchasableItem.new(
+                tournament: tournament,
+                category: :bowling,
+                determination: :single_use,
+                refinement: :division,
+                name: ea[:name],
+                value: sdef[:entry_fee],
+                configuration: {
+                  division: division.key,
+                  note: note,
+                }
+              )
+            end
+            ea.delete :scratch_division_entry_fees
+          else
+            purchasable_items_to_create << PurchasableItem.new(
+              tournament: tournament,
+              category: :bowling,
+              determination: :single_use,
+              refinement: ea[:roster_type],
+              name: ea[:name],
+              value: ea[:entry_fee]
+            )
+            ea.delete :entry_fee
+          end
+        end
+      end if updates[:events_attributes].present?
+
       tournament.update(updates)
+      purchasable_items_to_create.map(&:save!)
 
       render json: TournamentBlueprint.render(tournament.reload, view: :director_detail, **url_options)
+    rescue ActiveRecord::RecordNotFound => e
+      Rails.logger.info "Rescued: #{e.inspect}"
     end
 
     def destroy
@@ -237,7 +342,11 @@ module Director
     end
 
     def update_params
-      params.require(:tournament).permit(additional_questions_attributes: [:id, :extended_form_field_id, :order, :_destroy, validation_rules: {}])
+      params.require(:tournament).permit(TOURNAMENT_PARAMS)
+    end
+
+    def create_params
+      params.require(:tournament).permit(TOURNAMENT_PARAMS)
     end
   end
 end

@@ -356,6 +356,43 @@ describe Director::TournamentsController, type: :request do
     end
   end
 
+  describe '#create' do
+    subject { post uri, headers: auth_headers, params: params, as: :json }
+
+    let(:uri) { "/director/tournaments" }
+    let(:params) do
+      {
+        tournament: {
+          name: 'Fingers In Holes In Balls',
+          abbreviation: 'FIHIB',
+          year: 2023,
+        }
+      }
+    end
+
+    include_examples 'an authorized action'
+
+    it 'responds with Created' do
+      subject
+      expect(response).to have_http_status(:created)
+    end
+
+    it 'includes the necessary stuff in the response' do
+      subject
+      expect(json['identifier']).to eq(Tournament.last.identifier)
+      expect(json['name']).to eq(params[:tournament][:name])
+    end
+
+    context 'as a director' do
+      let(:requesting_user) { create(:user, :director) }
+
+      it 'puts the new tournament in my list of tournaments' do
+        subject
+        expect(requesting_user.tournaments).to include(Tournament.last)
+      end
+    end
+  end
+
   describe '#update' do
     subject { patch uri, headers: auth_headers, params: params, as: :json }
 
@@ -482,6 +519,198 @@ describe Director::TournamentsController, type: :request do
         subject
         eff_key_count = eff.validation_rules.keys.count
         expect(AdditionalQuestion.last.validation_rules.keys.count).to eq(eff_key_count + 1)
+      end
+    end
+
+    context 'setting two properties and adding a config item' do
+      let(:params) do
+        {
+          tournament: {
+            location: 'Maui, HI',
+            timezone: 'Pacific/Honolulu',
+            config_items_attributes: [
+              {
+                key: 'website',
+                value: 'http://maui.hawaii.us',
+              },
+            ],
+          },
+        }
+      end
+
+      it 'updates the two properties' do
+        subject
+        tournament.reload
+        expect(tournament.location).to eq('Maui, HI')
+        expect(tournament.timezone).to eq('Pacific/Honolulu')
+      end
+
+      it 'creates a new config item' do
+        expect{ subject }.to change(tournament.config_items, :count).by(1)
+      end
+
+      it 'creates a website config item' do
+        subject
+        expect(tournament.config[:website]).to eq('http://maui.hawaii.us')
+      end
+    end
+
+    context 'adding a config item and scratch divisions' do
+      let(:params) do
+        {
+          tournament: {
+            config_items_attributes: [
+              {
+                key: 'handicap_rule',
+                value: '90%225',
+              },
+            ],
+            scratch_divisions_attributes: [
+              {
+                key: 'A',
+                name: 'ABBA',
+                low_average: 211,
+                high_average: 300,
+              },
+              {
+                key: 'B',
+                name: 'Beyonce',
+                low_average: 191,
+                high_average: 210,
+              },
+              {
+                key: 'C',
+                name: 'Carly Rae Jepsen',
+                low_average: 171,
+                high_average: 190,
+              },
+              {
+                key: 'D',
+                name: 'Diana Ross',
+                low_average: 151,
+                high_average: 170,
+              },
+              {
+                key: 'E',
+                name: 'Erasure',
+                low_average: 0,
+                high_average: 150,
+              },
+            ]
+          },
+        }
+      end
+
+      it 'creates a new config item' do
+        expect{ subject }.to change(tournament.config_items, :count).by(1)
+      end
+
+      it 'creates the right config item' do
+        subject
+        expect(tournament.config[:handicap_rule]).to eq('90%225')
+      end
+
+      it 'creates 5 scratch divisions' do
+        expect { subject }.to change(ScratchDivision, :count).by(5)
+      end
+
+      it 'links the new scratch divisions with the tournament' do
+        expect { subject }.to change{ tournament.scratch_divisions.count }.by(5)
+      end
+    end
+
+    context 'adding required events' do
+      let(:params) do
+        {
+          tournament: {
+            events_attributes: [
+              {
+                roster_type: 'single',
+                name: 'Singles',
+              },
+              {
+                roster_type: 'double',
+                name: 'Doubles',
+              },
+              {
+                roster_type: 'team',
+                name: 'Team',
+              },
+            ],
+          },
+        }
+      end
+
+      it 'creates 3 events' do
+        expect { subject }.to change(Event, :count).by(3)
+      end
+
+      it 'links the new events with the tournament' do
+        expect { subject }.to change { tournament.events.count }.by(3)
+      end
+
+      it 'marks them as required events' do
+        expect { subject }.to change { tournament.events.required.count }.by(3)
+      end
+    end
+
+    context 'creating additional events' do
+      let(:divA) { create :scratch_division, key: 'A', tournament: tournament }
+      let(:divB) { create :scratch_division, key: 'B', tournament: tournament }
+      let(:divC) { create :scratch_division, key: 'C', tournament: tournament }
+      let(:params) do
+        {
+          tournament: {
+            events_attributes: [
+              {
+                roster_type: 'single',
+                name: '9-pin No-Tap Mixer',
+                required: false,
+                entry_fee: 25, # this is not a model attribute
+              },
+              {
+                roster_type: 'single',
+                name: 'Scratch Masters',
+                required: false,
+                scratch: true,
+                scratch_division_entry_fees: [ # this is also not a model attribute
+                  {
+                    id: divA.id,
+                    entry_fee: 50,
+                  },
+                  {
+                    id: divB.id,
+                    entry_fee: 40,
+                  },
+                  {
+                    id: divC.id,
+                    entry_fee: 30,
+                  },
+                ],
+              },
+            ],
+          },
+        }
+      end
+
+      it 'creates 2 events' do
+        expect { subject }.to change(Event, :count).by(2)
+      end
+
+      it 'links them with the tournament' do
+        expect { subject }.to change { tournament.events.count }.by(2)
+      end
+
+      it 'marks them as optional' do
+        expect { subject }.to change { tournament.events.optional.count }.by(2)
+      end
+
+      it 'creates PurchasableItems for each event' do
+        expect { subject }.to change(PurchasableItem, :count).by(4)
+      end
+
+      it 'creates a PurchasableItems for each event division' do
+        expect { subject }.to change { tournament.purchasable_items.division.count }.by(3)
       end
     end
 

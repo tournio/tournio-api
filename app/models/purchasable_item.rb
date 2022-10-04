@@ -59,10 +59,10 @@ class PurchasableItem < ApplicationRecord
     division: 'division',
     denomination: 'denomination',
     event_linked: 'event_linked', # on a ledger late_fee item, linked with an event (when event selection is permitted)
-    singles: 'singles', # for events
-    doubles: 'doubles', # for events
+    single: 'single', # for events
+    double: 'double', # for events
     team: 'team',       # for events
-    trios: 'trios',     # for events
+    trio: 'trio',     # for events
   }
 
   validate :one_ledger_item_per_determination, if: proc { |pi| pi.ledger? }, on: :create
