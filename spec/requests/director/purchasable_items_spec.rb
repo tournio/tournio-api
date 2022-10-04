@@ -121,7 +121,7 @@ describe Director::PurchasableItemsController, type: :request do
     end
 
     context 'an event item' do
-      let(:refinement) { 'singles' }
+      let(:refinement) { 'single' }
 
       it 'succeeds' do
         subject

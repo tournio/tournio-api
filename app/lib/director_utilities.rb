@@ -39,7 +39,7 @@ module DirectorUtilities
 
   def self.assign_partner(bowler: , new_partner:)
     tournament = bowler.tournament
-    return unless tournament.purchasable_items.event.doubles.any?
+    return unless tournament.purchasable_items.event.double.any?
 
     original_partner = bowler.doubles_partner
     if (original_partner.present?)
