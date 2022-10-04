@@ -21,6 +21,8 @@ class Event < ApplicationRecord
   belongs_to :tournament
   has_and_belongs_to_many :scratch_divisions
 
+  accepts_nested_attributes_for :scratch_divisions
+
   enum roster_type: %i(single double trio team)
 
   scope :required, -> { where(required: true) }

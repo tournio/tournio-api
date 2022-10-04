@@ -673,20 +673,20 @@ describe Director::TournamentsController, type: :request do
                 name: 'Scratch Masters',
                 required: false,
                 scratch: true,
-                scratch_divisions_attributes: [
+                scratch_division_entry_fees: [ # this is also not a model attribute
                   {
                     id: divA.id,
-                    entry_fee: 50, # not a model attribute
+                    entry_fee: 50,
                   },
                   {
                     id: divB.id,
-                    entry_fee: 40, # not a model attribute
+                    entry_fee: 40,
                   },
                   {
                     id: divC.id,
-                    entry_fee: 30, # not a model attribute
+                    entry_fee: 30,
                   },
-                ]
+                ],
               },
             ],
           },
@@ -705,7 +705,13 @@ describe Director::TournamentsController, type: :request do
         expect { subject }.to change { tournament.events.optional.count }.by(2)
       end
 
-      # anything surrounding PurchasableItem creation?
+      it 'creates PurchasableItems for each event' do
+        expect { subject }.to change(PurchasableItem, :count).by(4)
+      end
+
+      it 'creates a PurchasableItems for each event division' do
+        expect { subject }.to change { tournament.purchasable_items.division.count }.by(3)
+      end
     end
 
     context 'Other tournament modes' do
