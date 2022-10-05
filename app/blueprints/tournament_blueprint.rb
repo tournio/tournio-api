@@ -61,6 +61,9 @@ class TournamentBlueprint < Blueprinter::Base
     field :early_registration_ends do |t, _|
       t.early_registration_ends.present? ? datetime_with_timezone(t.early_registration_ends, t) : nil
     end
+    field :registration_deadline do |t, _|
+      datetime_with_timezone(t.entry_deadline, t)
+    end
     field :max_bowlers_per_entry, name: :max_bowlers
     field :registration_fee do |t, _|
       t.purchasable_items.entry_fee.take&.value
