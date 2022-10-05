@@ -215,8 +215,6 @@ module Director
       purchasable_items_to_create.map(&:save!)
 
       render json: TournamentBlueprint.render(tournament.reload, view: :director_detail, **url_options)
-    rescue ActiveRecord::RecordNotFound => e
-      Rails.logger.info "Rescued: #{e.inspect}"
     end
 
     def destroy
@@ -317,6 +315,10 @@ module Director
       end
 
       authorize tournament
+
+      Rails.logger.info "AWS access key: #{ENV['AWS_ACCESS_KEY_ID']}"
+      Rails.logger.info "AWS default region: #{ENV['AWS_DEFAULT_REGION']}"
+      Rails.logger.info "AWS default endpoint: #{ENV['AWS_DEFAULT_ENDPOINT']}"
 
       tournament.logo_image.purge if tournament.logo_image.attached?
       tournament.logo_image.attach(params['file'])
