@@ -12,7 +12,7 @@ class StripeWebhooksController < ApplicationController
     case event[:type]
     when 'checkout.session.completed',
          'account.updated'
-    # other types here
+         # other types here
       event_to_class(event[:type]).perform_async(event[:id], event[:account])
     else
       Rails.logger.warn "Received a webhook for an unsupported event type: #{event[:type]}, event_id=#{event[:id]}, account=#{event[:account]}"

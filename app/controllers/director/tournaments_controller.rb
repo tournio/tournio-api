@@ -316,10 +316,6 @@ module Director
 
       authorize tournament
 
-      Rails.logger.warn "AWS access key: #{ENV['AWS_ACCESS_KEY_ID']}"
-      Rails.logger.warn "AWS default region: #{ENV['AWS_DEFAULT_REGION']}"
-      Rails.logger.warn "AWS default endpoint: #{ENV['AWS_DEFAULT_ENDPOINT']}"
-
       tournament.logo_image.purge if tournament.logo_image.attached?
       tournament.logo_image.attach(params['file'])
 
