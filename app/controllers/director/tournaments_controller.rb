@@ -49,7 +49,7 @@ module Director
         :entry_fee, # not a model attribute
         scratch_division_entry_fees: [ # not a model attribute
           :id,
-          :entry_fee,
+          :fee,
         ]
       ],
     ]
@@ -189,7 +189,7 @@ module Director
                 determination: :single_use,
                 refinement: :division,
                 name: ea[:name],
-                value: sdef[:entry_fee],
+                value: sdef[:fee],
                 configuration: {
                   division: division.key,
                   note: note,
