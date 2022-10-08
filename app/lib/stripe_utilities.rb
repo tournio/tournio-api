@@ -94,7 +94,7 @@ module StripeUtilities
   end
 
   def create_stripe_products
-    tournament.purchasable_items.bowling.where(stripe_product_id: nil).each do |pi|
+    tournament.purchasable_items.bowling.where(stripe_product: nil).each do |pi|
       Stripe::ProductCreator.perform_async(pi.id)
     end
   end

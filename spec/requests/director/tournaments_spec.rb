@@ -676,15 +676,15 @@ describe Director::TournamentsController, type: :request do
                 scratch_division_entry_fees: [ # this is also not a model attribute
                   {
                     id: divA.id,
-                    entry_fee: 50,
+                    fee: 50,
                   },
                   {
                     id: divB.id,
-                    entry_fee: 40,
+                    fee: 40,
                   },
                   {
                     id: divC.id,
-                    entry_fee: 30,
+                    fee: 30,
                   },
                 ],
               },
