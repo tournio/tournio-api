@@ -34,6 +34,7 @@ class PurchasableItem < ApplicationRecord
     ledger: 'ledger', # mandatory items, e.g., registration, late fee, early discount
     banquet: 'banquet', # uh, banquet
     product: 'product', #  Thing like raffle ticket bundles, shirts, and other merchandise
+    sanction: 'sanction', # Memberships such as IGBO and USBC
     # add other categories here as we support them, e.g., program
   }
 
@@ -43,6 +44,7 @@ class PurchasableItem < ApplicationRecord
     early_discount: 'early_discount',
     single_use: 'single_use',
     multi_use: 'multi_use',
+    igbo: 'igbo', # for sanction items
 
     event: 'event', # a selectable bowling event when bowlers can choose events, like singles or baker doubles
     bundle_discount: 'bundle_discount', # a ledger item

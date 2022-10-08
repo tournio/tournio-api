@@ -67,6 +67,9 @@ module StripeUtilities
     # Did they complete the onboarding process, and can now make charges?
     unless stripe_account.onboarding_completed_at.present?
       stripe_account.update(onboarding_completed_at: Time.zone.now) if charges_enabled && info_submitted
+
+      # look for any PurchasableItems without associated Stripe products and create them
+      create_stripe_products
     end
 
     # What if the account was disabled / deactivated?
@@ -88,5 +91,11 @@ module StripeUtilities
     {
       coupon: stripe_coupon.coupon_id,
     }
+  end
+
+  def create_stripe_products
+    tournament.purchasable_items.bowling.where(stripe_product: nil).each do |pi|
+      Stripe::ProductCreator.perform_async(pi.id)
+    end
   end
 end

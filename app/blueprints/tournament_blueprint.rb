@@ -170,14 +170,16 @@ class TournamentBlueprint < Blueprinter::Base
     other_bowling_items = tournament.purchasable_items.bowling.where(refinement: nil).order(name: :asc)
     banquet = tournament.purchasable_items.banquet.order(name: :asc)
     product = tournament.purchasable_items.product.order(name: :asc)
+    sanction = tournament.purchasable_items.sanction.order(name: :asc)
 
     determination_order = {
       entry_fee: 0,
       early_discount: 1,
       late_fee: 2,
       discount_expiration: 3,
-      single_use: 4,
-      multi_use: 5,
+      igbo: 4,
+      single_use: 5,
+      multi_use: 6,
     }
 
     {
@@ -186,6 +188,7 @@ class TournamentBlueprint < Blueprinter::Base
       bowling: PurchasableItemBlueprint.render_as_hash(other_bowling_items),
       banquet: PurchasableItemBlueprint.render_as_hash(banquet),
       product: PurchasableItemBlueprint.render_as_hash(product),
+      sanction: PurchasableItemBlueprint.render_as_hash(sanction),
     }
   end
 end
