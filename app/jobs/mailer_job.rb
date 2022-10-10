@@ -10,8 +10,8 @@ class MailerJob
     logger.warn "I have failed to send a message. #{msg}"
   end
 
-  FROM_ADDRESS = 'info@igbo-reg.com'
-  FROM = "Tournament Registration <#{FROM_ADDRESS}>"
+  FROM_ADDRESS = 'info@tourn.io'
+  FROM = "Tournio <#{FROM_ADDRESS}>"
 
   ENV_API_KEY = 'SENDGRID_API_KEY'
 
@@ -66,6 +66,14 @@ class MailerJob
     rescue Exception => e
       logger.warn(e.message)
       puts e
+    end
+  end
+
+  def link_hostname
+    if Rails.env.production?
+      "https://www.tourn.io"
+    else
+      "http://localhost:3000"
     end
   end
 end

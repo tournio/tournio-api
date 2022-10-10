@@ -39,10 +39,6 @@ class PasswordResetEmailJob < TemplateMailerJob
   end
 
   def reset_url
-    if Rails.env.production?
-      "https://www.igbo-reg.com/director/password-reset?token=#{token}"
-    else
-      "http://localhost:3000/director/password-reset?token=#{token}"
-    end
+    "#{link_hostname}/director/password-reset?token=#{token}"
   end
 end
