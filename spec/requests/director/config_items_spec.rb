@@ -45,7 +45,6 @@ describe Director::ConfigItemsController, type: :request do
       end
 
       context 'unless the item is allowed to be changed while the tournament is active' do
-        let(:config_item) { tournament.config_items.find_by(key: 'display_capacity') }
         let(:params) do
           {
             config_item: {
@@ -54,11 +53,25 @@ describe Director::ConfigItemsController, type: :request do
           }
         end
 
-        it 'succeeds with a 200 OK' do
-          subject
-          expect(response).to have_http_status(:ok)
+        context 'display_capacity' do
+          let(:config_item) { tournament.config_items.find_by(key: 'display_capacity') }
+
+          it 'succeeds with a 200 OK' do
+            subject
+            expect(response).to have_http_status(:ok)
+          end
         end
 
+        context 'email_in_dev' do
+          let(:config_item) { tournament.config_items.find_by(key: 'email_in_dev') }
+
+          before { create :config_item, :email_in_dev, value: 'true', tournament: tournament }
+
+          it 'succeeds with a 200 OK' do
+            subject
+            expect(response).to have_http_status(:ok)
+          end
+        end
       end
     end
 

@@ -4,13 +4,15 @@ module Director
   class ConfigItemsController < BaseController
     rescue_from Pundit::NotAuthorizedError, with: :unauthorized
 
+    PERMITTED_WHILE_ACTIVE = %w(display_capacity email_in_dev)
+
     def update
       ci = ConfigItem.includes(:tournament).find(params[:id])
       self.tournament = ci.tournament
 
       authorize tournament, :update?
 
-      if tournament.active? && ci.key != 'display_capacity'
+      if tournament.active? && !PERMITTED_WHILE_ACTIVE.include?(ci.key)
         render json: {error: 'Cannot modify configuration of an active tournament'}, status: :forbidden
         return
       end
