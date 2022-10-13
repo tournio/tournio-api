@@ -141,27 +141,27 @@ class BowlersController < ApplicationController
   # return:
   #   - client ID (paypal identifier for tournament)
   #   - total to charge
-  def purchase_details
-    unless bowler.present?
-      render json: { error: 'Bowler not found' }, status: :not_found
-      return
-    end
-
-    # permit and parse params (quantities come in as strings)
-    params.permit!
-    details = params.to_h
-
-    process_purchase_details(details)
-
-    output = {
-      total: total_to_charge,
-      paypal_client_id: tournament.paypal_client_id,
-    }
-
-    render json: output, status: :ok
-  rescue PurchaseError => e
-    render json: { error: e.message }, status: e.http_status
-  end
+  # def purchase_details
+  #   unless bowler.present?
+  #     render json: { error: 'Bowler not found' }, status: :not_found
+  #     return
+  #   end
+  #
+  #   # permit and parse params (quantities come in as strings)
+  #   params.permit!
+  #   details = params.to_h
+  #
+  #   process_purchase_details(details)
+  #
+  #   output = {
+  #     total: total_to_charge,
+  #     paypal_client_id: tournament.paypal_client_id,
+  #   }
+  #
+  #   render json: output, status: :ok
+  # rescue PurchaseError => e
+  #   render json: { error: e.message }, status: e.http_status
+  # end
 
   def stripe_checkout
     unless bowler.present?
@@ -183,8 +183,15 @@ class BowlersController < ApplicationController
     # item_quantities -- an array of hashes, with identifier and quantity as keys
     # purchasable_items -- all the additional items being bought, indexed by identifier
 
-    session = stripe_checkout_session
-    bowler.stripe_checkout_sessions << StripeCheckoutSession.new(identifier: session[:id])
+    session = {}
+    if tournament.config['skip_stripe']
+      finish_checkout_without_stripe
+      session[:id] = "pretend_checkout_session_#{bowler.id}"
+      session[:url] = "/bowlers/#{bowler.identifier}"
+    else
+      session = stripe_checkout_session
+      bowler.stripe_checkout_sessions << StripeCheckoutSession.new(identifier: session[:id])
+    end
 
     output = {
       redirect_to: session[:url],
@@ -439,5 +446,57 @@ class BowlersController < ApplicationController
   rescue Stripe::StripeError => e
     Rails.logger.info "Stripe error: #{e}"
     Bugsnag.notify(e)
+  end
+
+  def finish_checkout_without_stripe
+    total_credit = 0
+    extp = ExternalPayment.create(
+      details: {},
+      identifier: 'pretend_stripe_payment',
+      payment_type: :stripe,
+      tournament_id: tournament.id
+    )
+
+    # matching purchases (ledger items that are purchased but unpaid, including discounts)
+    #  -- mark them as paid, create ledger entries
+    matching_purchases.each do |mp|
+      mp.update(
+        paid_at: Time.zone.now,
+        external_payment_id: extp.id
+      )
+      pi = mp.purchasable_item
+      if pi.early_discount? || pi.bundle_discount?
+        total_credit -= pi.value
+      else
+        total_credit += pi.value
+      end
+    end
+
+    # new purchases, items, events, etc.
+    #  -- create purchases and ledger entries, and mark them as paid
+    item_quantities.each do |iq|
+      pi = purchasable_items[iq[:identifier]]
+      iq[:quantity].times do |_|
+        bowler.purchases << Purchase.create(
+          purchasable_item: pi,
+          amount: pi.value,
+          paid_at: Time.zone.now,
+          external_payment_id: extp.id
+        )
+
+        bowler.ledger_entries << LedgerEntry.new(
+          debit: pi.value,
+          source: :purchase,
+          identifier: pi.name
+        )
+        total_credit += pi.value
+      end
+    end
+
+    bowler.ledger_entries << LedgerEntry.new(
+      credit: total_credit,
+      source: :stripe,
+      identifier: 'pretend_stripe_payment'
+    )
   end
 end
