@@ -184,10 +184,11 @@ class BowlersController < ApplicationController
     # purchasable_items -- all the additional items being bought, indexed by identifier
 
     session = {}
-    if tournament.config['skip_stripe']
+    if tournament.config['skip_stripe'] || tournament.testing?
       finish_checkout_without_stripe
-      session[:id] = "pretend_checkout_session_#{bowler.id}"
-      session[:url] = "/bowlers/#{bowler.identifier}"
+      session[:id] = "pretend_checkout_session_#{bowler.id}_#{Time.zone.now.strftime('%FT%R')}"
+      session[:url] = "/bowlers/#{bowler.identifier}/finish_checkout"
+      bowler.stripe_checkout_sessions << StripeCheckoutSession.new(identifier: session[:id], status: :completed)
     else
       session = stripe_checkout_session
       bowler.stripe_checkout_sessions << StripeCheckoutSession.new(identifier: session[:id])
