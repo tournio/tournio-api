@@ -206,7 +206,7 @@ module TournamentRegistration
 
   def self.send_confirmation_email(bowler)
     tournament = bowler.tournament
-    if Rails.env.development? && !tournament.config[:email_in_dev]
+    if Rails.env.development? && tournament.config_items.find_by_key(:email_in_dev).value == 'false'
       Rails.logger.info "========= Not sending confirmation email, dev config says not to."
       return
     end
