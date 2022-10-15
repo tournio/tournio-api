@@ -25,7 +25,7 @@ module Director
           else
             Stripe::ProductCreator.perform_async(i.id)
           end
-        end
+        end unless tournament.config['skip_stripe']
 
         render json: PurchasableItemBlueprint.render(items), status: :created
       end
@@ -62,9 +62,9 @@ module Director
           Stripe::CouponDestroyer.perform_async(pi.stripe_coupon.coupon_id, tournament.stripe_account.identifier)
           pi.stripe_coupon.destroy
         end
-        Stripe::CouponCreator.perform_async(pi.id)
+        Stripe::CouponCreator.perform_async(pi.id) unless tournament.config['skip_stripe']
       else
-        Stripe::ProductUpdater.perform_async(pi.id) if previous_amount != new_amount
+        Stripe::ProductUpdater.perform_async(pi.id) if previous_amount != new_amount && !tournament.config['skip_stripe']
       end
 
       render json: PurchasableItemBlueprint.render(pi.reload), status: :ok

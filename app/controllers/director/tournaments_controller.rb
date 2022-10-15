@@ -264,15 +264,32 @@ module Director
 
       load_stripe_account
       unless stripe_account.present?
-        self.stripe_account = create_stripe_account
+        if tournament.config['skip_stripe']
+          Rails.logger.debug "Skipping actual integration with Stripe and faking it"
+          self.stripe_account = StripeAccount.create(
+            tournament_id: tournament.id,
+            identifier: "pretend_stripe_account_#{tournament.identifier}",
+            onboarding_completed_at: Time.zone.now
+          )
+        else
+          self.stripe_account = create_stripe_account
+        end
       end
+
       unless stripe_account.present?
         render json: { error: 'Failed to create a Stripe account in time.' }, status: :service_unavailable
         return
       end
 
-      # this will update the stripe_account's attributes if it's successful
-      get_updated_account_link
+      if tournament.config['skip_stripe']
+        stripe_account.update(
+          link_url: "/director/tournaments/#{tournament.identifier}",
+          link_expires_at: Time.zone.now + 6.hours,
+        )
+      else
+        # this will update the stripe_account's attributes if it's successful
+        get_updated_account_link
+      end
 
       unless stripe_account.link_expires_at.to_i > Time.zone.now.to_i
         render json: { error: 'Failed to get an account link in time.'}, status: :service_unavailable
@@ -297,13 +314,15 @@ module Director
         return
       end
 
-      result = get_account_details
-      unless result.present?
-        render json: { error: 'Failed to retrieve account status from Stripe.' }, status: :service_unavailable
-        return
-      end
+      unless tournament.config['skip_stripe']
+        result = get_account_details
+        unless result.present?
+          render json: { error: 'Failed to retrieve account status from Stripe.' }, status: :service_unavailable
+          return
+        end
 
-      update_account_details(result)
+        update_account_details(result)
+      end
 
       render json: StripeAccountBlueprint.render(stripe_account.reload), status: :ok
     end

@@ -115,7 +115,12 @@ class Tournament < ApplicationRecord
 
   def create_default_config
     self.config_items << ConfigItem.new(key: 'display_capacity', value: 'false')
-    self.config_items << ConfigItem.new(key: 'email_in_dev', value: 'false') if Rails.env.development?
+    if Rails.env.development?
+      self.config_items += [
+        ConfigItem.new(key: 'email_in_dev', value: 'false'),
+        ConfigItem.new(key: 'skip_stripe', value: 'true'),
+      ]
+    end
   end
 
   def clear_data
