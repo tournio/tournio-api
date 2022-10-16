@@ -28,6 +28,7 @@ class Tournament < ApplicationRecord
   include AASM
   include TournamentBusiness
 
+  has_and_belongs_to_many :users
   has_many :additional_questions, dependent: :destroy
   has_many :bowlers, dependent: :destroy
   has_many :config_items, dependent: :destroy
