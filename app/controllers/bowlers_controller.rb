@@ -177,19 +177,22 @@ class BowlersController < ApplicationController
 
     process_purchase_details(details)
 
-    # Now, we can build out the line items for the Stripe checkout session
-    # matching_purchases -- all the unpaid purchases (entry fee, late fee, and early discount)
-    #   -- we'll have to build out Coupon support in order to handle the early discount
-    # item_quantities -- an array of hashes, with identifier and quantity as keys
-    # purchasable_items -- all the additional items being bought, indexed by identifier
-
     session = {}
-    if tournament.config['skip_stripe'] || tournament.testing?
+    if tournament.testing? && params[:simulate_failure].present?
+      session[:id] = "pretend_checkout_session_#{bowler.id}_#{Time.zone.now.strftime('%FT%R')}"
+      session[:url] = "/bowlers/#{bowler.identifier}/finish_checkout"
+      bowler.stripe_checkout_sessions << StripeCheckoutSession.new(identifier: session[:id], status: :expired)
+    elsif Rails.env.development? && tournament.config['skip_stripe'] || tournament.testing?
       finish_checkout_without_stripe
       session[:id] = "pretend_checkout_session_#{bowler.id}_#{Time.zone.now.strftime('%FT%R')}"
       session[:url] = "/bowlers/#{bowler.identifier}/finish_checkout"
       bowler.stripe_checkout_sessions << StripeCheckoutSession.new(identifier: session[:id], status: :completed)
     else
+      # Now, we can build out the line items for the Stripe checkout session
+      # matching_purchases -- all the unpaid purchases (entry fee, late fee, and early discount)
+      # item_quantities -- an array of hashes, with identifier and quantity as keys
+      # purchasable_items -- all the additional items being bought, indexed by identifier
+
       session = stripe_checkout_session
       bowler.stripe_checkout_sessions << StripeCheckoutSession.new(identifier: session[:id])
     end

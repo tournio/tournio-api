@@ -4,6 +4,7 @@ class TournamentBlueprint < Blueprinter::Base
   identifier :identifier
 
   fields :name, :year, :abbreviation, :start_date, :end_date, :location, :timezone
+  field :aasm_state, name: :state
   field :image_url do |t, options|
     if options[:host].present? && t.logo_image.attached?
       Rails.application.routes.url_helpers.rails_blob_url(t.logo_image, options)
@@ -30,7 +31,6 @@ class TournamentBlueprint < Blueprinter::Base
   end
 
   view :list do
-    field :aasm_state, name: :state
     field :status do |t, _|
       TournamentRegistration.display_status(t)
     end
@@ -78,7 +78,6 @@ class TournamentBlueprint < Blueprinter::Base
 
   view :director_list do
     field :id
-    field :aasm_state, name: :state
     field :status do |t, _|
       TournamentRegistration.display_status(t)
     end
