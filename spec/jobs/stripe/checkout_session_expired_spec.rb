@@ -1,6 +1,6 @@
 require "rails_helper"
 
-RSpec.describe Stripe::CheckoutSessionCompleted, type: :job do
+RSpec.describe Stripe::CheckoutSessionExpired, type: :job do
   describe "#perform_async" do
     let(:event_id) { 'evt_anEventIdentifier' }
     let(:stripe_account_id) { 'acct_anAccountIdentifier' }
@@ -14,25 +14,8 @@ RSpec.describe Stripe::CheckoutSessionCompleted, type: :job do
 
   describe '#handle_event' do
     # When this method runs, the job's "event" attribute has already been set.
-    # So we can determine how the method goes by populating the event's
-    # line_items attribute
     #
-    # For a single line item, these are the properties we're interested in:
-    #   {
-    #     quantity: 1,
-    #     price: {
-    #       id: "price_1LHWKBRIPoTBJbS2aG8aEqQ6",
-    #       product: "prod_LzVKbov8aOmsGL",
-    #     },
-    #   },
-    #
-    # The Stripe objects Price and Product are created at the time of
-    # PurchasableItem creation, so the combination of price_id and product_id
-    # (both Stripe-generated identifiers) is enough to find an associated
-    # PurchasableItem.
-    #
-    # We rely on our price/value/amount data, not the data in Stripe's
-    # API responses. (If there's ever a discrepancy, that's our problem to fix.)
+    # the event's object is a checkout session
 
     let(:event_handler) { described_class.new }
     let(:bowler) { create :bowler, tournament: tournament }
@@ -54,10 +37,10 @@ RSpec.describe Stripe::CheckoutSessionCompleted, type: :job do
           identifier: mock_checkout_session[:id]
       end
 
-      it 'marks the checkout session as completed' do
+      it 'marks the checkout session as expired' do
         subject
         sesh = bowler.stripe_checkout_sessions.last
-        expect(sesh.completed?).to be_truthy
+        expect(sesh.expired?).to be_truthy
       end
 
       context 'with an entry fee' do
@@ -84,21 +67,10 @@ RSpec.describe Stripe::CheckoutSessionCompleted, type: :job do
         end
 
         it_behaves_like 'a Stripe event handler'
-        it_behaves_like 'a completed checkout session'
 
-        it 'associates the ExternalPayment to the entry-fee Purchase' do
+        it 'does not mark the entry-fee purchase as paid' do
           subject
-          expect(bowler.purchases.entry_fee.first.external_payment_id).to eq(ExternalPayment.last.id)
-        end
-
-        it 'marks the entry-fee purchase as paid' do
-          subject
-          expect(bowler.purchases.entry_fee.first.paid_at).not_to be_nil
-        end
-
-        it 'has the full payment amount on the LedgerEntry' do
-          subject
-          expect(LedgerEntry.last.credit).to eq(entry_fee_amount)
+          expect(bowler.purchases.entry_fee.first.paid_at).to be_nil
         end
 
         context 'and some optional items' do
@@ -139,19 +111,13 @@ RSpec.describe Stripe::CheckoutSessionCompleted, type: :job do
           let(:expected_total) { entry_fee_item.value + item_1.value + item_2.value }
 
           it_behaves_like 'a Stripe event handler'
-          it_behaves_like 'a completed checkout session'
 
-          it 'creates a Purchase for each optional item' do
-            expect { subject }.to change { bowler.purchases.count }.by(2)
+          it 'creates no Purchases for the optional items' do
+            expect { subject }.not_to change { bowler.purchases.count }
           end
 
-          it 'creates a ledger entry for each Purchase' do
-            expect { subject }.to change { bowler.ledger_entries.purchase.count }.by(2)
-          end
-
-          it 'has the full payment amount on the LedgerEntry' do
-            subject
-            expect(bowler.ledger_entries.stripe.take.credit).to eq(expected_total)
+          it 'creates no Purchase ledger entries' do
+            expect { subject }.not_to change { bowler.ledger_entries.purchase.count }
           end
         end
 
@@ -193,19 +159,13 @@ RSpec.describe Stripe::CheckoutSessionCompleted, type: :job do
           let(:expected_total) { entry_fee_item.value + item_1.value * 2 + item_2.value * 3 }
 
           it_behaves_like 'a Stripe event handler'
-          it_behaves_like 'a completed checkout session'
 
-          it 'creates a Purchase for each optional item' do
-            expect { subject }.to change { bowler.purchases.count }.by(5)
+          it 'creates no Purchases for the optional items' do
+            expect { subject }.not_to change { bowler.purchases.count }
           end
 
-          it 'creates a ledger entry for each Purchase' do
-            expect { subject }.to change { bowler.ledger_entries.purchase.count }.by(5)
-          end
-
-          it 'has the full payment amount on the LedgerEntry' do
-            subject
-            expect(bowler.ledger_entries.stripe.take.credit.to_i).to eq(expected_total)
+          it 'creates no Purchase ledger entries' do
+            expect { subject }.not_to change { bowler.ledger_entries.purchase.count }
           end
         end
 
@@ -242,15 +202,9 @@ RSpec.describe Stripe::CheckoutSessionCompleted, type: :job do
             end
 
             it_behaves_like 'a Stripe event handler'
-            it_behaves_like 'a completed checkout session'
 
             it 'creates no new Purchases' do
               expect { subject }.not_to change { bowler.purchases.count }
-            end
-
-            it 'has the full payment amount on the LedgerEntry' do
-              subject
-              expect(bowler.ledger_entries.stripe.take.credit).to eq(expected_total)
             end
           end
 
@@ -258,24 +212,14 @@ RSpec.describe Stripe::CheckoutSessionCompleted, type: :job do
             # So there is not a pre-existing late-fee Purchase
 
             it_behaves_like 'a Stripe event handler'
-            it_behaves_like 'a completed checkout session'
 
-            it 'creates a Purchase for the late fee item' do
-              expect { subject }.to change { bowler.purchases.count }.by(1)
-            end
-
-            it 'creates a ledger entry for the Purchase' do
-              expect { subject }.to change { bowler.ledger_entries.purchase.count }.by(1)
-            end
-
-            it 'has the full payment amount on the LedgerEntry' do
-              subject
-              expect(bowler.ledger_entries.stripe.take.credit).to eq(expected_total)
+            it 'creates no new Purchase' do
+              expect { subject }.not_to change { bowler.purchases.count }
             end
           end
         end
 
-        context 'and an early-registration fee' do
+        context 'and an early-registration discount' do
           let(:discount_item) do
             create(:purchasable_item,
               :early_discount,
@@ -302,20 +246,14 @@ RSpec.describe Stripe::CheckoutSessionCompleted, type: :job do
           end
 
           it_behaves_like 'a Stripe event handler'
-          it_behaves_like 'a completed checkout session'
 
           it 'creates no new Purchases' do
             expect { subject }.not_to change { bowler.purchases.count }
           end
 
-          it 'updates the paid_at attribute of the discount Purchase' do
+          it 'does not update the paid_at attribute of the discount Purchase' do
             subject
-            expect(bowler.purchases.early_discount.where(paid_at: nil)).to be_empty
-          end
-
-          it 'has the full payment amount on the LedgerEntry' do
-            subject
-            expect(bowler.ledger_entries.stripe.take.credit).to eq(expected_total)
+            expect(bowler.purchases.early_discount.where(paid_at: nil)).not_to be_empty
           end
         end
       end
@@ -324,6 +262,5 @@ RSpec.describe Stripe::CheckoutSessionCompleted, type: :job do
 
       end
     end
-
   end
 end

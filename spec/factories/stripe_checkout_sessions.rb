@@ -21,5 +21,9 @@ FactoryBot.define do
     trait :completed do
       status { 'completed' }
     end
+
+    trait :expired do
+      status { 'expired' }
+    end
   end
 end
