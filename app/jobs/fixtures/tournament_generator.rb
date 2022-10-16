@@ -51,6 +51,7 @@ module Fixtures
         'Fashion Faire',
         'Gathering of Avid Geeks',
         'The Quest for 300',
+        'ABBA ABBA Do!',
       ]
       name = nil
       begin
@@ -84,15 +85,14 @@ module Fixtures
 
       FactoryBot.create :purchasable_item,
         :early_discount,
-        :with_stripe_coupon,
         tournament: tournament,
         value: Random.rand(10) + 5,
         configuration: {
           valid_until: 3.days.ago,
         }
-      tournament.purchasable_items.each do |pi|
-        FactoryBot.create :stripe_product, purchasable_item: pi
-      end
+      # tournament.purchasable_items.each do |pi|
+      #   FactoryBot.create :stripe_product, purchasable_item: pi
+      # end
     end
 
     def create_contacts
@@ -120,7 +120,7 @@ module Fixtures
       items.each_with_index do |item, index|
         FactoryBot.create :purchasable_item,
           :optional_event,
-          :with_stripe_product,
+          # :with_stripe_product,
           tournament: tournament,
           name: item[:name],
           value: Random.rand(15) + 10,
@@ -292,10 +292,12 @@ module Fixtures
       window = Time.zone.now.to_i - bowler.created_at.to_i
       paid_at = Time.zone.at(bowler.created_at.to_i + (window * Random.rand(1.0)).to_i)
 
-      payment = FactoryBot.create :external_payment,
-        :from_stripe,
-        tournament: tournament,
-        created_at: paid_at
+      # No external payments needed, since we're skipping Stripe in development
+      #
+      # payment = FactoryBot.create :external_payment,
+      #   :from_stripe,
+      #   tournament: tournament,
+      #   created_at: paid_at
 
       # ledger entry for entry fee (minus early discount)
       purchases = bowler.purchases.unpaid
@@ -308,7 +310,8 @@ module Fixtures
       bowler.ledger_entries << LedgerEntry.new(
         credit: total,
         source: :stripe,
-        identifier: payment.identifier
+        # identifier: payment.identifier
+        identifier: "pretend_payment_#{SecureRandom.uuid}"
       )
 
       TournamentRegistration.try_confirming_bowler_shift(bowler)
