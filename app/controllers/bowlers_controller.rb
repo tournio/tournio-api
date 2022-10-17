@@ -114,7 +114,7 @@ class BowlersController < ApplicationController
     end
 
     result = {
-      bowler: BowlerBlueprint.render_as_hash(bowler, view: :detail),
+      bowler: BowlerBlueprint.render_as_hash(bowler, view: :detail, **url_options),
       available_items: rendered_purchasable_items_by_identifier,
     }
     render json: result, status: :ok

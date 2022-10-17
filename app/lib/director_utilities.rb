@@ -7,6 +7,7 @@ module DirectorUtilities
     tournament.teams.destroy_all
     tournament.reload.bowlers.destroy_all
     tournament.free_entries.destroy_all
+    tournament.data_points.destroy_all
   end
 
   def self.reassign_bowler(bowler:, to_team:)
