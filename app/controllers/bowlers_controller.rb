@@ -179,12 +179,12 @@ class BowlersController < ApplicationController
 
     session = {}
     if tournament.testing? && params[:simulate_failure].present?
-      session[:id] = "pretend_checkout_session_#{bowler.id}_#{Time.zone.now.strftime('%FT%R')}"
+      session[:id] = "pretend_checkout_session_#{bowler.id}_#{Time.zone.now.strftime('%FT%T')}"
       session[:url] = "/bowlers/#{bowler.identifier}/finish_checkout"
       bowler.stripe_checkout_sessions << StripeCheckoutSession.new(identifier: session[:id], status: :expired)
     elsif Rails.env.development? && tournament.config['skip_stripe'] || tournament.testing?
       finish_checkout_without_stripe
-      session[:id] = "pretend_checkout_session_#{bowler.id}_#{Time.zone.now.strftime('%FT%R')}"
+      session[:id] = "pretend_checkout_session_#{bowler.id}_#{Time.zone.now.strftime('%FT%T')}"
       session[:url] = "/bowlers/#{bowler.identifier}/finish_checkout"
       bowler.stripe_checkout_sessions << StripeCheckoutSession.new(identifier: session[:id], status: :completed)
     else
@@ -456,7 +456,7 @@ class BowlersController < ApplicationController
     total_credit = 0
     extp = ExternalPayment.create(
       details: {},
-      identifier: 'pretend_stripe_payment',
+      identifier: "pretend_stripe_payment_#{Time.zone.now.strftime('%FT%T')}",
       payment_type: :stripe,
       tournament_id: tournament.id
     )
@@ -500,7 +500,7 @@ class BowlersController < ApplicationController
     bowler.ledger_entries << LedgerEntry.new(
       credit: total_credit,
       source: :stripe,
-      identifier: 'pretend_stripe_payment'
+      identifier: 'pretend_stripe_payment',
     )
   end
 end
