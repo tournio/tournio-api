@@ -13,7 +13,7 @@ class TournamentBlueprint < Blueprinter::Base
 
   field :entry_deadline do |t, _|
     # datetime_with_timezone(t.entry_deadline, t)
-    t&.entry_deadline&.strftime('%FT%R')
+    t&.entry_deadline&.strftime('%FT%R%:z')
   end
 
   field :team_size do |t,_|
