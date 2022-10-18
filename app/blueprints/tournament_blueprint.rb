@@ -55,9 +55,6 @@ class TournamentBlueprint < Blueprinter::Base
     end
 
     association :testing_environment, blueprint: TestingEnvironmentBlueprint, if: ->(_field_name, tournament, options) { tournament.testing? || tournament.demo? }
-    field :registration_deadline do |t, _|
-      datetime_with_timezone(t.config['entry_deadline'], t)
-    end
     field :early_registration_ends do |t, _|
       t.early_registration_ends.present? ? datetime_with_timezone(t.early_registration_ends, t) : nil
     end
