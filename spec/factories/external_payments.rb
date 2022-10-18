@@ -17,15 +17,10 @@
 #
 FactoryBot.define do
 
-  # enum :payment_type, %i(paypal stripe)
+  # enum :payment_type, %i(stripe)
 
   factory :external_payment do
     association :tournament, strategy: :build
-
-    trait :from_paypal do
-      identifier { "paypal_payment_#{SecureRandom.uuid}"}
-      payment_type { :paypal }
-    end
 
     trait :from_stripe do
       identifier { "stripe_payment_#{SecureRandom.uuid}"}

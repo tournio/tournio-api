@@ -38,7 +38,7 @@ class RecentPaymentsSummaryJob < TemplateMailerJob
   end
 
   def load_bowlers(start_time, end_time)
-    self.bowlers = tournament.bowlers.joins(:person, :ledger_entries).where(ledger_entries: { source: :paypal, created_at: start_time..end_time })
+    self.bowlers = tournament.bowlers.joins(:person, :ledger_entries).where(ledger_entries: { created_at: start_time..end_time })
   end
 
   def sendgrid_template_id
@@ -55,7 +55,7 @@ class RecentPaymentsSummaryJob < TemplateMailerJob
       bowlers: bowlers.collect do |bowler|
         {
           full_name: TournamentRegistration.bowler_full_name(bowler),
-          ledger_entries: bowler.ledger_entries.paypal.collect do |entry|
+          ledger_entries: bowler.ledger_entries.stripe.collect do |entry|
             {
               identifier: entry.identifier,
               amount: entry.credit.to_i,
