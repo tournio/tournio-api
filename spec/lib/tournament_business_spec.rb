@@ -107,24 +107,19 @@ RSpec.describe TournamentBusiness do
     end
 
     it 'returns a hash' do
-      expect(subject).to be_instance_of(HashWithIndifferentAccess)
+      expect(subject).to be_instance_of(TournamentConfig)
     end
 
     it 'has the correct key-value mapping' do
       result = subject
       expect(result[:dummyfoo]).to eq('foo')
-      expect(result[:dummy17]).to eq('17')
+      expect(result[:dummy17]).to eq(17)
     end
 
     it 'casts "true" and "false" to boolean' do
       result = subject
       expect(result[:dummytrue]).to be_instance_of(TrueClass)
       expect(result[:dummyfalse]).to be_instance_of(FalseClass)
-    end
-
-    it 'casts "f" to boolean false' do
-      result = subject
-      expect(result[:dummyf]).to be_instance_of(FalseClass)
     end
   end
 

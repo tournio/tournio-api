@@ -15,7 +15,7 @@ module TournamentBusiness
   end
 
   def team_size
-    config[:team_size]&.to_i || DEFAULT_TEAM_SIZE
+    config[:team_size] || DEFAULT_TEAM_SIZE
   end
 
   def max_bowlers_per_entry
@@ -28,16 +28,7 @@ module TournamentBusiness
   end
 
   def config
-    @config ||= config_items.each_with_object(HashWithIndifferentAccess.new) do |item, config_hash|
-      symbolized_key = item.key.to_sym
-      config_hash[symbolized_key] = if item.value == 'true'
-                                      true
-                                    elsif item.value == 'false' || item.value == 'f'
-                                      false
-                                    else
-                                      item.value
-                                    end
-    end
+    @config ||= TournamentConfig.new(config_items)
   end
 
   def late_fee_applies_at
