@@ -5,7 +5,6 @@
 # Table name: contacts
 #
 #  id                      :bigint           not null, primary key
-#  display_order           :integer
 #  email                   :string
 #  identifier              :string
 #  name                    :string
@@ -35,13 +34,13 @@ class Contact < ApplicationRecord
 
   enum role: [
     :director,
+    :'co-director',
     :secretary,
     :treasurer,
     :'secretary-treasurer',
     :statistician,
-    :fundraising,
-    :'co-director',
     :registration,
+    :fundraising,
     :'igbo-representative',
     :technologist,
     :'member-at-large',

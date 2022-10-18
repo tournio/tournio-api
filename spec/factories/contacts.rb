@@ -5,7 +5,6 @@
 # Table name: contacts
 #
 #  id                      :bigint           not null, primary key
-#  display_order           :integer
 #  email                   :string
 #  identifier              :string
 #  name                    :string

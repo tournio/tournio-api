@@ -32,7 +32,7 @@ class Tournament < ApplicationRecord
   has_many :additional_questions, dependent: :destroy
   has_many :bowlers, dependent: :destroy
   has_many :config_items, dependent: :destroy
-  has_many :contacts, -> { order(display_order: :asc)}, dependent: :destroy
+  has_many :contacts, -> { order(role: :asc)}, dependent: :destroy
   has_many :data_points, dependent: :destroy
   has_many :events, dependent: :destroy
   has_many :extended_form_fields, through: :additional_questions
