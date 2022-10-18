@@ -543,7 +543,7 @@ describe Director::BowlersController, type: :request do
 
     context 'a payment receipt email' do
       let(:email_type) { 'payment_receipt' }
-      let(:order) { create :paypal_order }
+      let(:order) { create :external_payment }
 
       it 'sends a receipt email' do
         expect(TournamentRegistration).to receive(:send_receipt_email).with(bowler, order.identifier)

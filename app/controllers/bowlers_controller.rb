@@ -129,40 +129,6 @@ class BowlersController < ApplicationController
     end
   end
 
-  # receive:
-  # - bowler ID via params
-  # - purchasable item IDs via request body
-  # - unpaid purchase IDs via request body (return error if we think they're paid)
-  # - expected total via request body (so we can proactively prevent purchase if we reach a different total,
-  #  e.g., if they got the early discount upon registration but the date passed before they paid)
-  #  ---- is that a thing we should enforce? survey directors to see what they think, add it later if they want it
-  #
-  #
-  # return:
-  #   - client ID (paypal identifier for tournament)
-  #   - total to charge
-  # def purchase_details
-  #   unless bowler.present?
-  #     render json: { error: 'Bowler not found' }, status: :not_found
-  #     return
-  #   end
-  #
-  #   # permit and parse params (quantities come in as strings)
-  #   params.permit!
-  #   details = params.to_h
-  #
-  #   process_purchase_details(details)
-  #
-  #   output = {
-  #     total: total_to_charge,
-  #     paypal_client_id: tournament.paypal_client_id,
-  #   }
-  #
-  #   render json: output, status: :ok
-  # rescue PurchaseError => e
-  #   render json: { error: e.message }, status: e.http_status
-  # end
-
   def stripe_checkout
     unless bowler.present?
       render json: { error: 'Bowler not found' }, status: :not_found
