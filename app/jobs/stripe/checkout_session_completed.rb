@@ -92,7 +92,7 @@ module Stripe
         )
       end
 
-      TournamentRegistration.send_receipt_email(bowler, external_payment.identifier)
+      TournamentRegistration.send_receipt_email(bowler, external_payment.id)
       TournamentRegistration.try_confirming_bowler_shift(bowler)
       scp.completed!
     end
