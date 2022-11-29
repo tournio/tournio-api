@@ -27,13 +27,14 @@ class PaymentReceiptNotifierJob < TemplateMailerJob
   end
 
   def personalization_data
+    order_total = purchases.sum(&:amount) - purchases.early_discount.sum(&:amount)*2 - purchases.bundle_discount.sum(&:amount)*2
     {
       tournament_name: tournament.name,
       bowler_preferred_name: bowler.nickname || bowler.first_name,
       bowler_full_name: TournamentRegistration.bowler_full_name(bowler),
       receipt_date: external_payment.created_at.strftime('%Y %b %-d %r'),
       order_identifier: external_payment.identifier,
-      order_total: number_to_currency(purchases.sum(&:amount), precision: 0),
+      order_total: number_to_currency(order_total, precision: 0),
       treasurer_contact: treasurer_contact,
       items: populate_item_list(purchases),
       tournament_url: tournament_page,
