@@ -38,7 +38,7 @@ class RecentPaymentsSummaryJob < TemplateMailerJob
   end
 
   def load_bowlers(start_time, end_time)
-    self.bowlers = tournament.bowlers.joins(:person, :ledger_entries).where(ledger_entries: { created_at: start_time..end_time })
+    self.bowlers = tournament.bowlers.joins(:person, :ledger_entries).where(ledger_entries: { source: :stripe, created_at: start_time..end_time }).distinct
   end
 
   def sendgrid_template_id
