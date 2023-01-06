@@ -91,6 +91,23 @@ describe BowlersController, type: :request do
             expect(DataPoint.last.value).to eq('join_team')
           end
 
+          context 'sneaking some trailing whitespace in on the email address' do
+            before do
+              bowler_params[:bowlers][0]['person_attributes']['email'] += ' '
+            end
+
+            it 'succeeds' do
+              subject
+              expect(response).to have_http_status(:created)
+            end
+
+            it 'trims the trailing whitespace from the incoming email address' do
+              subject
+              bowler = Bowler.last
+              expect(bowler.email).to eq(bowler_params[:bowlers][0]['person_attributes']['email'].strip)
+            end
+          end
+
           context 'a team on a shift' do
             let(:shift) { create :shift, :high_demand, tournament: tournament }
 
@@ -191,6 +208,23 @@ describe BowlersController, type: :request do
       it 'creates a solo data point' do
         subject
         expect(DataPoint.last.value).to eq('solo')
+      end
+
+      context 'sneaking some trailing whitespace in on the email address' do
+        before do
+          bowler_params[:bowlers][0]['person_attributes']['email'] += ' '
+        end
+
+        it 'succeeds' do
+          subject
+          expect(response).to have_http_status(:created)
+        end
+
+        it 'trims the trailing whitespace from the incoming email address' do
+          subject
+          bowler = Bowler.last
+          expect(bowler.email).to eq(bowler_params[:bowlers][0]['person_attributes']['email'].strip)
+        end
       end
 
       context 'specifying a shift' do

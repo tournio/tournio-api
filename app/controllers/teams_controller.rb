@@ -122,6 +122,9 @@ class TeamsController < ApplicationController
     # Remove any empty person attributes
     permitted_params['person_attributes'].delete_if { |_k, v| v.length.zero? }
 
+    # strip leading and trailing whitespace from email, in case they managed to sneak some in
+    p['person_attributes'][:email].strip!
+
     # Person attributes: Convert integer params from string to integer
     %w[birth_month birth_day].each do |attr|
       permitted_params['person_attributes'][attr] = permitted_params['person_attributes'][attr].to_i
