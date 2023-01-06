@@ -12,7 +12,7 @@ describe TeamsController, type: :request do
     subject { post uri, params: new_team_params, as: :json }
 
     let(:uri) { "/tournaments/#{tournament.identifier}/teams" }
-    let(:tournament) { create :tournament, :active, :with_entry_fee }
+    let(:tournament) { create :tournament, :active, :with_entry_fee, :one_shift }
 
     before do
       comment = create(:extended_form_field, :comment)
@@ -72,7 +72,8 @@ describe TeamsController, type: :request do
       end
 
       context 'a team on a shift' do
-        let!(:shift) { create :shift, :high_demand, tournament: tournament, identifier: 'this-is-a-shift' }
+        # let!(:shift) { create :shift, :high_demand, tournament: tournament, identifier: 'this-is-a-shift' }
+        let(:shift) { tournament.shifts.first }
 
         it 'creates a BowlerShift instance for each member of the team' do
           expect { subject }.to change(BowlerShift, :count).by(4)
@@ -140,7 +141,7 @@ describe TeamsController, type: :request do
     subject { get uri, headers: headers, as: :json }
 
     let(:uri) { "/tournaments/#{tournament.identifier}/teams" }
-    let(:tournament) { create :tournament, :active }
+    let(:tournament) { create :tournament, :active, :one_shift }
     let(:expected_keys) { %w(identifier name size) }
 
     before do
@@ -180,7 +181,7 @@ describe TeamsController, type: :request do
     subject { get uri, headers: headers, as: :json }
 
     let(:uri) { "/teams/#{team.identifier}" }
-    let(:tournament) { create :tournament, :active }
+    let(:tournament) { create :tournament, :active, :one_shift }
     let!(:team) { create :team, :standard_full_team, tournament: tournament }
     let(:expected_keys) { %w(identifier name size bowlers) }
 
