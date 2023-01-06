@@ -147,7 +147,7 @@ RSpec.describe TournamentRegistration do
   describe '#register_bowler' do
     subject { subject_class.register_bowler(bowler) }
 
-    let(:tournament) { create :tournament, :active }
+    let(:tournament) { create :tournament, :active, :one_shift }
     let(:team) { create :team, tournament: tournament }
     let(:bowler) { create(:bowler, person: create(:person), tournament: tournament, team: team) }
 
@@ -155,6 +155,21 @@ RSpec.describe TournamentRegistration do
       allow(subject_class).to receive(:purchase_entry_fee)
       allow(subject_class).to receive(:add_late_fees_to_ledger)
     end
+
+    #
+    # This is behavior that will move into controllers once we support multiple shifts
+    #
+    it "creates a BowlerShift instance" do
+      expect { subject }.to change(BowlerShift, :count).by(1)
+    end
+
+    it "adds the bowler to the tournament's shift" do
+      subject
+      expect(bowler.bowler_shift).not_to be_nil
+    end
+    #
+    # end of shift handling
+    #
 
     it "adds the bowler's ledger items" do
       expect(subject_class).to receive(:purchase_entry_fee).with(bowler).once

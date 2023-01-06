@@ -222,6 +222,9 @@ class BowlersController < ApplicationController
       # Remove any empty person attributes
       p['person_attributes'].delete_if { |_k, v| v.length.zero? }
 
+      # strip leading and trailing whitespace from email, in case they managed to sneak some in
+      p['person_attributes'][:email].strip! if p['person_attributes'][:email].present?
+
       # Person attributes: Convert integer params from string to integer
       %w[birth_month birth_day].each do |attr|
         p['person_attributes'][attr] = p['person_attributes'][attr].to_i
@@ -244,9 +247,10 @@ class BowlersController < ApplicationController
         p.delete('doubles_partner_identifier')
       end
 
+      # Until we support multiple shifts, we aren't interested in this parameter, so just delete it
       if p['shift_identifier'].present?
-        shift = Shift.find_by(identifier: p['shift_identifier'])
-        p['bowler_shift_attributes'] = { shift_id: shift.id } unless shift.nil?
+        # shift = Shift.find_by(identifier: p['shift_identifier'])
+        # p['bowler_shift_attributes'] = { shift_id: shift.id } unless shift.nil?
         p.delete('shift_identifier')
       end
     end

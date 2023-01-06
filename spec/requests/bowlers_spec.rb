@@ -49,7 +49,7 @@ describe BowlersController, type: :request do
   describe '#create' do
     subject { post uri, params: bowler_params, as: :json }
 
-    let(:tournament) { create :tournament, :active, :with_entry_fee }
+    let(:tournament) { create :tournament, :active, :with_entry_fee, :one_shift }
 
     before do
       comment = create(:extended_form_field, :comment)
@@ -91,8 +91,25 @@ describe BowlersController, type: :request do
             expect(DataPoint.last.value).to eq('join_team')
           end
 
+          context 'sneaking some trailing whitespace in on the email address' do
+            before do
+              bowler_params[:bowlers][0]['person_attributes']['email'] += ' '
+            end
+
+            it 'succeeds' do
+              subject
+              expect(response).to have_http_status(:created)
+            end
+
+            it 'trims the trailing whitespace from the incoming email address' do
+              subject
+              bowler = Bowler.last
+              expect(bowler.email).to eq(bowler_params[:bowlers][0]['person_attributes']['email'].strip)
+            end
+          end
+
           context 'a team on a shift' do
-            let(:shift) { create :shift, :high_demand, tournament: tournament }
+            let(:shift) { tournament.shifts.first }
 
             let(:bowler_params) do
               {
@@ -180,8 +197,13 @@ describe BowlersController, type: :request do
         expect(bowler.purchases.entry_fee).not_to be_empty
       end
 
-      it 'does not create a BowlerShift model instance' do
-        expect { subject }.not_to change(BowlerShift, :count)
+      it 'creates a BowlerShift join model instance' do
+        expect { subject }.to change(BowlerShift, :count).by(1)
+      end
+
+      it 'marks the BowlerShift as requested' do
+        subject
+        expect(BowlerShift.last.requested?).to be_truthy
       end
 
       it 'creates a data point' do
@@ -193,14 +215,9 @@ describe BowlersController, type: :request do
         expect(DataPoint.last.value).to eq('solo')
       end
 
-      context 'specifying a shift' do
-        let(:shift) { create :shift, tournament: tournament }
-        let(:bowler_params) do
-          {
-            bowlers: [
-              create_bowler_test_data.merge({ shift_identifier: shift.identifier })
-            ],
-          }
+      context 'sneaking some trailing whitespace in on the email address' do
+        before do
+          bowler_params[:bowlers][0]['person_attributes']['email'] += ' '
         end
 
         it 'succeeds' do
@@ -208,15 +225,40 @@ describe BowlersController, type: :request do
           expect(response).to have_http_status(:created)
         end
 
-        it 'creates a BowlerShift join model instance' do
-          expect { subject }.to change(BowlerShift, :count).by(1)
-        end
-
-        it 'marks the BowlerShift as requested' do
+        it 'trims the trailing whitespace from the incoming email address' do
           subject
-          expect(BowlerShift.last.requested?).to be_truthy
+          bowler = Bowler.last
+          expect(bowler.email).to eq(bowler_params[:bowlers][0]['person_attributes']['email'].strip)
         end
       end
+
+      #
+      # Until we support multiple shifts, we don't care about this.
+      #
+      # context 'specifying a shift' do
+      #   let(:shift) { create :shift, tournament: tournament }
+      #   let(:bowler_params) do
+      #     {
+      #       bowlers: [
+      #         create_bowler_test_data.merge({ shift_identifier: shift.identifier })
+      #       ],
+      #     }
+      #   end
+      #
+      #   it 'succeeds' do
+      #     subject
+      #     expect(response).to have_http_status(:created)
+      #   end
+      #
+      #   it 'creates a BowlerShift join model instance' do
+      #     expect { subject }.to change(BowlerShift, :count).by(1)
+      #   end
+      #
+      #   it 'marks the BowlerShift as requested' do
+      #     subject
+      #     expect(BowlerShift.last.requested?).to be_truthy
+      #   end
+      # end
 
       context 'a tournament with event selection' do
         let(:tournament) { create :tournament, :active, :with_a_bowling_event }
@@ -270,7 +312,7 @@ describe BowlersController, type: :request do
     end
 
     context 'registering as a doubles pair' do
-      let(:tournament) { create :tournament, :active, :with_a_bowling_event }
+      let(:tournament) { create :tournament, :active, :with_a_bowling_event, :one_shift }
       let(:uri) { "/tournaments/#{tournament.identifier}/bowlers" }
       let(:bowler_params) do
         {

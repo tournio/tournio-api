@@ -122,6 +122,9 @@ class TeamsController < ApplicationController
     # Remove any empty person attributes
     permitted_params['person_attributes'].delete_if { |_k, v| v.length.zero? }
 
+    # strip leading and trailing whitespace from email, in case they managed to sneak some in
+    permitted_params['person_attributes'][:email].strip! if permitted_params['person_attributes'][:email].present?
+
     # Person attributes: Convert integer params from string to integer
     %w[birth_month birth_day].each do |attr|
       permitted_params['person_attributes'][attr] = permitted_params['person_attributes'][attr].to_i
@@ -137,9 +140,10 @@ class TeamsController < ApplicationController
     # remove that key from the params...
     permitted_params.delete('additional_question_responses')
 
+    # Until we support multiple shifts, we aren't interested in this parameter, so just delete it
     if permitted_params['shift_identifier'].present?
-      shift = Shift.find_by(identifier: permitted_params['shift_identifier'])
-      permitted_params['bowler_shift_attributes'] = { shift_id: shift.id } unless shift.nil?
+      # shift = Shift.find_by(identifier: permitted_params['shift_identifier'])
+      # permitted_params['bowler_shift_attributes'] = { shift_id: shift.id } unless shift.nil?
       permitted_params.delete('shift_identifier')
     end
 
