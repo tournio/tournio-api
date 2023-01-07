@@ -103,7 +103,6 @@ module Director
     end
 
     def resend_email
-
       load_bowler_and_tournament
       unless bowler.present?
         skip_authorization
@@ -118,7 +117,8 @@ module Director
       when 'registration'
         TournamentRegistration.send_confirmation_email(bowler)
       when 'payment_receipt'
-        TournamentRegistration.send_receipt_email(bowler, email_params['order_identifier'])
+        ep = ExternalPayment.find_by_identifier(email_params['order_identifier'])
+        TournamentRegistration.send_receipt_email(bowler, ep.id) unless ep.nil?
       end
 
       render json: nil, status: :no_content
