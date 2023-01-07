@@ -546,7 +546,7 @@ describe Director::BowlersController, type: :request do
       let(:order) { create :external_payment, :from_stripe }
 
       it 'sends a receipt email' do
-        expect(TournamentRegistration).to receive(:send_receipt_email).with(bowler, order.identifier)
+        expect(TournamentRegistration).to receive(:send_receipt_email).with(bowler, order.id)
         subject
       end
     end
