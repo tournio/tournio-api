@@ -345,7 +345,6 @@ ActiveRecord::Schema[7.0].define(version: 2023_01_09_214322) do
   create_table "stripe_payment_intents", force: :cascade do |t|
     t.bigint "stripe_checkout_session_id", null: false
     t.string "identifier", null: false
-    t.integer "amount_received", default: 0
     t.datetime "created_at", null: false
     t.datetime "updated_at", null: false
     t.index ["identifier"], name: "index_stripe_payment_intents_on_identifier"

@@ -3,7 +3,6 @@
 # Table name: stripe_payment_intents
 #
 #  id                         :bigint           not null, primary key
-#  amount_received            :integer          default(0)
 #  identifier                 :string           not null
 #  created_at                 :datetime         not null
 #  updated_at                 :datetime         not null

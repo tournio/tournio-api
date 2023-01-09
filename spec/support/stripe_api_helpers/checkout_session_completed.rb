@@ -40,6 +40,7 @@ module StripeApiHelpers
         amount_total: amount_total,
         object: 'checkout.session',
         status: 'complete',
+        payment_intent: "pi_test_#{SecureRandom.uuid}"
       }
     end
   end
