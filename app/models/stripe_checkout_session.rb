@@ -16,6 +16,7 @@
 #
 class StripeCheckoutSession < ApplicationRecord
   belongs_to :bowler
+  has_one :stripe_payment_intent
 
   enum :status, %i(open completed expired)
 end

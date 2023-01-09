@@ -60,6 +60,17 @@ RSpec.describe Stripe::CheckoutSessionCompleted, type: :job do
         expect(sesh.completed?).to be_truthy
       end
 
+      it 'creates a StripePaymentIntent' do
+        expect { subject }.to change(StripePaymentIntent, :count).by(1)
+      end
+
+      it 'correctly populates the StripePaymentIntent identifier' do
+        subject
+        pi_identifier = mock_checkout_session[:payment_intent]
+        last_spi = StripePaymentIntent.last
+        expect(last_spi.identifier).to eq(pi_identifier)
+      end
+
       context 'with an entry fee' do
         let(:entry_fee_amount) { 117 }
         let(:entry_fee_item) do

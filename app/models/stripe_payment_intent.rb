@@ -14,4 +14,5 @@
 #  index_stripe_payment_intents_on_stripe_checkout_session_id  (stripe_checkout_session_id)
 #
 class StripePaymentIntent < ApplicationRecord
+  belongs_to :stripe_checkout_session
 end

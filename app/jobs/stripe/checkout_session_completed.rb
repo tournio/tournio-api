@@ -88,6 +88,13 @@ module Stripe
         identifier: cs[:id]
       )
 
+      # Create an association to the Stripe PaymentIntent object, so we can associate a refund
+      # if one should come in later.
+      StripePaymentIntent.create(
+        identifier: cs[:payment_intent],
+        stripe_checkout_session: scp
+      )
+
       TournamentRegistration.send_receipt_email(bowler, external_payment.id)
       TournamentRegistration.try_confirming_bowler_shift(bowler)
       scp.completed!
