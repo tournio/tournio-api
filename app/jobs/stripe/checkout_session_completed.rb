@@ -85,12 +85,8 @@ module Stripe
       bowler.ledger_entries << LedgerEntry.new(
         credit: cs[:amount_total] / 100, # (this comes in as cents, rather than dollars)
         source: :stripe,
-        identifier: cs[:id]
+        identifier: cs[:payment_intent]
       )
-
-      # Create an association to the Stripe PaymentIntent object, so we can associate a refund
-      # if one should come in later.
-      scp.update(payment_intent_identifier: cs[:payment_intent])
 
       TournamentRegistration.send_receipt_email(bowler, external_payment.id)
       TournamentRegistration.try_confirming_bowler_shift(bowler)

@@ -60,11 +60,14 @@ RSpec.describe Stripe::CheckoutSessionCompleted, type: :job do
         expect(sesh.completed?).to be_truthy
       end
 
-      it 'correctly populates the StripePaymentIntent identifier' do
+      it 'creates a LedgerEntry with Stripe as the source' do
+        expect { subject }.to change(LedgerEntry.stripe, :count).by(1)
+      end
+
+      it 'correctly populates the identifier on the Stripe LedgerEntry' do
         subject
-        sesh = bowler.stripe_checkout_sessions.last
         pi_identifier = mock_checkout_session[:payment_intent]
-        expect(sesh.payment_intent_identifier).to eq(pi_identifier)
+        expect(LedgerEntry.stripe.last.identifier).to eq(pi_identifier)
       end
 
       context 'with an entry fee' do
