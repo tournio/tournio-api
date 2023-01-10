@@ -21,7 +21,6 @@ RSpec.describe Stripe::ChargeRefunded, type: :job do
     let(:charge_identifier) { "ch_test_#{SecureRandom.uuid}" }
     let(:payment_intent_identifier) { "pi_test_#{SecureRandom}" }
     let(:amount_refunded) { 12345 }
-    let(:refunded) { true }
     let(:mock_event) do
       {
         id: "evt_test_#{SecureRandom.uuid}",
@@ -30,7 +29,7 @@ RSpec.describe Stripe::ChargeRefunded, type: :job do
           object: 'charge',
           amount_refunded: amount_refunded,
           payment_intent: payment_intent_identifier,
-          refunded: refunded,
+          refunded: true,
           status: 'succeeded',
         }
       }
@@ -73,7 +72,7 @@ RSpec.describe Stripe::ChargeRefunded, type: :job do
     end
 
     it 'notifies the appropriate committee member' do
-      
+
     end
 
     context 'An unrecognized PaymentIntent identifier' do
