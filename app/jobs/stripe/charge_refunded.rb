@@ -2,24 +2,19 @@ module Stripe
   class ChargeRefunded < EventHandler
 
     def handle_event
-      cs = retrieve_stripe_object
-      scp = StripeCheckoutSession.find_by(identifier: cs[:id])
+      charge = event[:object]
+      payment_intent_identifier = charge[:payment_intent]
+      credit_ledger_entry = LedgerEntry.find_by!(identifier: payment_intent_identifier)
+      bowler_id = credit_ledger_entry.bowler_id
+      LedgerEntry.create(
+        bowler_id: bowler_id,
+        debit: charge[:amount_refunded] / 100,
+        identifier: charge[:id],
+        source: :stripe
+      ) unless LedgerEntry.exists?(identifier: charge[:id])
 
-      # TODO: any sanity-checking, e.g.,
-      #  - in the event the SCP model shows it was anything but open
-
-      scp.expired!
-    end
-
-    def retrieve_stripe_object
-      Stripe::Checkout::Session.retrieve(
-        {
-          id: event[:data][:object][:id],
-        },
-        {
-          stripe_account: event[:account],
-        }
-      )
+    rescue ActiveRecord::RecordNotFound => e
+      Rails.logger.warn "Received charge.refunded with unrecognized PaymentIntent identifier: #{payment_intent_identifier}"
     end
   end
 end
