@@ -36,7 +36,7 @@ module Stripe
         name: purchasable_item.name,
         amount_off: purchasable_item.value * 100,
         currency: tournament.currency,
-        
+
         # Don't include redeem by; this blocks the Stripe transaction if that timestamp has passed.
         # If the discount is still there after its expiration time, that's on us (or on the tournament),
         # and should not block the bowler from paying.

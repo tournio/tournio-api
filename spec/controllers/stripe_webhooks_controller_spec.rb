@@ -62,6 +62,19 @@ RSpec.describe StripeWebhooksController, type: :controller do
         expect { subject }.to change(Stripe::AccountUpdated.jobs, :size).by(1)
       end
     end
+
+    context 'for a charge.refunded event' do
+      let(:event_type) { 'charge.refunded' }
+
+      it "succeeds" do
+        subject
+        expect(response).to have_http_status(:no_content)
+      end
+
+      it "hands the work off to a background job" do
+        expect { subject }.to change(Stripe::ChargeRefunded.jobs, :size).by(1)
+      end
+    end
   end
 end
 

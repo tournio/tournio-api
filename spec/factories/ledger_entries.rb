@@ -39,5 +39,8 @@ FactoryBot.define do
       identifier { 'free entry' }
       source { :free_entry }
     end
+    trait :stripe do
+      source { :stripe }
+    end
   end
 end

@@ -30,7 +30,6 @@ module Stripe
 
       new_purchases = []
       # previous_paid_event_item_ids = bowler.purchases.event.paid.map { |p| p.purchasable_item.identifier }
-      total_credit = 0
       line_items = cs[:line_items][:data]
       # inside each line_item is a price object, which has the important things:
       # - id (of Price object)
@@ -55,13 +54,12 @@ module Stripe
             paid_at: paid_at,
             external_payment_id: external_payment.id
           )
-          total_credit += pi.value * quantity
 
           # Is there a coupon associated?
           # Right now, all discounts on our side are created as unpaid purchases,
           # so it is not possible for one to be associated with a new purchase.
           if li[:discounts].present?
-            li[:discounts].each { |d| total_credit -= handle_discount(d) }
+            li[:discounts].each { |d| handle_discount(d) }
           end
         else
           # or is it a new purchase?
@@ -79,18 +77,16 @@ module Stripe
               source: :purchase,
               identifier: pi.name
             )
-            total_credit += pi.value
           end
         end
       end
 
-      unless total_credit == 0
-        bowler.ledger_entries << LedgerEntry.new(
-          credit: total_credit,
-          source: :stripe,
-          identifier: cs[:id]
-        )
-      end
+      # A credit ledger entry for the total amount paid, as indicated by the payment provider
+      bowler.ledger_entries << LedgerEntry.new(
+        credit: cs[:amount_total] / 100, # (this comes in as cents, rather than dollars)
+        source: :stripe,
+        identifier: cs[:payment_intent]
+      )
 
       TournamentRegistration.send_receipt_email(bowler, external_payment.id)
       TournamentRegistration.try_confirming_bowler_shift(bowler)
@@ -106,7 +102,6 @@ module Stripe
         paid_at: paid_at,
         external_payment_id: external_payment.id
       )
-      pi.value
     end
 
     def retrieve_stripe_object
