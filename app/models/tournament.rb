@@ -107,7 +107,8 @@ class Tournament < ApplicationRecord
   def generate_identifier
     require 'slugify'
 
-    self.identifier = "#{name} #{year}".slugify
+    word = abbreviation.present? ? abbreviation : name
+    self.identifier = "#{word} #{year}".slugify
   end
 
   def initiate_testing_environment
