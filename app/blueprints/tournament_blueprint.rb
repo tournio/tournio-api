@@ -71,23 +71,23 @@ class TournamentBlueprint < Blueprinter::Base
     field :early_registration_discount do |t, _|
       t.purchasable_items.early_discount.take&.value
     end
-  end
 
-  view :director_list do
-    field :id
-    field :status do |t, _|
-      TournamentRegistration.display_status(t)
+    field :registration_options do |s, _|
+      types = {}
+      Tournament::SUPPORTED_REGISTRATION_OPTIONS.each do |t|
+        types[t] = s.details['enabled_registration_options'].include?(t)
+      end
+      types
     end
   end
 
   view :director_detail do
-    include_view :director_list
+    include_view :detail
+
+    fields :id
 
     # throw everything in here
-    association :config_items, blueprint: ConfigItemBlueprint
-    association :contacts, blueprint: ContactBlueprint
     association :testing_environment, blueprint: TestingEnvironmentBlueprint
-    association :shifts, blueprint: ShiftBlueprint
     association :stripe_account, blueprint: StripeAccountBlueprint
     association :scratch_divisions, blueprint: ScratchDivisionBlueprint
     association :events, blueprint: EventBlueprint

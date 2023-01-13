@@ -714,6 +714,28 @@ describe Director::TournamentsController, type: :request do
       end
     end
 
+    context 'changing enabled registration types' do
+      let(:params) do
+        {
+          tournament: {
+            details: {
+              enabled_registration_options: %w(solo join_team),
+            }
+          }
+        }
+      end
+
+      it 'responds with OK' do
+        subject
+        expect(response).to have_http_status(:ok)
+      end
+
+      it 'reflects the desired change' do
+        subject
+        expect(tournament.reload.details['enabled_registration_options']).to match_array(%w(solo join_team))
+      end
+    end
+
     context 'Other tournament modes' do
       context 'Testing' do
         let(:tournament) { create :tournament, :testing }

@@ -7,6 +7,7 @@
 #  id             :bigint           not null, primary key
 #  aasm_state     :string           not null
 #  abbreviation   :string
+#  details        :jsonb
 #  end_date       :date
 #  entry_deadline :datetime
 #  identifier     :string           not null

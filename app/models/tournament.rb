@@ -7,6 +7,7 @@
 #  id             :bigint           not null, primary key
 #  aasm_state     :string           not null
 #  abbreviation   :string
+#  details        :jsonb
 #  end_date       :date
 #  entry_deadline :datetime
 #  identifier     :string           not null
@@ -59,6 +60,9 @@ class Tournament < ApplicationRecord
 
   scope :upcoming, ->(right_now = Time.zone.now) { where('end_date > ?', right_now) }
   scope :available, -> { upcoming.where(aasm_state: %w[active closed]) }
+
+  SUPPORTED_DETAILS = %w(registration_types)
+  SUPPORTED_REGISTRATION_OPTIONS = %w(new_team solo join_team partner new_pair)
 
   aasm do
     state :setup, initial: true

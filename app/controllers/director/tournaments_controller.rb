@@ -52,6 +52,9 @@ module Director
           :fee,
         ]
       ],
+      details: {
+        enabled_registration_options: [],
+      },
     ]
 
     def index
@@ -61,7 +64,7 @@ module Director
                       policy_scope(Tournament).includes(:config_items).order(name: :asc)
                     end
       authorize(Tournament)
-      render json: TournamentBlueprint.render(tournaments, view: :director_list, **url_options)
+      render json: TournamentBlueprint.render(tournaments, view: :list, **url_options)
     end
 
     def show
