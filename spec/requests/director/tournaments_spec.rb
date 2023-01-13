@@ -33,9 +33,9 @@ describe Director::TournamentsController, type: :request do
       expect(json.length).to eq(4);
     end
 
-    it 'includes the tournament id in each one' do
+    it 'includes the tournament identifier in each one' do
       subject
-      expect(json[0]).to have_key('id')
+      expect(json[0]).to have_key('identifier')
     end
 
     context 'When all I need is upcoming tournaments' do
@@ -733,6 +733,20 @@ describe Director::TournamentsController, type: :request do
       it 'reflects the desired change' do
         subject
         expect(tournament.reload.details['enabled_registration_options']).to match_array(%w(solo join_team))
+      end
+
+      context 'when tournament is active' do
+        let(:tournament) { create :tournament, :active }
+
+        it 'responds with OK' do
+          subject
+          expect(response).to have_http_status(:ok)
+        end
+
+        it 'reflects the desired change' do
+          subject
+          expect(tournament.reload.details['enabled_registration_options']).to match_array(%w(solo join_team))
+        end
       end
     end
 

@@ -159,12 +159,25 @@ module Director
 
       authorize tournament
 
-      if tournament.active? || tournament.closed? || tournament.demo?
+      if tournament.closed?
         render json: nil, status: 403
         return
       end
 
+      # We want to permit changes to details.enabled_registration_types even when tournament is active
       updates = update_params
+      details_update = updates[:details]
+      if details_update.present?
+        tournament.update(details: details_update)
+        updates.delete(:details)
+        render json: TournamentBlueprint.render(tournament.reload, view: :director_detail, **url_options) and return
+      end
+
+      if tournament.active? || tournament.demo?
+        render json: nil, status: 403
+        return
+      end
+
       updates[:additional_questions_attributes].each do |aqa|
         if aqa[:extended_form_field_id].present?
           eff = ExtendedFormField.find(aqa[:extended_form_field_id])
