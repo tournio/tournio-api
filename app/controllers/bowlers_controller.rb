@@ -207,7 +207,7 @@ class BowlersController < ApplicationController
     return unless tournament.nil?
     identifier = parameters[:tournament_identifier]
     if identifier.present?
-      @tournament = Tournament.includes(:bowlers, :stripe_account).find_by_identifier(identifier)
+      @tournament = Tournament.includes(:stripe_account, bowlers: [:person]).find_by_identifier(identifier)
     end
   end
 
