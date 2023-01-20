@@ -6,6 +6,8 @@
 #  amount              :integer          default(0)
 #  identifier          :string           not null
 #  paid_at             :datetime
+#  void_reason         :string
+#  voided_at           :datetime
 #  created_at          :datetime         not null
 #  updated_at          :datetime         not null
 #  bowler_id           :bigint
