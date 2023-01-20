@@ -33,8 +33,9 @@ class Purchase < ApplicationRecord
 
   before_create :generate_identifier, :get_value_from_item
 
-  scope :unpaid, -> { where(paid_at: nil) }
+  scope :unpaid, -> { where(paid_at: nil, voided_at: nil) }
   scope :paid, -> { where.not(paid_at: nil) }
+  scope :voided, -> { where.not(voided_at: nil) }
   scope :bowling, -> { joins(:purchasable_item).where(purchasable_item: {category: :bowling}) }
   scope :single_use, -> { joins(:purchasable_item).where(purchasable_item: {determination: :single_use}) }
   scope :entry_fee, -> { joins(:purchasable_item).where(purchasable_item: {determination: :entry_fee}) }
@@ -44,6 +45,9 @@ class Purchase < ApplicationRecord
   scope :early_discount, -> { joins(:purchasable_item).where(purchasable_item: {category: :ledger, determination: :early_discount}) }
   scope :late_fee, -> { joins(:purchasable_item).where(purchasable_item: {category: :ledger, determination: :late_fee})}
   scope :event_linked, -> { joins(:purchasable_item).where(purchasable_item: {refinement: :event_linked})}
+
+  validates :paid_at, absence: true, if: proc { |p| p.voided_at.present? }
+  validates :voided_at, absence: true, if: proc { |p| p.paid_at.present? }
 
   private
 
