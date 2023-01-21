@@ -873,7 +873,8 @@ describe Director::TournamentsController, type: :request do
         end
 
         it 'invokes the scheduler' do
-          expect { subject }.to change(PaymentReminderSchedulerJob.jobs, :size).by(1)
+          expect(PaymentReminderSchedulerJob).to receive(:perform_async).once
+          subject
         end
       end
 
@@ -886,7 +887,8 @@ describe Director::TournamentsController, type: :request do
         end
 
         it 'invokes the scheduler' do
-          expect { subject }.to change(PaymentReminderSchedulerJob.jobs, :size).by(1)
+          expect(PaymentReminderSchedulerJob).to receive(:perform_async).once
+          subject
         end
       end
     end
