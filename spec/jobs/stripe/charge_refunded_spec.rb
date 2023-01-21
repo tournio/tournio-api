@@ -1,17 +1,6 @@
 require "rails_helper"
 
 RSpec.describe Stripe::ChargeRefunded, type: :job do
-  describe "#perform_async" do
-    let(:event_id) { 'evt_anEventIdentifier' }
-    let(:stripe_account_id) { 'acct_anAccountIdentifier' }
-
-    subject { described_class.perform_async(event_id, stripe_account_id) }
-
-    it "gets enqueued" do
-      expect { subject }.to change(described_class.jobs, :size).by(1)
-    end
-  end
-
   describe '#handle_event' do
     # When this method runs, the job's "event" attribute has already been set.
     #

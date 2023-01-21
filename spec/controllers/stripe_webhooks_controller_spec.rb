@@ -46,7 +46,8 @@ RSpec.describe StripeWebhooksController, type: :controller do
       end
 
       it "hands the work off to a background job" do
-        expect { subject }.to change(Stripe::CheckoutSessionCompleted.jobs, :size).by(1)
+        expect(Stripe::CheckoutSessionCompleted).to receive(:perform_async)
+        subject
       end
     end
 
@@ -59,7 +60,8 @@ RSpec.describe StripeWebhooksController, type: :controller do
       end
 
       it "hands the work off to a background job" do
-        expect { subject }.to change(Stripe::AccountUpdated.jobs, :size).by(1)
+        expect(Stripe::AccountUpdated).to receive(:perform_async)
+        subject
       end
     end
 
@@ -72,7 +74,8 @@ RSpec.describe StripeWebhooksController, type: :controller do
       end
 
       it "hands the work off to a background job" do
-        expect { subject }.to change(Stripe::ChargeRefunded.jobs, :size).by(1)
+        expect(Stripe::ChargeRefunded).to receive(:perform_async)
+        subject
       end
     end
   end

@@ -79,6 +79,15 @@ RSpec.configure do |config|
       example.run
     end
   end
+
+  # When tests require a Sidekiq job to run (though we don't have any of those at the moment...)
+  config.around(type: :job) do |example|
+    if example.metadata[:sidekiq_inline]
+      Sidekiq::Testing.inline! { example.run }
+    else
+      example.run
+    end
+  end
 end
 
 # Added by me

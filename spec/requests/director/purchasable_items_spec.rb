@@ -44,8 +44,6 @@ describe Director::PurchasableItemsController, type: :request do
       }
     end
 
-    before { Sidekiq::Job.clear_all }
-
     ###############
 
     include_examples 'an authorized action'
@@ -67,13 +65,13 @@ describe Director::PurchasableItemsController, type: :request do
     end
 
     it 'kicks off a Stripe::ProductCreator job' do
+      expect(Stripe::ProductCreator).to receive(:perform_async).once
       subject
-      expect(Stripe::ProductCreator.jobs.size).to eq(1)
     end
 
     it 'does not kick off a Stripe::CouponCreator job' do
+      expect(Stripe::CouponCreator).not_to receive(:perform_async)
       subject
-      expect(Stripe::CouponCreator.jobs.size).to eq(0)
     end
 
     context 'a collection of division items' do
@@ -110,13 +108,13 @@ describe Director::PurchasableItemsController, type: :request do
       end
 
       it 'kicks off a Stripe::ProductCreator job for each item' do
+        expect(Stripe::ProductCreator).to receive(:perform_async).exactly(5).times
         subject
-        expect(Stripe::ProductCreator.jobs.size).to eq(5)
       end
 
       it 'does not kick off a Stripe::CouponCreator job' do
+        expect(Stripe::CouponCreator).not_to receive(:perform_async)
         subject
-        expect(Stripe::CouponCreator.jobs.size).to eq(0)
       end
     end
 
@@ -147,13 +145,13 @@ describe Director::PurchasableItemsController, type: :request do
         end
 
         it 'kicks off a Stripe::ProductCreator job' do
+          expect(Stripe::ProductCreator).to receive(:perform_async).once
           subject
-          expect(Stripe::ProductCreator.jobs.size).to eq(1)
         end
 
         it 'does not kick off a Stripe::CouponCreator job' do
+          expect(Stripe::CouponCreator).not_to receive(:perform_async)
           subject
-          expect(Stripe::CouponCreator.jobs.size).to eq(0)
         end
 
         context 'when an entry fee already exists' do
@@ -165,13 +163,13 @@ describe Director::PurchasableItemsController, type: :request do
           end
 
           it 'does not kick off a Stripe::ProductCreator job' do
+            expect(Stripe::ProductCreator).not_to receive(:perform_async)
             subject
-            expect(Stripe::ProductCreator.jobs.size).to eq(0)
           end
 
           it 'does not kick off a Stripe::CouponCreator job' do
+            expect(Stripe::CouponCreator).not_to receive(:perform_async)
             subject
-            expect(Stripe::CouponCreator.jobs.size).to eq(0)
           end
         end
       end
@@ -192,8 +190,8 @@ describe Director::PurchasableItemsController, type: :request do
         end
 
         it 'kicks off a Stripe::ProductCreator job' do
+          expect(Stripe::ProductCreator).to receive(:perform_async).once
           subject
-          expect(Stripe::ProductCreator.jobs.size).to eq(1)
         end
 
         it 'does not kick off a Stripe::CouponCreator job' do
@@ -216,13 +214,13 @@ describe Director::PurchasableItemsController, type: :request do
           end
 
           it 'does not kick off a Stripe::ProductCreator job' do
+            expect(Stripe::ProductCreator).not_to receive(:perform_async)
             subject
-            expect(Stripe::ProductCreator.jobs.size).to eq(0)
           end
 
           it 'does not kick off a Stripe::CouponCreator job' do
+            expect(Stripe::CouponCreator).not_to receive(:perform_async)
             subject
-            expect(Stripe::CouponCreator.jobs.size).to eq(0)
           end
         end
 
@@ -235,13 +233,13 @@ describe Director::PurchasableItemsController, type: :request do
           end
 
           it 'does not kick off a Stripe::ProductCreator job' do
+            expect(Stripe::ProductCreator).not_to receive(:perform_async)
             subject
-            expect(Stripe::ProductCreator.jobs.size).to eq(0)
           end
 
           it 'does not kick off a Stripe::CouponCreator job' do
+            expect(Stripe::CouponCreator).not_to receive(:perform_async)
             subject
-            expect(Stripe::CouponCreator.jobs.size).to eq(0)
           end
         end
       end
@@ -262,13 +260,13 @@ describe Director::PurchasableItemsController, type: :request do
         end
 
         it 'does not kick off a Stripe::ProductCreator job' do
+          expect(Stripe::ProductCreator).not_to receive(:perform_async)
           subject
-          expect(Stripe::ProductCreator.jobs.size).to eq(0)
         end
 
         it 'kicks off a Stripe::CouponCreator job' do
+          expect(Stripe::CouponCreator).to receive(:perform_async).once
           subject
-          expect(Stripe::CouponCreator.jobs.size).to eq(1)
         end
 
         context 'without providing a valid_until timestamp' do
@@ -286,13 +284,13 @@ describe Director::PurchasableItemsController, type: :request do
           end
 
           it 'does not kick off a Stripe::ProductCreator job' do
+            expect(Stripe::ProductCreator).not_to receive(:perform_async)
             subject
-            expect(Stripe::ProductCreator.jobs.size).to eq(0)
           end
 
           it 'does not kick off a Stripe::CouponCreator job' do
+            expect(Stripe::CouponCreator).not_to receive(:perform_async)
             subject
-            expect(Stripe::CouponCreator.jobs.size).to eq(0)
           end
         end
 
@@ -305,13 +303,13 @@ describe Director::PurchasableItemsController, type: :request do
           end
 
           it 'does not kick off a Stripe::ProductCreator job' do
+            expect(Stripe::ProductCreator).not_to receive(:perform_async)
             subject
-            expect(Stripe::ProductCreator.jobs.size).to eq(0)
           end
 
           it 'does not kick off a Stripe::CouponCreator job' do
+            expect(Stripe::CouponCreator).not_to receive(:perform_async)
             subject
-            expect(Stripe::CouponCreator.jobs.size).to eq(0)
           end
         end
       end
@@ -364,13 +362,13 @@ describe Director::PurchasableItemsController, type: :request do
         end
 
         it 'kicks off a Stripe::ProductCreator job' do
+          expect(Stripe::ProductCreator).to receive(:perform_async).once
           subject
-          expect(Stripe::ProductCreator.jobs.size).to eq(1)
         end
 
         it 'does not kick off a Stripe::CouponCreator job' do
+          expect(Stripe::CouponCreator).not_to receive(:perform_async)
           subject
-          expect(Stripe::CouponCreator.jobs.size).to eq(0)
         end
       end
     end
@@ -409,13 +407,13 @@ describe Director::PurchasableItemsController, type: :request do
       end
 
       it 'kicks off a Stripe::ProductCreator job' do
+        expect(Stripe::ProductCreator).to receive(:perform_async).once
         subject
-        expect(Stripe::ProductCreator.jobs.size).to eq(1)
       end
 
       it 'does not kick off a Stripe::CouponCreator job' do
+        expect(Stripe::CouponCreator).not_to receive(:perform_async)
         subject
-        expect(Stripe::CouponCreator.jobs.size).to eq(0)
       end
 
       context 'without providing a denomination' do
@@ -432,14 +430,14 @@ describe Director::PurchasableItemsController, type: :request do
           expect(response).to have_http_status(:unprocessable_entity)
         end
 
-        it 'does not kick off a Stripe::ProductCreator job' do
+        it 'kicks off a Stripe::ProductCreator job' do
+          expect(Stripe::ProductCreator).not_to receive(:perform_async)
           subject
-          expect(Stripe::ProductCreator.jobs.size).to eq(0)
         end
 
         it 'does not kick off a Stripe::CouponCreator job' do
+          expect(Stripe::CouponCreator).not_to receive(:perform_async)
           subject
-          expect(Stripe::CouponCreator.jobs.size).to eq(0)
         end
       end
     end
