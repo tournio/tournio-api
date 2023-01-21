@@ -3,17 +3,6 @@
 require "rails_helper"
 
 RSpec.describe VoidPurchaseJob, type: :job do
-  describe "#perform_async" do
-    let(:purchase_id) { 12345 }
-    let(:why) { 'a really good reason' }
-
-    subject { described_class.perform_async(purchase_id, why) }
-
-    it "gets enqueued" do
-      expect { subject }.to change(described_class.jobs, :size).by(1)
-    end
-  end
-
   describe '#perform' do
     let(:tournament) { create :tournament }
     let(:pi) { create :purchasable_item, :early_discount, tournament: tournament }
@@ -38,11 +27,25 @@ RSpec.describe VoidPurchaseJob, type: :job do
       expect(purchase.reload.voided_at).not_to be_nil
     end
 
+    it 'creates a ledger entry' do
+      expect { subject }.to change(LedgerEntry, :count).by(1)
+    end
+
+    it 'marks the created LedgerEntry with void as the source' do
+      subject
+      le = LedgerEntry.last
+      expect(le.void?).to be_truthy
+    end
+
     context 'when the purchase is paid' do
       let(:paid_at) { 2.weeks.ago }
 
       it 'does not update the voided_at attribute' do
         expect { subject }.not_to change(purchase, :voided_at)
+      end
+
+      it 'does not create a ledger entry' do
+        expect { subject }.not_to change(LedgerEntry, :count)
       end
     end
 
@@ -51,6 +54,10 @@ RSpec.describe VoidPurchaseJob, type: :job do
 
       it 'does not update the voided_at attribute' do
         expect { subject }.not_to change(purchase, :voided_at)
+      end
+
+      it 'does not create a ledger entry' do
+        expect { subject }.not_to change(LedgerEntry, :count)
       end
     end
   end

@@ -5,6 +5,14 @@ class VoidPurchaseJob
 
   def perform(purchase_id, why)
     p = Purchase.find(purchase_id)
-    p.update(voided_at: Time.zone.now, void_reason: why) unless p.paid_at.present? || p.voided_at.present?
+    unless p.paid_at.present? || p.voided_at.present?
+      p.update(voided_at: Time.zone.now, void_reason: why)
+      p.bowler.ledger_entries << LedgerEntry.new(
+        debit: p.amount,
+        identifier: p.identifier,
+        notes: why,
+        source: :void
+      )
+    end
   end
 end
