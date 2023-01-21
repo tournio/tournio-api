@@ -42,4 +42,10 @@ namespace :igbo do
     puts "Deleting old Stripe events"
     DeleteOldStripeEventsJob.perform_async
   end
+
+  desc "Called by a scheduler, to void early-registration discounts for unpaid bowlers"
+  task void_expired_early_discounts: :environment do
+    puts "Voiding expired early-registration discounts"
+    ExpireUnpaidEarlyDiscountsJob.perform_async
+  end
 end
