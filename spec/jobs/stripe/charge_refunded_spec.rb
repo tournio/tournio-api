@@ -13,13 +13,15 @@ RSpec.describe Stripe::ChargeRefunded, type: :job do
     let(:mock_event) do
       {
         id: "evt_test_#{SecureRandom.uuid}",
-        object: {
-          id: charge_identifier,
-          object: 'charge',
-          amount_refunded: amount_refunded,
-          payment_intent: payment_intent_identifier,
-          refunded: true,
-          status: 'succeeded',
+        data: {
+          object: {
+            id: charge_identifier,
+            object: 'charge',
+            amount_refunded: amount_refunded,
+            payment_intent: payment_intent_identifier,
+            refunded: true,
+            status: 'succeeded',
+          }
         }
       }
     end
