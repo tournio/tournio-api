@@ -3,7 +3,7 @@ module Director
     rescue_from Pundit::NotAuthorizedError, with: :unauthorized
 
     def create
-      self.bowler = Bowler.find_by_identifier!(params[:bowler_identifier])
+      self.bowler = Bowler.includes(:tournament).find_by_identifier!(params[:bowler_identifier])
 
       authorize bowler, :update?
 
@@ -11,13 +11,25 @@ module Director
       entry.bowler = bowler
       entry.source = :manual
       entry.notes = "Created by #{current_user.email}"
-      if entry.save
-        if bowler.purchases.ledger.unpaid.sum(&:amount) == entry.credit
-          bowler.purchases.ledger.unpaid.update_all(paid_at: Time.zone.now)
-          TournamentRegistration.try_confirming_bowler_shift(bowler)
-        end
-        render json: LedgerEntryBlueprint.render(entry), status: :created
+      entry.save
+
+      extp = ExternalPayment.create(
+        payment_type: :manual,
+        identifier: SecureRandom.uuid,
+        details: entry.identifier,
+        tournament: bowler.tournament
+      )
+
+      (bowler.purchases.unpaid.entry_fee + bowler.purchases.unpaid.early_discount).map do |p|
+        p.update(
+          paid_at: Time.zone.now,
+          external_payment_id: extp.id
+        )
       end
+
+      TournamentRegistration.try_confirming_bowler_shift(bowler)
+
+      render json: LedgerEntryBlueprint.render(entry), status: :created
     rescue ActiveRecord::RecordNotFound
       skip_authorization
       render json: {}, status: :not_found
