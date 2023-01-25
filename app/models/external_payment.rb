@@ -19,5 +19,5 @@ class ExternalPayment < ApplicationRecord
   has_many :purchases
   belongs_to :tournament
 
-  enum :payment_type, %i(stripe)
+  enum :payment_type, %i(stripe manual)
 end

@@ -75,6 +75,37 @@ describe Director::LedgerEntriesController, type: :request do
       subject
     end
 
+    context "a bowler with an early-registration discount" do
+      let(:discount_pi) { create :purchasable_item, :early_discount, tournament: tournament }
+      let(:new_entry_params) do
+        {
+          credit: entry_fee_pi.value - discount_pi.value,
+          identifier: 'cash payment',
+        }
+      end
+
+      before do
+        create :purchase,
+          purchasable_item: discount_pi,
+          bowler: bowler
+      end
+
+      it "creates an ExternalPayment with a source of manual" do
+        expect { subject }.to change(ExternalPayment.manual, :count).by(1)
+      end
+
+      it "links the purchases with the new ExternalPayment" do
+        subject
+        extp = ExternalPayment.last
+        expect(bowler.purchases.map(&:external_payment_id).uniq).to match_array([extp.id])
+      end
+
+      it "updates the paid_at attribute of both the entry fee and discount purchases" do
+        subject
+        expect(bowler.purchases.unpaid.count).to eq(0)
+      end
+    end
+
     context 'as an unpermitted user' do
       let(:requesting_user) { create(:user, :unpermitted) }
 
