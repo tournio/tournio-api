@@ -401,8 +401,6 @@ class BowlersController < ApplicationController
       cancel_url: "#{client_host}/bowlers/#{bowler.identifier}",
       line_items: line_items,
       mode: 'payment',
-      customer_email: bowler.email,
-      customer_creation: 'always',
       submit_type: 'pay',
     }
 
@@ -418,7 +416,7 @@ class BowlersController < ApplicationController
       },
     )
   rescue Stripe::StripeError => e
-    Rails.logger.info "Stripe error: #{e}"
+    Rails.logger.warn "Stripe error: #{e}"
     Bugsnag.notify(e)
   end
 
