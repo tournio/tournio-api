@@ -179,5 +179,12 @@ FactoryBot.define do
         create :stripe_coupon, purchasable_item: pi
       end
     end
+
+    trait :sanction do
+      category { :sanction }
+      determination { :igbo }
+      name { 'IGBO Membership' }
+      value { 27 }
+    end
   end
 end

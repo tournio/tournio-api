@@ -45,6 +45,7 @@ class Purchase < ApplicationRecord
   scope :early_discount, -> { joins(:purchasable_item).where(purchasable_item: {category: :ledger, determination: :early_discount}) }
   scope :late_fee, -> { joins(:purchasable_item).where(purchasable_item: {category: :ledger, determination: :late_fee})}
   scope :event_linked, -> { joins(:purchasable_item).where(purchasable_item: {refinement: :event_linked})}
+  scope :sanction, -> { joins(:purchasable_item).where(purchasable_item: {category: :sanction}) }
 
   validates :paid_at, absence: true, if: proc { |p| p.voided_at.present? }
   validates :voided_at, absence: true, if: proc { |p| p.paid_at.present? }

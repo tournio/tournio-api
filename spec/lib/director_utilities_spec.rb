@@ -473,6 +473,17 @@ RSpec.describe DirectorUtilities do
         expect(subject.count).to eq(items.count)
       end
     end
+
+    context 'with a sanction item' do
+      let(:tournament) { create :tournament, :with_sanction_item }
+      let(:item) { tournament.purchasable_items.sanction.first }
+
+      before { create :purchase, :paid, amount: item.value, bowler: bowler, purchasable_item: item }
+
+      it 'has a column for the sanction item' do
+        expect(subject).to include(item.name => 'X')
+      end
+    end
   end
 
   describe '#doubles_partner_info' do

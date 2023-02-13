@@ -262,6 +262,13 @@ module DirectorUtilities
       output[key] = quantity > 0 ? quantity : ''
     end
 
+    # any sanction items, such as IGBO membership
+    sanction_items = t.purchasable_items.sanction
+    sanction_items.each do |item|
+      key = item.name
+      output[key] = purchased_item_identifiers.include?(item.identifier) ? 'X' : ''
+    end
+
     # et voila!
     output
   end
