@@ -6,7 +6,6 @@
 #  capacity      :integer          default(128), not null
 #  confirmed     :integer          default(0), not null
 #  description   :string
-#  details       :jsonb
 #  display_order :integer          default(1), not null
 #  identifier    :string           not null
 #  name          :string

@@ -80,7 +80,7 @@ module ChartDataQueries
     output = week_starter
     output.delete(:values)
     size = output[:dates].count
-    Shift::SUPPORTED_REGISTRATION_TYPES.each { |type| output[type.to_sym] = Array.new(size, 0) }
+    Tournament::SUPPORTED_REGISTRATION_OPTIONS.each { |type| output[type.to_sym] = Array.new(size, 0) }
 
     ActiveRecord::Base.connection.select_all(
       ActiveRecord::Base.send(:sanitize_sql_array, args)
