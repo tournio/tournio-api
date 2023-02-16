@@ -7,7 +7,7 @@
 #  id             :bigint           not null, primary key
 #  aasm_state     :string           not null
 #  abbreviation   :string
-#  details        :jsonb
+#  details        :jsonb            default: { enabled_registration_options: %w(new_team solo join_team) }
 #  end_date       :date
 #  entry_deadline :datetime
 #  identifier     :string           not null
