@@ -64,7 +64,7 @@ module Director
                       policy_scope(Tournament).includes(:config_items).order(name: :asc)
                     end
       authorize(Tournament)
-      render json: TournamentBlueprint.render(tournaments, view: :list, **url_options)
+      render json: TournamentBlueprint.render(tournaments, view: :list, director?: true, **url_options)
     end
 
     def show
@@ -74,7 +74,7 @@ module Director
         return
       end
       authorize tournament
-      render json: TournamentBlueprint.render(tournament, view: :director_detail, **url_options)
+      render json: TournamentBlueprint.render(tournament, view: :director_detail, director?: true, **url_options)
     end
 
     def clear_test_data
@@ -130,7 +130,7 @@ module Director
       action_sym = "#{action}!".to_sym
       tournament.send(action_sym)
 
-      render json: TournamentBlueprint.render(tournament, view: :director_detail, **url_options)
+      render json: TournamentBlueprint.render(tournament, view: :director_detail, director?: true, **url_options)
     end
 
     def create
@@ -148,7 +148,7 @@ module Director
         current_user.tournaments << tournament
       end
 
-      render json: TournamentBlueprint.render(tournament, view: :director_detail, **url_options), status: :created
+      render json: TournamentBlueprint.render(tournament, view: :director_detail, director?: true, **url_options), status: :created
     end
 
     def update
@@ -170,7 +170,7 @@ module Director
       if details_update.present?
         tournament.update(details: details_update)
         updates.delete(:details)
-        render json: TournamentBlueprint.render(tournament.reload, view: :director_detail, **url_options) and return
+        render json: TournamentBlueprint.render(tournament.reload, view: :director_detail, director?: true, **url_options) and return
       end
 
       if tournament.active? || tournament.demo?
@@ -230,7 +230,7 @@ module Director
       tournament.update(updates)
       purchasable_items_to_create.map(&:save!)
 
-      render json: TournamentBlueprint.render(tournament.reload, view: :director_detail, **url_options)
+      render json: TournamentBlueprint.render(tournament.reload, view: :director_detail, director?: true, **url_options)
     end
 
     def destroy

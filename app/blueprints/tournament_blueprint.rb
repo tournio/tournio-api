@@ -2,6 +2,7 @@
 
 class TournamentBlueprint < Blueprinter::Base
   identifier :identifier
+  field :id, if: ->(_field_name, tournament, _options) { _options[:director?] }
 
   fields :name, :year, :abbreviation, :start_date, :end_date, :location, :timezone
   field :aasm_state, name: :state
@@ -72,10 +73,10 @@ class TournamentBlueprint < Blueprinter::Base
       t.purchasable_items.early_discount.take&.value
     end
 
-    field :registration_options do |s, _|
+    field :registration_options do |t, _|
       types = {}
-      Tournament::SUPPORTED_REGISTRATION_OPTIONS.each do |t|
-        types[t] = s.details['enabled_registration_options'].include?(t)
+      Tournament::SUPPORTED_REGISTRATION_OPTIONS.each do |o|
+        types[o] = t.details['enabled_registration_options'].include?(o)
       end
       types
     end
@@ -83,8 +84,6 @@ class TournamentBlueprint < Blueprinter::Base
 
   view :director_detail do
     include_view :detail
-
-    fields :id
 
     # throw everything in here
     association :testing_environment, blueprint: TestingEnvironmentBlueprint

@@ -65,14 +65,7 @@ module Director
     def shift_params
       params.permit(:tournament_identifier,
         :identifier,
-        shift: %i(capacity description name display_order).concat([
-          details: {
-            # Re-add this when we do multiple-shift support
-            # events: [],
-            registration_types: []
-          }
-        ]
-        )
+        shift: %i(capacity description name display_order)
       ).require(:shift)
     end
   end

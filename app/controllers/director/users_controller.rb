@@ -22,20 +22,20 @@ module Director
     def index
       @users = policy_scope(User)
       authorize(User)
-      render json: UserBlueprint.render(@users), status: :ok
+      render json: UserBlueprint.render(@users, director?: true), status: :ok
     end
 
     def show
       find_user
       authorize @user
-      render json: UserBlueprint.render(@user), status: :ok
+      render json: UserBlueprint.render(@user, director?: true), status: :ok
     end
 
     def create
       authorize(User)
       user = User.new(new_user_params.merge(password: NEW_ACCOUNT_PASSWORD))
       if (user.save)
-        render json: UserBlueprint.render(user.reload), status: :created
+        render json: UserBlueprint.render(user.reload, director?: true), status: :created
       else
         render json: user.errors.full_messages, status: :unprocessable_entity
       end
@@ -51,7 +51,7 @@ module Director
         render json: nil, status: :unprocessable_entity and return if updates.has_key?(:tournament_ids) || updates.has_key?(:role)
       end
       if (@user.update(updates))
-        render json: UserBlueprint.render(@user.reload), status: :ok
+        render json: UserBlueprint.render(@user.reload, director?: true), status: :ok
       else
         render json: @user.errors.full_messages, status: :unprocessable_entity
       end
