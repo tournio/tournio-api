@@ -37,7 +37,7 @@ gem "rack-cors"
 
 gem 'aasm'                       # state machine behavior
 gem 'amazing_print'              # human-friendly printing of things on the console
-gem 'aws-sdk-s3', '~> 1.114.0'   # For using Backblaze's S3-compatible API for asset storage
+gem 'aws-sdk-s3', '~> 1.114'   # For using Backblaze's S3-compatible API for asset storage
 gem 'blueprinter'                # JSON serialization, but not JSON:API style
 gem 'bugsnag'                    # Error reporting
 gem 'devise', '~> 4.7'           # Authentication
