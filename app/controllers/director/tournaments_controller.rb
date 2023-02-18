@@ -21,6 +21,9 @@ module Director
       :entry_deadline,
       :location,
       :timezone,
+      details: {
+        enabled_registration_options: [],
+      },
       additional_questions_attributes: [
         :id,
         :extended_form_field_id,
@@ -52,9 +55,13 @@ module Director
           :fee,
         ]
       ],
-      details: {
-        enabled_registration_options: [],
-      },
+      shifts_attributes: [
+        :id,
+        :name,
+        :description,
+        :capacity,
+        :display_order,
+      ],
     ]
 
     def index

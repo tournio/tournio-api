@@ -714,6 +714,65 @@ describe Director::TournamentsController, type: :request do
       end
     end
 
+    context 'creating shifts' do
+      context 'just one' do
+        let(:params) do
+          {
+            tournament: {
+              shifts_attributes: [
+                {
+                  name: '',
+                  description: '',
+                  capacity: 100,
+                  display_order: 1,
+                },
+              ],
+            },
+          }
+        end
+
+        it 'creates 1 shift' do
+          expect { subject }.to change(Shift, :count).by(1)
+        end
+
+        it 'links it with the tournament' do
+          expect { subject }.to change { tournament.shifts.count }.by(1)
+        end
+
+      end
+
+      context 'two shifts' do
+        let(:params) do
+          {
+            tournament: {
+              shifts_attributes: [
+                {
+                  name: 'A',
+                  description: '',
+                  capacity: 100,
+                  display_order: 1,
+                },
+                {
+                  name: 'B',
+                  description: '',
+                  capacity: 100,
+                  display_order: 2,
+                },
+              ],
+            },
+          }
+        end
+
+        it 'creates 2 shifts' do
+          expect { subject }.to change(Shift, :count).by(2)
+        end
+
+        it 'links them with the tournament' do
+          expect { subject }.to change { tournament.shifts.count }.by(2)
+        end
+      end
+    end
+
     context 'changing enabled registration types' do
       let(:params) do
         {
