@@ -72,14 +72,13 @@ describe TeamsController, type: :request do
       end
 
       context 'a team on a shift' do
-        # let!(:shift) { create :shift, :high_demand, tournament: tournament, identifier: 'this-is-a-shift' }
-        let(:shift) { tournament.shifts.first }
+        let!(:shift) { create :shift, :high_demand, tournament: tournament, identifier: 'this-is-a-shift' }
 
         it 'creates a BowlerShift instance for each member of the team' do
           expect { subject }.to change(BowlerShift, :count).by(4)
         end
 
-        it 'bumps the requested count' do
+        it 'bumps the requested count of the specified shift' do
           expect { subject }.to change { shift.reload.requested }.by(4)
         end
 

@@ -140,10 +140,10 @@ class TeamsController < ApplicationController
     # remove that key from the params...
     permitted_params.delete('additional_question_responses')
 
-    # Until we support multiple shifts, we aren't interested in this parameter, so just delete it
+    # If there's a shift identifier, insert the corresponding id to take advantage of AR nested attributes
     if permitted_params['shift_identifier'].present?
-      # shift = Shift.find_by(identifier: permitted_params['shift_identifier'])
-      # permitted_params['bowler_shift_attributes'] = { shift_id: shift.id } unless shift.nil?
+      shift = Shift.find_by(identifier: permitted_params['shift_identifier'])
+      permitted_params['bowler_shift_attributes'] = { shift_id: shift.id } unless shift.nil?
       permitted_params.delete('shift_identifier')
     end
 

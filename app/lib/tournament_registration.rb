@@ -98,9 +98,6 @@ module TournamentRegistration
   end
 
   def self.register_bowler(bowler, registration_type='new_team')
-    # Remove this when we support multiple shifts, since that will be handled by controllers
-    BowlerShift.create(bowler: bowler, shift: bowler.tournament.shifts.first)
-
     purchase_entry_fee(bowler)
     add_early_discount_to_ledger(bowler)
     add_late_fees_to_ledger(bowler)
