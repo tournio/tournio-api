@@ -208,3 +208,13 @@ ExtendedFormField.create(
   helper_text: '',
   helper_url: '',
 ) unless ExtendedFormField.find_by(name: 'shirt_size_unisex').present?
+
+ExtendedFormField.create(
+  name: 'dietary',
+  label: 'Any dietary restrictions we should know about?',
+  html_element_type: 'input',
+  html_element_config: { type: 'text', value: '' },
+  validation_rules: { required: false },
+  helper_text: '(vegetarian / vegan / allergies / etc.)',
+  helper_url: '',
+) unless ExtendedFormField.find_by(name: 'dietary').present?

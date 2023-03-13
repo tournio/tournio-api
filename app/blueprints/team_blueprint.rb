@@ -37,6 +37,16 @@ class TeamBlueprint < Blueprinter::Base
     field :place_with_others do |t, _|
       t.options['place_with_others'].nil? ? 'n/a' : t.options['place_with_others']
     end
+
+    field :shift do |t, _|
+      ShiftBlueprint.render_as_hash(t.bowlers.first.shift)
+    end
+    field :confirmation do |t, _|
+      bowler_shifts = t.bowlers.collect(&:bowler_shift)
+      all_confirmed = bowler_shifts.all?(&:confirmed?)
+      some_confirmed = bowler_shifts.any?(&:confirmed?)
+      all_confirmed ? :all : (some_confirmed ? :some : :none)
+    end
   end
 
   view :director_detail do
