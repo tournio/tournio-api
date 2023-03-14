@@ -88,6 +88,10 @@ class BowlerBlueprint < Blueprinter::Base
     field :igbo_member do |b, _|
       b.verified_data['igbo_member'] || false
     end
+
+    field :confirmation do |b, _|
+      b.bowler_shift.confirmed?
+    end
   end
 
   view :director_team_detail do

@@ -52,6 +52,9 @@ module Director
       render json: TeamBlueprint.render(team, view: :director_list), status: :created
     end
 
+    class InsufficientCapacityError < ::StandardError
+    end
+
     def update
       load_team_and_tournament
       unless team.present? && tournament.present?
@@ -63,17 +66,26 @@ module Director
       authorize tournament
       new_values = edit_team_params
 
-      unless positions_valid?(new_values)
-        render json: { errors: ['Positions must be unique across the team'] }, status: :bad_request
-        return
-      end
+      if new_values['shift_identifier'].present?
+        # This isn't a normal RESTful request.
+        handle_shift_change new_values['shift_identifier']
+      else
+        unless positions_valid?(new_values)
+          render json: { errors: ['Positions must be unique across the team'] }, status: :bad_request
+          return
+        end
 
-      unless team.update(new_values)
-        render json: { errors: team.errors.full_messages }, status: :bad_request
-        return
+        unless team.update(new_values)
+          render json: { errors: team.errors.full_messages }, status: :bad_request
+          return
+        end
       end
 
       render json: TeamBlueprint.render(team.reload, view: :director_detail), status: :ok
+    rescue ActiveRecord::RecordNotFound => e
+      render json: nil, status: :not_found
+    rescue InsufficientCapacityError => e
+      render json: { error: 'Insufficient space remaining' }, status: :conflict
     end
 
     def destroy
@@ -116,13 +128,26 @@ module Director
     def edit_team_params
       params.require(:team).permit(
         :name,
-        bowlers_attributes: %i[id position doubles_partner_id]
+        :shift_identifier,
+        bowlers_attributes: %i[id position doubles_partner_id],
       ).to_h.with_indifferent_access
     end
 
     def positions_valid?(proposed_values)
       positions = proposed_values[:bowlers_attributes].collect { |attrs| attrs[:position] }
       positions.count == positions.uniq.count
+    end
+
+    def handle_shift_change(new_shift_identifier)
+      new_shift = Shift.find_by!(identifier: new_shift_identifier)
+      if new_shift.confirmed + team.bowlers.count > new_shift.capacity
+        raise InsufficientCapacityError
+      end
+      team.bowlers.each do |bowler|
+        bowler.bowler_shift.destroy
+        bowler.bowler_shift = BowlerShift.new(shift: new_shift)
+        TournamentRegistration.try_confirming_bowler_shift(bowler)
+      end
     end
   end
 end
