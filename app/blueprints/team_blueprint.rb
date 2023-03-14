@@ -16,6 +16,13 @@ class TeamBlueprint < Blueprinter::Base
     field :size do |t, _|
       t.bowlers.count
     end
+    field :shift do |t, _|
+      if t.bowlers.empty?
+        nil
+      else
+        ShiftBlueprint.render_as_hash(t.bowlers.first&.shift)
+      end
+    end
   end
 
   view :detail do
