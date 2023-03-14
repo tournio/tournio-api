@@ -50,6 +50,7 @@ describe BowlersController, type: :request do
     subject { post uri, params: bowler_params, as: :json }
 
     let(:tournament) { create :tournament, :active, :with_entry_fee, :one_shift }
+    let(:shift) { tournament.shifts.first }
 
     before do
       comment = create(:extended_form_field, :comment)
@@ -169,7 +170,7 @@ describe BowlersController, type: :request do
       let(:bowler_params) do
         {
           bowlers: [
-            create_bowler_test_data
+            create_bowler_test_data.merge({ shift_identifier: shift.identifier })
           ],
         }
       end
@@ -199,6 +200,15 @@ describe BowlersController, type: :request do
         expect(bowler.purchases.entry_fee).not_to be_empty
       end
 
+      it 'creates a BowlerShift join model instance' do
+        expect { subject }.to change(BowlerShift, :count).by(1)
+      end
+
+      it 'marks the BowlerShift as requested' do
+        subject
+        expect(BowlerShift.last.requested?).to be_truthy
+      end
+
       it 'creates a data point' do
         expect { subject }.to change(DataPoint, :count).by(1)
       end
@@ -208,23 +218,14 @@ describe BowlersController, type: :request do
         expect(DataPoint.last.value).to eq('solo')
       end
 
-      context 'a tournament with at least one shift' do
-        let(:shift) { tournament.shifts.first }
-        let(:bowler_params) do
-          {
-            bowlers: [
-              create_bowler_test_data.merge({ shift_identifier: shift.identifier })
-            ],
-          }
-        end
+      context "a tournament with two shifts" do
+        let(:tournament) { create :tournament, :active, :with_entry_fee, :two_shifts }
+        let(:shift) { tournament.shifts.second }
 
-        it 'creates a BowlerShift join model instance' do
-          expect { subject }.to change(BowlerShift, :count).by(1)
-        end
-
-        it 'marks the BowlerShift as requested' do
+        it 'puts the bowler on the preferred shift' do
           subject
-          expect(BowlerShift.last.requested?).to be_truthy
+          bowler = Bowler.last
+          expect(bowler.shift.id).to eq(shift.id)
         end
       end
 

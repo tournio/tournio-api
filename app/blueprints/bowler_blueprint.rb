@@ -160,6 +160,12 @@ class BowlerBlueprint < Blueprinter::Base
       sorted = b.purchases.to_a.sort_by! { |p| TournamentRegistration.purchasable_item_sort(p) }
       PurchaseBlueprint.render_as_hash(sorted)
     end
+
+    association :shift, blueprint: ShiftBlueprint
+
+    field :confirmation do |b, _|
+      b.bowler_shift.confirmed?
+    end
   end
 end
 
