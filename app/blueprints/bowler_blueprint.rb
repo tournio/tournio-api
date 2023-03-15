@@ -89,7 +89,7 @@ class BowlerBlueprint < Blueprinter::Base
       b.verified_data['igbo_member'] || false
     end
 
-    field :confirmation do |b, _|
+    field :paid do |b, _|
       b.bowler_shift.confirmed?
     end
   end
@@ -163,7 +163,7 @@ class BowlerBlueprint < Blueprinter::Base
 
     association :shift, blueprint: ShiftBlueprint
 
-    field :confirmation do |b, _|
+    field :paid do |b, _|
       b.bowler_shift.confirmed?
     end
   end

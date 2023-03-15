@@ -53,7 +53,7 @@ class TeamBlueprint < Blueprinter::Base
       end
     end
 
-    field :confirmation do |t, _|
+    field :who_has_paid do |t, _|
       result = nil
       unless t.bowlers.empty?
         bowler_shifts = t.bowlers.collect(&:bowler_shift)

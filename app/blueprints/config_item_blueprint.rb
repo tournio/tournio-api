@@ -3,17 +3,25 @@ class ConfigItemBlueprint < Blueprinter::Base
 
   field :value do |c, _|
     if %w(email_in_dev display_capacity skip_stripe).include?(c.key)
-      %w(true t T).include?(c.value)
+      self.boolean_value(c.value)
     else
       c.value
     end
   end
 
   field :value_shortened do |c, _|
-    c.value.truncate(20)
+    if %w(email_in_dev display_capacity skip_stripe).include?(c.key)
+      self.boolean_value(c.value)
+    else
+      c.value.truncate(20)
+    end
   end
 
   field :label do |c, _|
     c.key.humanize(keep_id_suffix: true)
+  end
+
+  def self.boolean_value(value)
+    %w(true t T).include?(value)
   end
 end

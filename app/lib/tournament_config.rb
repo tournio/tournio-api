@@ -8,9 +8,9 @@ class TournamentConfig
 
     value = config_items.find_by_key(str)&.value
     integer_value = Integer(value, exception: false)
-    if value == 'true'
+    if value == 'true' || value == 't'
       value = true
-    elsif value == 'false'
+    elsif value == 'false'|| value == 'f'
       value = false
     elsif integer_value.present?
       value = integer_value
