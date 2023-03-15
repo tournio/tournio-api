@@ -21,6 +21,9 @@ module Director
       :entry_deadline,
       :location,
       :timezone,
+      details: {
+        enabled_registration_options: [],
+      },
       additional_questions_attributes: [
         :id,
         :extended_form_field_id,
@@ -52,6 +55,13 @@ module Director
           :fee,
         ]
       ],
+      shifts_attributes: [
+        :id,
+        :name,
+        :description,
+        :capacity,
+        :display_order,
+      ],
     ]
 
     def index
@@ -61,7 +71,7 @@ module Director
                       policy_scope(Tournament).includes(:config_items).order(name: :asc)
                     end
       authorize(Tournament)
-      render json: TournamentBlueprint.render(tournaments, view: :director_list, **url_options)
+      render json: TournamentBlueprint.render(tournaments, view: :list, director?: true, **url_options)
     end
 
     def show
@@ -71,7 +81,7 @@ module Director
         return
       end
       authorize tournament
-      render json: TournamentBlueprint.render(tournament, view: :director_detail, **url_options)
+      render json: TournamentBlueprint.render(tournament, view: :director_detail, director?: true, **url_options)
     end
 
     def clear_test_data
@@ -127,7 +137,7 @@ module Director
       action_sym = "#{action}!".to_sym
       tournament.send(action_sym)
 
-      render json: TournamentBlueprint.render(tournament, view: :director_detail, **url_options)
+      render json: TournamentBlueprint.render(tournament, view: :director_detail, director?: true, **url_options)
     end
 
     def create
@@ -145,7 +155,7 @@ module Director
         current_user.tournaments << tournament
       end
 
-      render json: TournamentBlueprint.render(tournament, view: :director_detail, **url_options), status: :created
+      render json: TournamentBlueprint.render(tournament, view: :director_detail, director?: true, **url_options), status: :created
     end
 
     def update
@@ -156,12 +166,25 @@ module Director
 
       authorize tournament
 
-      if tournament.active? || tournament.closed? || tournament.demo?
+      if tournament.closed?
         render json: nil, status: 403
         return
       end
 
+      # We want to permit changes to details.enabled_registration_types even when tournament is active
       updates = update_params
+      details_update = updates[:details]
+      if details_update.present?
+        tournament.update(details: details_update)
+        updates.delete(:details)
+        render json: TournamentBlueprint.render(tournament.reload, view: :director_detail, director?: true, **url_options) and return
+      end
+
+      if tournament.active? || tournament.demo?
+        render json: nil, status: 403
+        return
+      end
+
       updates[:additional_questions_attributes].each do |aqa|
         if aqa[:extended_form_field_id].present?
           eff = ExtendedFormField.find(aqa[:extended_form_field_id])
@@ -214,7 +237,7 @@ module Director
       tournament.update(updates)
       purchasable_items_to_create.map(&:save!)
 
-      render json: TournamentBlueprint.render(tournament.reload, view: :director_detail, **url_options)
+      render json: TournamentBlueprint.render(tournament.reload, view: :director_detail, director?: true, **url_options)
     end
 
     def destroy

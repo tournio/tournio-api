@@ -36,3 +36,7 @@
 
 # Some useful files shouldn't go into VCS
 .env
+
+# Ignore macOS files
+.DS_Store
+*/.DS_Store

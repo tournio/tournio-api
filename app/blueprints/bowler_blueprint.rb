@@ -88,6 +88,10 @@ class BowlerBlueprint < Blueprinter::Base
     field :igbo_member do |b, _|
       b.verified_data['igbo_member'] || false
     end
+
+    field :paid do |b, _|
+      b.bowler_shift.confirmed?
+    end
   end
 
   view :director_team_detail do
@@ -155,6 +159,12 @@ class BowlerBlueprint < Blueprinter::Base
     field :purchases do |b, _|
       sorted = b.purchases.to_a.sort_by! { |p| TournamentRegistration.purchasable_item_sort(p) }
       PurchaseBlueprint.render_as_hash(sorted)
+    end
+
+    association :shift, blueprint: ShiftBlueprint
+
+    field :paid do |b, _|
+      b.bowler_shift.confirmed?
     end
   end
 end

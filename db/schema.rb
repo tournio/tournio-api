@@ -10,7 +10,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema[7.0].define(version: 2023_01_20_162931) do
+ActiveRecord::Schema[7.0].define(version: 2023_02_16_230432) do
   # These are extensions that must be enabled in order to support this database
   enable_extension "plpgsql"
 
@@ -296,7 +296,6 @@ ActiveRecord::Schema[7.0].define(version: 2023_01_20_162931) do
     t.string "identifier", null: false
     t.string "name"
     t.string "description"
-    t.jsonb "details", default: {"events"=>[], "registration_types"=>["new_team", "solo", "join_team"]}
     t.integer "display_order", default: 1, null: false
     t.integer "capacity", default: 128, null: false
     t.integer "requested", default: 0, null: false

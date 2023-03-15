@@ -33,9 +33,9 @@ describe Director::TournamentsController, type: :request do
       expect(json.length).to eq(4);
     end
 
-    it 'includes the tournament id in each one' do
+    it 'includes the tournament identifier in each one' do
       subject
-      expect(json[0]).to have_key('id')
+      expect(json[0]).to have_key('identifier')
     end
 
     context 'When all I need is upcoming tournaments' do
@@ -711,6 +711,101 @@ describe Director::TournamentsController, type: :request do
 
       it 'creates a PurchasableItems for each event division' do
         expect { subject }.to change { tournament.purchasable_items.division.count }.by(3)
+      end
+    end
+
+    context 'creating shifts' do
+      context 'just one' do
+        let(:params) do
+          {
+            tournament: {
+              shifts_attributes: [
+                {
+                  name: '',
+                  description: '',
+                  capacity: 100,
+                  display_order: 1,
+                },
+              ],
+            },
+          }
+        end
+
+        it 'creates 1 shift' do
+          expect { subject }.to change(Shift, :count).by(1)
+        end
+
+        it 'links it with the tournament' do
+          expect { subject }.to change { tournament.shifts.count }.by(1)
+        end
+
+      end
+
+      context 'two shifts' do
+        let(:params) do
+          {
+            tournament: {
+              shifts_attributes: [
+                {
+                  name: 'A',
+                  description: '',
+                  capacity: 100,
+                  display_order: 1,
+                },
+                {
+                  name: 'B',
+                  description: '',
+                  capacity: 100,
+                  display_order: 2,
+                },
+              ],
+            },
+          }
+        end
+
+        it 'creates 2 shifts' do
+          expect { subject }.to change(Shift, :count).by(2)
+        end
+
+        it 'links them with the tournament' do
+          expect { subject }.to change { tournament.shifts.count }.by(2)
+        end
+      end
+    end
+
+    context 'changing enabled registration types' do
+      let(:params) do
+        {
+          tournament: {
+            details: {
+              enabled_registration_options: %w(solo join_team),
+            }
+          }
+        }
+      end
+
+      it 'responds with OK' do
+        subject
+        expect(response).to have_http_status(:ok)
+      end
+
+      it 'reflects the desired change' do
+        subject
+        expect(tournament.reload.details['enabled_registration_options']).to match_array(%w(solo join_team))
+      end
+
+      context 'when tournament is active' do
+        let(:tournament) { create :tournament, :active }
+
+        it 'responds with OK' do
+          subject
+          expect(response).to have_http_status(:ok)
+        end
+
+        it 'reflects the desired change' do
+          subject
+          expect(tournament.reload.details['enabled_registration_options']).to match_array(%w(solo join_team))
+        end
       end
     end
 

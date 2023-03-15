@@ -13,6 +13,7 @@ describe TeamsController, type: :request do
 
     let(:uri) { "/tournaments/#{tournament.identifier}/teams" }
     let(:tournament) { create :tournament, :active, :with_entry_fee, :one_shift }
+    let!(:shift) { create :shift, :high_demand, tournament: tournament, identifier: 'this-is-a-shift' }
 
     before do
       comment = create(:extended_form_field, :comment)
@@ -34,6 +35,19 @@ describe TeamsController, type: :request do
       it 'succeeds' do
         subject
         expect(response).to have_http_status(:created)
+      end
+
+
+      it 'creates a BowlerShift instance for each member of the team' do
+        expect { subject }.to change(BowlerShift, :count).by(4)
+      end
+
+      it 'bumps the requested count of the specified shift' do
+        expect { subject }.to change { shift.reload.requested }.by(4)
+      end
+
+      it 'does not bump the confirmed count' do
+        expect { subject }.not_to change { shift.reload.confirmed }
       end
 
       it 'does not set the place_with_others attribute under options' do
@@ -69,23 +83,6 @@ describe TeamsController, type: :request do
         dp = DataPoint.last(4)
         tournament_ids = dp.collect(&:tournament_id).uniq
         expect(tournament_ids).to match_array([tournament.id])
-      end
-
-      context 'a team on a shift' do
-        # let!(:shift) { create :shift, :high_demand, tournament: tournament, identifier: 'this-is-a-shift' }
-        let(:shift) { tournament.shifts.first }
-
-        it 'creates a BowlerShift instance for each member of the team' do
-          expect { subject }.to change(BowlerShift, :count).by(4)
-        end
-
-        it 'bumps the requested count' do
-          expect { subject }.to change { shift.reload.requested }.by(4)
-        end
-
-        it 'does not bump the confirmed count' do
-          expect { subject }.not_to change { shift.reload.confirmed }
-        end
       end
     end
 

@@ -17,7 +17,7 @@ describe Director::TeamsController, type: :request do
     let(:uri) { "/director/tournaments/#{tournament_identifier}/teams" }
 
     let(:tournament_identifier) { tournament.identifier }
-    let(:tournament) { create :tournament, :active }
+    let(:tournament) { create :tournament, :active, :one_shift }
 
     before do
       10.times do
@@ -103,7 +103,7 @@ describe Director::TeamsController, type: :request do
     let(:uri) { "/director/tournaments/#{tournament_identifier}/teams" }
 
     let(:tournament_identifier) { tournament.identifier }
-    let(:tournament) { create :tournament, :active }
+    let(:tournament) { create :tournament, :active, :one_shift }
 
     let(:params) do
       {
@@ -171,7 +171,7 @@ describe Director::TeamsController, type: :request do
 
     let(:uri) { "/director/teams/#{team_identifier}" }
 
-    let(:tournament) { create :tournament }
+    let(:tournament) { create :tournament, :one_shift }
     let(:team) { create :team, tournament: tournament }
     let(:team_identifier) { team.identifier }
 
@@ -221,7 +221,7 @@ describe Director::TeamsController, type: :request do
 
     let(:uri) { "/director/teams/#{team_identifier}" }
 
-    let(:tournament) { create :tournament, :active }
+    let(:tournament) { create :tournament, :active, :one_shift }
     let(:team) { create :team, :standard_full_team, tournament: tournament }
     let(:team_identifier) { team.identifier }
     let(:new_name) { 'High Rollers' }
@@ -255,6 +255,64 @@ describe Director::TeamsController, type: :request do
       expect(json).to have_key('name')
       expect(json).to have_key('identifier')
       expect(json['name']).to eq(new_name)
+    end
+
+    context 'moving to a different shift' do
+      let(:tournament) { create :tournament, :active, :two_shifts }
+      let(:team) { create :team, :standard_full_team, tournament: tournament }
+      let(:old_shift) { tournament.shifts.first }
+      let(:new_shift) { tournament.shifts.second }
+
+      let(:params) do
+        {
+          team: {
+            shift_identifier: new_shift.identifier,
+          }
+        }
+      end
+
+      it 're-determines confirmation for each bowler' do
+        allow(TournamentRegistration).to receive(:try_confirming_bowler_shift)
+        expect(TournamentRegistration).to receive(:try_confirming_bowler_shift).exactly(team.bowlers.count).times
+        subject
+      end
+
+      it 'succeeds with a 200 OK' do
+        subject
+        expect(response).to have_http_status(:ok)
+      end
+
+      it 'includes the updated team in the response' do
+        subject
+        expect(json['shift']['name']).to eq(new_shift.name)
+      end
+
+      context 'error scenarios' do
+        context 'an unrecognized shift identifier' do
+          let(:params) do
+            {
+              team: {
+                shift_identifier: 'no-the-other-one',
+              }
+            }
+          end
+
+          it 'yields a 404 Not Found' do
+            subject
+            expect(response).to have_http_status(:not_found)
+          end
+        end
+
+        context 'the destination shift is full' do
+          # try moving to a shift that's full of confirmed bowlers.
+          let(:new_shift) { create :shift, :full, tournament: tournament }
+
+          it 'yields a 409 Conflict' do
+            subject
+            expect(response).to have_http_status(:conflict)
+          end
+        end
+      end
     end
 
     context 'as an unpermitted user' do
@@ -382,4 +440,5 @@ describe Director::TeamsController, type: :request do
       end
     end
   end
+
 end

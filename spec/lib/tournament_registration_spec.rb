@@ -159,13 +159,13 @@ RSpec.describe TournamentRegistration do
     #
     # This is behavior that will move into controllers once we support multiple shifts
     #
-    it "creates a BowlerShift instance" do
-      expect { subject }.to change(BowlerShift, :count).by(1)
+    it "creates no BowlerShift instance" do
+      expect { subject }.not_to change(BowlerShift, :count)
     end
 
-    it "adds the bowler to the tournament's shift" do
+    it "does not add the bowler to a shift" do
       subject
-      expect(bowler.bowler_shift).not_to be_nil
+      expect(bowler.bowler_shift).to be_nil
     end
     #
     # end of shift handling

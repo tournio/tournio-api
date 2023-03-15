@@ -50,6 +50,7 @@ describe BowlersController, type: :request do
     subject { post uri, params: bowler_params, as: :json }
 
     let(:tournament) { create :tournament, :active, :with_entry_fee, :one_shift }
+    let(:shift) { tournament.shifts.first }
 
     before do
       comment = create(:extended_form_field, :comment)
@@ -168,7 +169,9 @@ describe BowlersController, type: :request do
       let(:uri) { "/tournaments/#{tournament.identifier}/bowlers" }
       let(:bowler_params) do
         {
-          bowlers: [create_bowler_test_data],
+          bowlers: [
+            create_bowler_test_data.merge({ shift_identifier: shift.identifier })
+          ],
         }
       end
 
@@ -215,6 +218,17 @@ describe BowlersController, type: :request do
         expect(DataPoint.last.value).to eq('solo')
       end
 
+      context "a tournament with two shifts" do
+        let(:tournament) { create :tournament, :active, :with_entry_fee, :two_shifts }
+        let(:shift) { tournament.shifts.second }
+
+        it 'puts the bowler on the preferred shift' do
+          subject
+          bowler = Bowler.last
+          expect(bowler.shift.id).to eq(shift.id)
+        end
+      end
+
       context 'sneaking some trailing whitespace in on the email address' do
         before do
           bowler_params[:bowlers][0]['person_attributes']['email'] += ' '
@@ -232,36 +246,15 @@ describe BowlersController, type: :request do
         end
       end
 
-      #
-      # Until we support multiple shifts, we don't care about this.
-      #
-      # context 'specifying a shift' do
-      #   let(:shift) { create :shift, tournament: tournament }
-      #   let(:bowler_params) do
-      #     {
-      #       bowlers: [
-      #         create_bowler_test_data.merge({ shift_identifier: shift.identifier })
-      #       ],
-      #     }
-      #   end
-      #
-      #   it 'succeeds' do
-      #     subject
-      #     expect(response).to have_http_status(:created)
-      #   end
-      #
-      #   it 'creates a BowlerShift join model instance' do
-      #     expect { subject }.to change(BowlerShift, :count).by(1)
-      #   end
-      #
-      #   it 'marks the BowlerShift as requested' do
-      #     subject
-      #     expect(BowlerShift.last.requested?).to be_truthy
-      #   end
-      # end
-
       context 'a tournament with event selection' do
         let(:tournament) { create :tournament, :active, :with_a_bowling_event }
+        let(:bowler_params) do
+          {
+            bowlers: [
+              create_bowler_test_data,
+            ],
+          }
+        end
 
         it 'succeeds' do
           subject

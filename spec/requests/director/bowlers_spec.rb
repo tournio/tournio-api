@@ -17,11 +17,11 @@ describe Director::BowlersController, type: :request do
     let(:uri) { "/director/tournaments/#{tournament_identifier}/bowlers" }
 
     let(:tournament_identifier) { tournament.identifier }
-    let(:tournament) { create :tournament, :active }
+    let(:tournament) { create :tournament, :active, :one_shift }
 
     before do
       10.times do
-        create :bowler, tournament: tournament, team: create(:team, tournament: tournament)
+        create :bowler, tournament: tournament, team: create(:team, tournament: tournament), shift: tournament.shifts.first
       end
       for i in 0..4 do
         src = tournament.bowlers[i*2]
@@ -48,7 +48,7 @@ describe Director::BowlersController, type: :request do
 
       before do
         7.times do
-          create :bowler, tournament: tournament, team: create(:team, tournament: tournament)
+          create :bowler, tournament: tournament, team: create(:team, tournament: tournament), shift: tournament.shifts.first
         end
       end
 
@@ -102,8 +102,8 @@ describe Director::BowlersController, type: :request do
 
     let(:uri) { "/director/bowlers/#{bowler_identifier}" }
 
-    let(:tournament) { create :tournament }
-    let(:bowler) { create :bowler, tournament: tournament, team: create(:team, tournament: tournament) }
+    let(:tournament) { create :tournament, :one_shift }
+    let(:bowler) { create :bowler, tournament: tournament, team: create(:team, tournament: tournament), shift: tournament.shifts.first }
     let(:bowler_identifier) { bowler.identifier }
 
     include_examples 'an authorized action'
@@ -237,9 +237,9 @@ describe Director::BowlersController, type: :request do
 
     let(:uri) { "/director/bowlers/#{bowler_identifier}" }
 
-    let(:tournament) { create :tournament, :active }
+    let(:tournament) { create :tournament, :active, :one_shift }
     let(:team) { create :team, name: 'Ladies Who Lunch', tournament: tournament }
-    let(:bowler) { create :bowler, tournament: tournament, team: team }
+    let(:bowler) { create :bowler, tournament: tournament, team: team, shift: tournament.shifts.first }
     let(:bowler_identifier) { bowler.identifier }
     let(:person_attributes) { { nickname: 'Freddy' } }
     let(:team_params) { {} }

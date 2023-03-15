@@ -7,6 +7,7 @@
 #  id             :bigint           not null, primary key
 #  aasm_state     :string           not null
 #  abbreviation   :string
+#  details        :jsonb
 #  end_date       :date
 #  entry_deadline :datetime
 #  identifier     :string           not null
@@ -53,12 +54,16 @@ class Tournament < ApplicationRecord
   accepts_nested_attributes_for :config_items, allow_destroy: true
   accepts_nested_attributes_for :scratch_divisions, allow_destroy: true
   accepts_nested_attributes_for :events, allow_destroy: true
+  accepts_nested_attributes_for :shifts, allow_destroy: true
 
   before_create :generate_identifier, if: -> { identifier.blank? }
   after_create :initiate_testing_environment, :create_default_config
 
   scope :upcoming, ->(right_now = Time.zone.now) { where('end_date > ?', right_now) }
   scope :available, -> { upcoming.where(aasm_state: %w[active closed]) }
+
+  SUPPORTED_DETAILS = %w(registration_types)
+  SUPPORTED_REGISTRATION_OPTIONS = %w(new_team solo join_team partner new_pair)
 
   aasm do
     state :setup, initial: true
@@ -107,7 +112,8 @@ class Tournament < ApplicationRecord
   def generate_identifier
     require 'slugify'
 
-    self.identifier = "#{name} #{year}".slugify
+    word = abbreviation.present? ? abbreviation : name
+    self.identifier = "#{word} #{year}".slugify
   end
 
   def initiate_testing_environment

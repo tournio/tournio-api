@@ -97,9 +97,9 @@ module Fixtures
     end
 
     def create_contacts
-      FactoryBot.create :contact, tournament: tournament, display_order: 1, email: 'director@igbo-factory.org', name: 'Kylie Minogue', role: :director
-      FactoryBot.create :contact, tournament: tournament, display_order: 2, email: 'secretary@igbo-factory.org', name: 'Dorothy Gale', role: :secretary
-      FactoryBot.create :contact, tournament: tournament, display_order: 3, email: 'treasurer@igbo-factory.org', name: 'Stevie Nicks', role: :treasurer
+      FactoryBot.create :contact, tournament: tournament, email: 'director@igbo-factory.org', name: 'Kylie Minogue', role: :director
+      FactoryBot.create :contact, tournament: tournament, email: 'secretary@igbo-factory.org', name: 'Dorothy Gale', role: :secretary
+      FactoryBot.create :contact, tournament: tournament, email: 'treasurer@igbo-factory.org', name: 'Stevie Nicks', role: :treasurer
     end
 
     def create_purchasable_items

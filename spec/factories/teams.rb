@@ -26,31 +26,31 @@ FactoryBot.define do
 
   trait :standard_one_bowler do
     after(:create) do |team, _|
-      create :bowler, position: 1, team: team, tournament: team.tournament
+      create :bowler, position: 1, team: team, tournament: team.tournament, shift: team.tournament.shifts.first
     end
   end
 
   trait :standard_two_bowlers do
     after(:create) do |team, _|
-      create :bowler, position: 1, team: team, tournament: team.tournament
-      create :bowler, position: 2, team: team, tournament: team.tournament
+      create :bowler, position: 1, team: team, tournament: team.tournament, shift: team.tournament.shifts.first
+      create :bowler, position: 2, team: team, tournament: team.tournament, shift: team.tournament.shifts.first
     end
   end
 
   trait :standard_three_bowlers do
     after(:create) do |team, _|
-      create :bowler, position: 1, team: team, tournament: team.tournament
-      create :bowler, position: 2, team: team, tournament: team.tournament
-      create :bowler, position: 3, team: team, tournament: team.tournament
+      create :bowler, position: 1, team: team, tournament: team.tournament, shift: team.tournament.shifts.first
+      create :bowler, position: 2, team: team, tournament: team.tournament, shift: team.tournament.shifts.first
+      create :bowler, position: 3, team: team, tournament: team.tournament, shift: team.tournament.shifts.first
     end
   end
 
   trait :standard_full_team do
     after(:create) do |team, _|
-      create :bowler, position: 1, team: team, tournament: team.tournament
-      create :bowler, position: 2, team: team, tournament: team.tournament
-      create :bowler, position: 3, team: team, tournament: team.tournament
-      create :bowler, position: 4, team: team, tournament: team.tournament
+      create :bowler, position: 1, team: team, tournament: team.tournament, shift: team.tournament.shifts.first
+      create :bowler, position: 2, team: team, tournament: team.tournament, shift: team.tournament.shifts.first
+      create :bowler, position: 3, team: team, tournament: team.tournament, shift: team.tournament.shifts.first
+      create :bowler, position: 4, team: team, tournament: team.tournament, shift: team.tournament.shifts.first
     end
   end
 end

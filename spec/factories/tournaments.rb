@@ -7,6 +7,7 @@
 #  id             :bigint           not null, primary key
 #  aasm_state     :string           not null
 #  abbreviation   :string
+#  details        :jsonb
 #  end_date       :date
 #  entry_deadline :datetime
 #  identifier     :string           not null
@@ -71,7 +72,7 @@ FactoryBot.define do
 
     trait :two_shifts do
       after(:create) do |t, _|
-        create :shift, tournament: t, name: 'Shift 1'
+        create :shift, tournament: t, name: 'Shift 1', display_order: 1
         create :shift, tournament: t, name: 'Shift 2', display_order: 2
       end
     end

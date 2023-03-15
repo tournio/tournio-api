@@ -89,7 +89,7 @@ describe Director::UsersController, type: :request do
       subject
       expect(json).to have_key('tournaments')
       expect(json['tournaments'].length).to eq(1)
-      expect(json['tournaments'].first['id']).to eq(tournament.id)
+      expect(json['tournaments'].first['identifier']).to eq(tournament.identifier)
     end
   end
 

@@ -153,31 +153,6 @@ describe Director::ShiftsController, type: :request do
       end
     end
 
-    context 'updating a details property' do
-      let(:shift_params) do
-        {
-          details: {
-            registration_types: %i(join_team),
-            # Re-add this when we do multiple-shift support
-            # events: [
-            #   {:day=>"Friday", :time=>"9pm-midnight", :event=>"Team"},
-            #   {:day=>"Saturday", :time=>"4-10pm", :event=>"Singles/Doubles"},
-            # ],
-          }
-        }
-      end
-
-      it 'succeeds' do
-        subject
-        expect(response).to have_http_status(:ok)
-      end
-
-      it "updates the details properties" do
-        subject
-        expect(shift.reload.details['registration_types']).to eq(%w(join_team))
-      end
-    end
-
     context 'as an unpermitted user' do
       let(:requesting_user) { create(:user, :unpermitted) }
 
