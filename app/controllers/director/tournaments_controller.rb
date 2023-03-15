@@ -386,7 +386,7 @@ module Director
     end
 
     def create_params
-      params.require(:tournament).permit(TOURNAMENT_PARAMS)
+      params.require(:tournament).permit(TOURNAMENT_PARAMS << :identifier)
     end
   end
 end
