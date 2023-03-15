@@ -248,6 +248,13 @@ describe BowlersController, type: :request do
 
       context 'a tournament with event selection' do
         let(:tournament) { create :tournament, :active, :with_a_bowling_event }
+        let(:bowler_params) do
+          {
+            bowlers: [
+              create_bowler_test_data,
+            ],
+          }
+        end
 
         it 'succeeds' do
           subject
