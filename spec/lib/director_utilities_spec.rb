@@ -63,7 +63,7 @@ RSpec.describe DirectorUtilities do
     end
 
     context 'with an active tournament' do
-      let!(:tournament) { create(:tournament, :active) }
+      let!(:tournament) { create(:tournament, :active, :one_shift) }
 
       it { expect { subject }.not_to change(Team, :count) }
       it { expect { subject }.not_to change(Bowler, :count) }
@@ -71,7 +71,7 @@ RSpec.describe DirectorUtilities do
     end
 
     context 'with a closed tournament' do
-      let!(:tournament) { create(:tournament, :closed) }
+      let!(:tournament) { create(:tournament, :closed, :one_shift) }
 
       it { expect { subject }.not_to change(Team, :count) }
       it { expect { subject }.not_to change(Bowler, :count) }
@@ -82,7 +82,7 @@ RSpec.describe DirectorUtilities do
   describe '#assign_partner' do
     subject { described_class.assign_partner(bowler: bowler, new_partner: new_partner) }
 
-    let(:tournament) { create :tournament, :one_shift, :with_a_doubles_event }
+    let(:tournament) { create :tournament, :with_a_doubles_event }
     let(:bowler) { create(:bowler, tournament: tournament, person: create(:person)) }
     let(:new_partner) { create(:bowler, tournament: tournament, person: create(:person)) }
 
@@ -136,13 +136,15 @@ RSpec.describe DirectorUtilities do
   describe '#reassign_bowler' do
     subject { described_class.reassign_bowler(bowler: moving_bowler, to_team: destination_team) }
 
-    let(:tournament) { create :tournament }
-    let(:b1) { create(:bowler, tournament: tournament, position: 1, person: create(:person)) }
-    let(:b2) { create(:bowler, tournament: tournament, position: 2, person: create(:person)) }
-    let(:b3) { create(:bowler, tournament: tournament, position: 3, person: create(:person)) }
+    let(:tournament) { create :tournament, :two_shifts }
+    let(:source_team_shift) { tournament.shifts.first }
+    let(:destination_team_shift) { tournament.shifts.last }
+    let(:b1) { create(:bowler, tournament: tournament, position: 1, person: create(:person), shift: destination_team_shift) }
+    let(:b2) { create(:bowler, tournament: tournament, position: 2, person: create(:person), shift: destination_team_shift) }
+    let(:b3) { create(:bowler, tournament: tournament, position: 3, person: create(:person), shift: destination_team_shift) }
     let(:dest_team_bowlers) { [b1, b2, b3] }
     let(:from_team_bowlers) { [moving_bowler] }
-    let(:moving_bowler) { create :bowler, tournament: tournament, person: create(:person) }
+    let(:moving_bowler) { create :bowler, tournament: tournament, shift: source_team_shift, person: create(:person) }
     let!(:from_team) { create :team, name: 'solo registrant', tournament: tournament, bowlers: from_team_bowlers }
     let!(:destination_team) { create :team, tournament: tournament, bowlers: dest_team_bowlers }
 
@@ -188,6 +190,79 @@ RSpec.describe DirectorUtilities do
     it 'puts them in the first available position' do
       subject
       expect(moving_bowler.reload.position).to eq(4)
+    end
+
+    it "puts the bowler on the destination team's shift" do
+      subject
+      expect(moving_bowler.reload.shift.id).to eq(destination_team_shift.id)
+    end
+
+    it 'updates the requested of the original shift' do
+      expect { subject }.to change(source_team_shift, :requested).by(-1)
+    end
+
+    it 'updates the requested of the destination shift' do
+      expect { subject }.to change(destination_team_shift, :requested).by(1)
+    end
+
+    it 'does not change the confirmed of the original shift' do
+      expect { subject }.not_to change(source_team_shift, :confirmed)
+    end
+
+    it 'does not change the confirmed of the destination shift' do
+      expect { subject }.not_to change(destination_team_shift, :confirmed)
+    end
+
+    context 'new team is on the same shift' do
+      before do
+        moving_bowler.shift = destination_team_shift
+      end
+
+      it 'makes no changes to the BowlerShift state' do
+        expect { subject }.not_to change(moving_bowler.bowler_shift, :aasm_state)
+      end
+
+      it 'makes no changes to the shift association' do
+        expect { subject }.not_to change(moving_bowler.shift, :id)
+      end
+
+      it 'makes no changes to the requested count of the shift in question' do
+        expect { subject }.not_to change(destination_team_shift, :requested)
+      end
+
+      it 'makes no changes to the confirmed count of the shift in question' do
+        expect { subject }.not_to change(destination_team_shift, :confirmed)
+      end
+
+      it 'makes no changes to the requested count of the other shift' do
+        expect { subject }.not_to change(source_team_shift, :requested)
+      end
+
+      it 'makes no changes to the confirmed count of the other shift' do
+        expect { subject }.not_to change(source_team_shift, :confirmed)
+      end
+    end
+
+    context 'bowler is paid' do
+      before do
+        moving_bowler.bowler_shift.confirm!
+      end
+
+      it 'updates the confirmed of the original shift' do
+        expect { subject }.to change(source_team_shift, :confirmed).by(-1)
+      end
+
+      it 'updates the confirmed of the destination shift' do
+        expect { subject }.to change(destination_team_shift, :confirmed).by(1)
+      end
+
+      it 'does not change the requested of the original shift' do
+        expect { subject }.not_to change(source_team_shift, :requested)
+      end
+
+      it 'does not change the requested of the destination shift' do
+        expect { subject }.not_to change(destination_team_shift, :requested)
+      end
     end
 
     context 'when the destination team has only one bowler' do
@@ -271,12 +346,12 @@ RSpec.describe DirectorUtilities do
   describe '#igbots_hash' do
     subject { described_class.igbots_hash(tournament: tournament) }
 
-    let(:tournament) { create :tournament }
+    let(:tournament) { create :tournament, :one_shift }
     let(:team) { create :team, tournament: tournament }
-    let!(:b1) { create(:bowler, tournament: tournament, position: 1, person: create(:person), team: team) }
-    let!(:b2) { create(:bowler, tournament: tournament, position: 2, person: create(:person), team: team) }
-    let!(:b3) { create(:bowler, tournament: tournament, position: 3, person: create(:person), team: team) }
-    let!(:b4) { create(:bowler, tournament: tournament, position: 4, person: create(:person), team: team) }
+    let!(:b1) { create(:bowler, tournament: tournament, position: 1, shift: tournament.shifts.first, person: create(:person), team: team) }
+    let!(:b2) { create(:bowler, tournament: tournament, position: 2, shift: tournament.shifts.first, person: create(:person), team: team) }
+    let!(:b3) { create(:bowler, tournament: tournament, position: 3, shift: tournament.shifts.first, person: create(:person), team: team) }
+    let!(:b4) { create(:bowler, tournament: tournament, position: 4, shift: tournament.shifts.first, person: create(:person), team: team) }
 
     it 'is a hash' do
       expect(subject).to be_instance_of(Hash)
@@ -296,11 +371,11 @@ RSpec.describe DirectorUtilities do
   describe '#igbots_people' do
     subject { described_class.igbots_people(tournament: tournament) }
 
-    let(:tournament) { create :tournament }
-    let(:b1) { create(:bowler, tournament: tournament, position: 1, person: create(:person), team: team) }
-    let(:b2) { create(:bowler, tournament: tournament, position: 2, person: create(:person), team: team) }
-    let(:b3) { create(:bowler, tournament: tournament, position: 3, person: create(:person), team: team) }
-    let(:b4) { create(:bowler, tournament: tournament, position: 4, person: create(:person), team: team) }
+    let(:tournament) { create :tournament, :one_shift }
+    let(:b1) { create(:bowler, tournament: tournament, position: 1, shift: tournament.shifts.first, person: create(:person), team: team) }
+    let(:b2) { create(:bowler, tournament: tournament, position: 2, shift: tournament.shifts.first, person: create(:person), team: team) }
+    let(:b3) { create(:bowler, tournament: tournament, position: 3, shift: tournament.shifts.first, person: create(:person), team: team) }
+    let(:b4) { create(:bowler, tournament: tournament, position: 4, shift: tournament.shifts.first, person: create(:person), team: team) }
 
     context 'when there are doubles partners' do
       let(:team) { create :team, tournament: tournament }
@@ -335,14 +410,14 @@ RSpec.describe DirectorUtilities do
 
     require 'csv'
 
-    let(:csv_headers) { %w[id last_name first_name nickname birth_day birth_month address1 address2 city state country postal_code phone email usbc_number igbotsid team_id team_name team_order entry_fee_paid registered_at doubles_last_name doubles_first_name average handicap] }
+    let(:csv_headers) { %w[id last_name first_name nickname birth_day birth_month address1 address2 city state country postal_code phone email usbc_number igbotsid team_id team_name team_order entry_fee_paid registered_at doubles_last_name doubles_first_name average handicap preferred_shift] }
 
-    let(:tournament) { create :tournament }
+    let(:tournament) { create :tournament, :one_shift }
     let(:team) { create :team, tournament: tournament }
-    let!(:b1) { create(:bowler, tournament: tournament, position: 1, person: create(:person), team: team) }
-    let!(:b2) { create(:bowler, tournament: tournament, position: 2, person: create(:person), team: team) }
-    let!(:b3) { create(:bowler, tournament: tournament, position: 3, person: create(:person), team: team) }
-    let!(:b4) { create(:bowler, tournament: tournament, position: 4, person: create(:person), team: team) }
+    let!(:b1) { create(:bowler, tournament: tournament, position: 1, shift: tournament.shifts.first, person: create(:person), team: team) }
+    let!(:b2) { create(:bowler, tournament: tournament, position: 2, shift: tournament.shifts.first, person: create(:person), team: team) }
+    let!(:b3) { create(:bowler, tournament: tournament, position: 3, shift: tournament.shifts.first, person: create(:person), team: team) }
+    let!(:b4) { create(:bowler, tournament: tournament, position: 4, shift: tournament.shifts.first, person: create(:person), team: team) }
 
     let(:entry_fee_amount) { 101 }
     let!(:entry_fee_item) { create(:purchasable_item, :entry_fee, value: entry_fee_amount, tournament: tournament) }
@@ -381,9 +456,9 @@ RSpec.describe DirectorUtilities do
   describe '#csv_purchases' do
     subject { described_class.csv_purchases(bowler: bowler) }
 
-    let(:tournament) { create :tournament }
+    let(:tournament) { create :tournament, :one_shift }
     let(:team) { create :team, tournament: tournament }
-    let(:bowler) { create(:bowler, tournament: tournament, position: 1, person: create(:person), team: team) }
+    let(:bowler) { create(:bowler, tournament: tournament, position: 1, shift: tournament.shifts.first, person: create(:person), team: team) }
     let(:chosen_items) { [] }
 
     # When the tournament doesn't offer optional events
@@ -457,7 +532,7 @@ RSpec.describe DirectorUtilities do
 
     # When the tournament offers multi-use items like banquet entries
     context 'with some multi-use items like banquet entries or raffle ticket bundles' do
-      let(:tournament) { create :tournament, :with_extra_stuff }
+      let(:tournament) { create :tournament, :with_extra_stuff, :one_shift }
       let(:items) do
         [
           tournament.purchasable_items.banquet.first,
@@ -475,7 +550,7 @@ RSpec.describe DirectorUtilities do
     end
 
     context 'with a sanction item' do
-      let(:tournament) { create :tournament, :with_sanction_item }
+      let(:tournament) { create :tournament, :with_sanction_item, :one_shift }
       let(:item) { tournament.purchasable_items.sanction.first }
 
       before { create :purchase, :paid, amount: item.value, bowler: bowler, purchasable_item: item }
@@ -489,10 +564,10 @@ RSpec.describe DirectorUtilities do
   describe '#doubles_partner_info' do
     subject { described_class.doubles_partner_info(partner: partner, name_only: name_only?) }
 
-    let(:tournament) { create :tournament }
+    let(:tournament) { create :tournament, :one_shift }
     let(:team) { create :team, tournament: tournament }
-    let(:b1) { create(:bowler, tournament: tournament, position: 1, person: create(:person), team: team) }
-    let(:b2) { create(:bowler, tournament: tournament, position: 2, person: create(:person), team: team) }
+    let(:b1) { create(:bowler, tournament: tournament, position: 1, shift: tournament.shifts.first, person: create(:person), team: team) }
+    let(:b2) { create(:bowler, tournament: tournament, position: 2, shift: tournament.shifts.first, person: create(:person), team: team) }
     let(:partner) { b2 }
     let(:name_only?) { true }
     let(:name_only_keys) { %i[doubles_last_name doubles_first_name] }
@@ -514,9 +589,9 @@ RSpec.describe DirectorUtilities do
   describe '#csv_additional_questions' do
     subject { described_class.csv_additional_questions(bowler: bowler) }
 
-    let(:tournament) { create :tournament }
+    let(:tournament) { create :tournament, :one_shift }
     let(:team) { create :team, tournament: tournament }
-    let(:bowler) { create(:bowler, tournament: tournament, position: 1, person: create(:person), team: team) }
+    let(:bowler) { create(:bowler, tournament: tournament, position: 1, shift: tournament.shifts.first, person: create(:person), team: team) }
     let(:comment_eff) { create :extended_form_field, :comment }
     let(:standings_eff) { create :extended_form_field, :standings_link }
     let(:pronouns_eff) { create :extended_form_field, :pronouns }
