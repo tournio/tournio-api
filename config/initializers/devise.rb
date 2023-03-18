@@ -28,6 +28,10 @@ Devise.setup do |config|
     jwt.expiration_time = 6.hours.to_i
   end
 
+  # Responder configuration, to bring response status codes into line with what Devise
+  # wants as of v 4.9
+  config.responder.error_status = :unprocessable_entity
+  config.responder.redirect_status = :see_other
 
   # ==> Controller configuration
   # Configure the parent class to the devise controllers.
