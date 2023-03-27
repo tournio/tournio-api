@@ -38,5 +38,8 @@ module IgboRegistrationApi
 
     # Configuration added by us
     config.active_storage.routes_prefix = '/files'
+
+    # number of seconds to
+    config.sidekiq_async_delay = 60
   end
 end

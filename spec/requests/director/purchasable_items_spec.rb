@@ -65,12 +65,12 @@ describe Director::PurchasableItemsController, type: :request do
     end
 
     it 'kicks off a Stripe::ProductCreator job' do
-      expect(Stripe::ProductCreator).to receive(:perform_async).once
+      expect(Stripe::ProductCreator).to receive(:perform_in).once
       subject
     end
 
     it 'does not kick off a Stripe::CouponCreator job' do
-      expect(Stripe::CouponCreator).not_to receive(:perform_async)
+      expect(Stripe::CouponCreator).not_to receive(:perform_in)
       subject
     end
 
@@ -108,12 +108,12 @@ describe Director::PurchasableItemsController, type: :request do
       end
 
       it 'kicks off a Stripe::ProductCreator job for each item' do
-        expect(Stripe::ProductCreator).to receive(:perform_async).exactly(5).times
+        expect(Stripe::ProductCreator).to receive(:perform_in).exactly(5).times
         subject
       end
 
       it 'does not kick off a Stripe::CouponCreator job' do
-        expect(Stripe::CouponCreator).not_to receive(:perform_async)
+        expect(Stripe::CouponCreator).not_to receive(:perform_in)
         subject
       end
     end
@@ -145,12 +145,12 @@ describe Director::PurchasableItemsController, type: :request do
         end
 
         it 'kicks off a Stripe::ProductCreator job' do
-          expect(Stripe::ProductCreator).to receive(:perform_async).once
+          expect(Stripe::ProductCreator).to receive(:perform_in).once
           subject
         end
 
         it 'does not kick off a Stripe::CouponCreator job' do
-          expect(Stripe::CouponCreator).not_to receive(:perform_async)
+          expect(Stripe::CouponCreator).not_to receive(:perform_in)
           subject
         end
 
@@ -163,12 +163,12 @@ describe Director::PurchasableItemsController, type: :request do
           end
 
           it 'does not kick off a Stripe::ProductCreator job' do
-            expect(Stripe::ProductCreator).not_to receive(:perform_async)
+            expect(Stripe::ProductCreator).not_to receive(:perform_in)
             subject
           end
 
           it 'does not kick off a Stripe::CouponCreator job' do
-            expect(Stripe::CouponCreator).not_to receive(:perform_async)
+            expect(Stripe::CouponCreator).not_to receive(:perform_in)
             subject
           end
         end
@@ -190,7 +190,7 @@ describe Director::PurchasableItemsController, type: :request do
         end
 
         it 'kicks off a Stripe::ProductCreator job' do
-          expect(Stripe::ProductCreator).to receive(:perform_async).once
+          expect(Stripe::ProductCreator).to receive(:perform_in).once
           subject
         end
 
@@ -214,12 +214,12 @@ describe Director::PurchasableItemsController, type: :request do
           end
 
           it 'does not kick off a Stripe::ProductCreator job' do
-            expect(Stripe::ProductCreator).not_to receive(:perform_async)
+            expect(Stripe::ProductCreator).not_to receive(:perform_in)
             subject
           end
 
           it 'does not kick off a Stripe::CouponCreator job' do
-            expect(Stripe::CouponCreator).not_to receive(:perform_async)
+            expect(Stripe::CouponCreator).not_to receive(:perform_in)
             subject
           end
         end
@@ -233,12 +233,12 @@ describe Director::PurchasableItemsController, type: :request do
           end
 
           it 'does not kick off a Stripe::ProductCreator job' do
-            expect(Stripe::ProductCreator).not_to receive(:perform_async)
+            expect(Stripe::ProductCreator).not_to receive(:perform_in)
             subject
           end
 
           it 'does not kick off a Stripe::CouponCreator job' do
-            expect(Stripe::CouponCreator).not_to receive(:perform_async)
+            expect(Stripe::CouponCreator).not_to receive(:perform_in)
             subject
           end
         end
@@ -260,12 +260,12 @@ describe Director::PurchasableItemsController, type: :request do
         end
 
         it 'does not kick off a Stripe::ProductCreator job' do
-          expect(Stripe::ProductCreator).not_to receive(:perform_async)
+          expect(Stripe::ProductCreator).not_to receive(:perform_in)
           subject
         end
 
         it 'kicks off a Stripe::CouponCreator job' do
-          expect(Stripe::CouponCreator).to receive(:perform_async).once
+          expect(Stripe::CouponCreator).to receive(:perform_in).once
           subject
         end
 
@@ -284,12 +284,12 @@ describe Director::PurchasableItemsController, type: :request do
           end
 
           it 'does not kick off a Stripe::ProductCreator job' do
-            expect(Stripe::ProductCreator).not_to receive(:perform_async)
+            expect(Stripe::ProductCreator).not_to receive(:perform_in)
             subject
           end
 
           it 'does not kick off a Stripe::CouponCreator job' do
-            expect(Stripe::CouponCreator).not_to receive(:perform_async)
+            expect(Stripe::CouponCreator).not_to receive(:perform_in)
             subject
           end
         end
@@ -303,12 +303,12 @@ describe Director::PurchasableItemsController, type: :request do
           end
 
           it 'does not kick off a Stripe::ProductCreator job' do
-            expect(Stripe::ProductCreator).not_to receive(:perform_async)
+            expect(Stripe::ProductCreator).not_to receive(:perform_in)
             subject
           end
 
           it 'does not kick off a Stripe::CouponCreator job' do
-            expect(Stripe::CouponCreator).not_to receive(:perform_async)
+            expect(Stripe::CouponCreator).not_to receive(:perform_in)
             subject
           end
         end
@@ -362,12 +362,12 @@ describe Director::PurchasableItemsController, type: :request do
         end
 
         it 'kicks off a Stripe::ProductCreator job' do
-          expect(Stripe::ProductCreator).to receive(:perform_async).once
+          expect(Stripe::ProductCreator).to receive(:perform_in).once
           subject
         end
 
         it 'does not kick off a Stripe::CouponCreator job' do
-          expect(Stripe::CouponCreator).not_to receive(:perform_async)
+          expect(Stripe::CouponCreator).not_to receive(:perform_in)
           subject
         end
       end
@@ -407,12 +407,12 @@ describe Director::PurchasableItemsController, type: :request do
       end
 
       it 'kicks off a Stripe::ProductCreator job' do
-        expect(Stripe::ProductCreator).to receive(:perform_async).once
+        expect(Stripe::ProductCreator).to receive(:perform_in).once
         subject
       end
 
       it 'does not kick off a Stripe::CouponCreator job' do
-        expect(Stripe::CouponCreator).not_to receive(:perform_async)
+        expect(Stripe::CouponCreator).not_to receive(:perform_in)
         subject
       end
 
@@ -431,12 +431,12 @@ describe Director::PurchasableItemsController, type: :request do
         end
 
         it 'kicks off a Stripe::ProductCreator job' do
-          expect(Stripe::ProductCreator).not_to receive(:perform_async)
+          expect(Stripe::ProductCreator).not_to receive(:perform_in)
           subject
         end
 
         it 'does not kick off a Stripe::CouponCreator job' do
-          expect(Stripe::CouponCreator).not_to receive(:perform_async)
+          expect(Stripe::CouponCreator).not_to receive(:perform_in)
           subject
         end
       end
