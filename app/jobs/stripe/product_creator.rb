@@ -26,6 +26,9 @@ module Stripe
     rescue StripeError => e
       Bugsnag.notify(e)
       Rails.logger.warn "Failed to associate PurchasableItem with Stripe Product or Price: #{e.message}"
+    rescue ActiveRecord::RecordNotFound => e
+      Bugsnag.notify(e)
+      Rails.logger.warn "Could not find purchasable item with ID = #{purchasable_item_id} -- Could it be too soon?"
     end
 
     def set_attributes(purchasable_item_id)

@@ -95,7 +95,7 @@ module StripeUtilities
 
   def create_stripe_products
     tournament.purchasable_items.bowling.where(stripe_product: nil).each do |pi|
-      Stripe::ProductCreator.perform_async(pi.id)
+      Stripe::ProductCreator.perform_in(Rails.configuration.sidekiq_async_delay, pi.id)
     end
   end
 end

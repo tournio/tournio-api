@@ -21,9 +21,9 @@ module Director
 
         items.each do |i|
           if i.bundle_discount? || i.early_discount?
-            Stripe::CouponCreator.perform_async(i.id)
+            Stripe::CouponCreator.perform_in(Rails.configuration.sidekiq_async_delay, i.id)
           else
-            Stripe::ProductCreator.perform_async(i.id)
+            Stripe::ProductCreator.perform_in(Rails.configuration.sidekiq_async_delay, i.id)
           end
         end unless tournament.config['skip_stripe']
 
