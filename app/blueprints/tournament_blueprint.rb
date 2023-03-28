@@ -173,9 +173,15 @@ class TournamentBlueprint < Blueprinter::Base
       early_discount: 1,
       late_fee: 2,
       discount_expiration: 3,
-      igbo: 4,
-      single_use: 5,
-      multi_use: 6,
+      event: 4,
+      igbo: 5,
+      single_use: 6,
+      multi_use: 7,
+      bundle_discount: 8,
+      apparel: 9,
+      general: 10,
+      handicap: 11,
+      scratch: 12,
     }
 
     {

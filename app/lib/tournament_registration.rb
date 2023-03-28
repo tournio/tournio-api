@@ -17,6 +17,8 @@ module TournamentRegistration
       sanction: 150,
       banquet: 200,
       product: 300,
+      raffle: 400,
+      bracket: 500,
     },
     determination: {
       entry_fee: 1,
@@ -28,6 +30,10 @@ module TournamentRegistration
       event: 10,
       single_use: 11,
       multi_use: 12,
+      apparel: 13,
+      general: 14,
+      handicap: 15,
+      scratch: 16,
     },
     refinement: {
       division: -1,

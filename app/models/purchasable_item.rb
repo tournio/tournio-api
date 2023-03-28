@@ -35,7 +35,8 @@ class PurchasableItem < ApplicationRecord
     banquet: 'banquet', # uh, banquet
     product: 'product', #  Thing like raffle ticket bundles, shirts, and other merchandise
     sanction: 'sanction', # Memberships such as IGBO and USBC
-    # add other categories here as we support them, e.g., program
+    raffle: 'raffle', # Raffle ticket packs, including multi-city
+    bracket: 'bracket', # Single-event and megabracket entries, individual or team
   }
 
   enum determination: {
@@ -54,6 +55,14 @@ class PurchasableItem < ApplicationRecord
     # the deadline.
     # Currently only available to use by superusers via console.
     discount_expiration: 'discount_expiration',
+
+    # Various kinds of products
+    general: 'general', # For things that don't fit into the other groups
+    apparel: 'apparel', # shirts and such
+
+    # For brackets, and more!
+    handicap: 'handicap',
+    scratch: 'scratch',
   }
 
   enum refinement: {
@@ -61,10 +70,10 @@ class PurchasableItem < ApplicationRecord
     division: 'division',
     denomination: 'denomination',
     event_linked: 'event_linked', # on a ledger late_fee item, linked with an event (when event selection is permitted)
-    single: 'single', # for events
-    double: 'double', # for events
-    team: 'team',       # for events
-    trio: 'trio',     # for events
+    single: 'single', # Used for events and brackets
+    double: 'double', # Used for events and brackets
+    team: 'team',     # Used for events and brackets
+    trio: 'trio',     # Used for events
   }
 
   validate :one_ledger_item_per_determination, if: proc { |pi| pi.ledger? }, on: :create
