@@ -389,6 +389,95 @@ describe Director::PurchasableItemsController, type: :request do
       end
     end
 
+    context 'a product item' do
+      let(:category) { 'product' }
+      let(:determination) { 'general' }
+      let(:configuration_param) do
+        {
+          order: 1,
+          note: 'A nice souvenir!'
+        }
+      end
+
+      it 'succeeds with a 201 Created' do
+        subject
+        expect(response).to have_http_status(:created)
+      end
+
+      it 'kicks off a Stripe::ProductCreator job' do
+        expect(Stripe::ProductCreator).to receive(:perform_in).once
+        subject
+      end
+
+      it 'does not kick off a Stripe::CouponCreator job' do
+        expect(Stripe::CouponCreator).not_to receive(:perform_in)
+        subject
+      end
+
+      context 'an apparel product' do
+        let(:determination) { 'apparel' }
+        let(:sizes_param) do
+          {
+            one_size_fits_all: true,
+          }
+        end
+        let(:configuration_param) do
+          {
+            order: 3,
+            note: 'A good fit!',
+            sizes: sizes_param,
+          }
+        end
+
+        it 'succeeds with a 201 Created' do
+          subject
+          expect(response).to have_http_status(:created)
+        end
+
+        it 'includes the sizes property with the resulting product' do
+          subject
+          expect(json.first['configuration']).to have_key('sizes')
+        end
+
+        it 'includes the specified size' do
+          subject
+          expect(json.first['configuration']['sizes']['one_size_fits_all']).to be_truthy
+        end
+
+        context 'just for middlemen' do
+          let(:sizes_param) do
+            {
+              men: {
+                s: true,
+                m: true,
+                l: true,
+              },
+            }
+          end
+
+          it 'excludes one-size-fits-all' do
+            subject
+            expect(json.first['configuration']['sizes']['one_size_fits_all']).to be_falsey
+          end
+
+          it 'marks the specified sizes as true' do
+            keys = ApparelDetails::SIZES_ADULT
+            values = Array.new(keys.size, false)
+            mapping = Hash[keys.zip(values)]
+            sizes_param[:men].each_pair { |k,v| mapping[k] = v }
+            mapping.deep_stringify_keys!
+
+            subject
+
+            mapping.each_pair do |size, included|
+              expect(json.first['configuration']['sizes']['men'][size]).to eq(included)
+            end
+          end
+        end
+      end
+    end
+
+    # Come back to this one when we bring in support for the Raffle category
     context 'a product item with denomination refinement' do
       let(:category) { 'product' }
       let(:determination) { 'multi_use' }

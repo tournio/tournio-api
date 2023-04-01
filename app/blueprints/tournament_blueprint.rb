@@ -150,6 +150,12 @@ class TournamentBlueprint < Blueprinter::Base
         last_week_purchases_by_day: ChartDataQueries.last_week_item_purchases_by_day(t),
       }
     end
+
+    # field :direct_upload_url do |t, options|
+    #   if options[:host].present?
+    #     Rails.application.routes.url_helpers.rails_direct_uploads_url(options)
+    #   end
+    # end
   end
 
   private

@@ -18,7 +18,6 @@ module Director
 
       PurchasableItem.transaction do
         self.items = PurchasableItem.create!(purchasable_item_create_params)
-
         items.each do |i|
           if i.bundle_discount? || i.early_discount?
             Stripe::CouponCreator.perform_in(Rails.configuration.sidekiq_async_delay, i.id)
@@ -141,6 +140,13 @@ module Director
             :denomination,
             :event,
             events: [],
+            sizes: [
+              :one_size_fits_all,
+              unisex: ApparelDetails::SIZES_ADULT,
+              women: ApparelDetails::SIZES_ADULT,
+              men: ApparelDetails::SIZES_ADULT,
+              infant: ApparelDetails::SIZES_INFANT,
+            ],
           ]
         ]
       ).require(:purchasable_items)

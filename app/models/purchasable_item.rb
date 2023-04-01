@@ -23,11 +23,15 @@
 #
 
 class PurchasableItem < ApplicationRecord
+  include ApparelDetails
+
   belongs_to :tournament
   has_many :purchases
 
   has_one :stripe_product, dependent: :destroy
   has_one :stripe_coupon, dependent: :destroy
+
+  # has_one_attached :image
 
   enum category: {
     bowling: 'bowling', # optional bowling events
@@ -72,8 +76,8 @@ class PurchasableItem < ApplicationRecord
     event_linked: 'event_linked', # on a ledger late_fee item, linked with an event (when event selection is permitted)
     single: 'single', # Used for events and brackets
     double: 'double', # Used for events and brackets
-    team: 'team',     # Used for events and brackets
-    trio: 'trio',     # Used for events
+    team: 'team', # Used for events and brackets
+    trio: 'trio', # Used for events
   }
 
   validate :one_ledger_item_per_determination, if: proc { |pi| pi.ledger? }, on: :create
@@ -86,6 +90,24 @@ class PurchasableItem < ApplicationRecord
   before_create :generate_identifier
 
   scope :user_selectable, -> { where(user_selectable: true) }
+
+  ###################################
+  # Initializer, when we have sizes
+  ###################################
+  def initialize(*args)
+    super
+    if determination == 'apparel'
+      sizes = default_size_set.deep_dup
+      incoming_sizes = configuration['sizes'].with_indifferent_access
+      unless incoming_sizes[:one_size_fits_all].nil?
+        sizes[:one_size_fits_all] = incoming_sizes[:one_size_fits_all]
+      end
+
+      SIZE_CATEGORIES.each { |category| sizes[category].merge!(incoming_sizes[category]) unless incoming_sizes[category].nil? }
+
+      configuration['sizes'] = sizes
+    end
+  end
 
   ###################################
   # Validation methods
