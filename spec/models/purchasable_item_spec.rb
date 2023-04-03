@@ -13,6 +13,7 @@
 #  value           :integer          default(0), not null
 #  created_at      :datetime         not null
 #  updated_at      :datetime         not null
+#  parent_id       :bigint
 #  tournament_id   :bigint
 #
 # Indexes

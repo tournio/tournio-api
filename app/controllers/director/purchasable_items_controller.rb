@@ -18,7 +18,16 @@ module Director
 
       PurchasableItem.transaction do
         self.items = PurchasableItem.create!(purchasable_item_create_params)
+
+        # If we're dealing with sized apparel, create PIs for each
+        # size and link them to the parent
+        handle_sized_apparel_items
+
+        # Create Stripe coupons and/or products
         items.each do |i|
+          # But not for a sized item; its children will have StripeProducts
+          next if i.sized?
+
           if i.bundle_discount? || i.early_discount?
             Stripe::CouponCreator.perform_in(Rails.configuration.sidekiq_async_delay, i.id)
           else
@@ -139,9 +148,9 @@ module Director
             :note,
             :denomination,
             :event,
+            :size,
             events: [],
             sizes: [
-              :one_size_fits_all,
               unisex: ApparelDetails::SIZES_ADULT,
               women: ApparelDetails::SIZES_ADULT,
               men: ApparelDetails::SIZES_ADULT,
@@ -151,6 +160,30 @@ module Director
         ]
       ).require(:purchasable_items)
             .map! { |pi_hash| pi_hash.merge(tournament_id: tournament.id) }
+    end
+
+    def handle_sized_apparel_items
+      children = []
+      items.select { |i| i.refinement == 'sized' }.each do |pi|
+        pi.configuration['sizes'].each_pair do |group, size_keys|
+          size_keys.each_pair do |size_key, include_it|
+            next unless include_it
+            child_pi = pi.deep_dup
+
+            child_pi.parent = pi
+            child_pi.configuration['size'] = ApparelDetails.serialize_size(group, size_key)
+            child_pi.configuration.delete('sizes')
+            child_pi.configuration['parent_identifier'] = pi.identifier
+            child_pi.refinement = nil
+
+            child_pi.save
+            children << child_pi
+          end
+        end
+        pi.configuration.delete('sizes')
+        pi.save
+      end
+      items.concat(children)
     end
   end
 end

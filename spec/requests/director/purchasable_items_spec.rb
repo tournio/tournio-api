@@ -416,17 +416,16 @@ describe Director::PurchasableItemsController, type: :request do
 
       context 'an apparel product' do
         let(:determination) { 'apparel' }
-        let(:sizes_param) do
+        let(:size_params) do
           {
-            one_size_fits_all: true,
+            size: 'one_size_fits_all',
           }
         end
         let(:configuration_param) do
           {
             order: 3,
             note: 'A good fit!',
-            sizes: sizes_param,
-          }
+          }.merge(size_params)
         end
 
         it 'succeeds with a 201 Created' do
@@ -434,44 +433,87 @@ describe Director::PurchasableItemsController, type: :request do
           expect(response).to have_http_status(:created)
         end
 
-        it 'includes the sizes property with the resulting product' do
+        it 'includes the size property with the resulting product' do
           subject
-          expect(json.first['configuration']).to have_key('sizes')
+          expect(json.first['configuration']).to have_key('size')
         end
 
-        it 'includes the specified size' do
+        it 'includes the size value' do
           subject
-          expect(json.first['configuration']['sizes']['one_size_fits_all']).to be_truthy
+          expect(json.first['configuration']['size']).to eq('one_size_fits_all')
+        end
+
+        it 'does not include a parent identifier' do
+          subject
+          expect(json.first['configuration']).not_to have_key('parent_identifier')
+        end
+
+        it 'does not set the refinement property' do
+          subject
+          expect(json.first['refinement']).not_to be_present
         end
 
         context 'just for middlemen' do
-          let(:sizes_param) do
+          let(:refinement) { 'sized' }
+          let(:size_params) do
             {
-              men: {
-                s: true,
-                m: true,
-                l: true,
-              },
+              sizes: {
+                men: {
+                  s: true,
+                  m: true,
+                  l: true,
+                },
+              }
             }
           end
 
-          it 'excludes one-size-fits-all' do
+          it 'returns a PI for each size, plus a parent one' do
             subject
-            expect(json.first['configuration']['sizes']['one_size_fits_all']).to be_falsey
+            expect(json.size).to eq(size_params[:sizes][:men].size + 1)
           end
 
-          it 'marks the specified sizes as true' do
-            keys = ApparelDetails::SIZES_ADULT
-            values = Array.new(keys.size, false)
-            mapping = Hash[keys.zip(values)]
-            sizes_param[:men].each_pair { |k,v| mapping[k] = v }
-            mapping.deep_stringify_keys!
+          it 'identifies one of the new PIs as the parent' do
+            subject
+            has_one_parent = json.one? { |jpi| jpi['refinement'] == 'sized' }
+            expect(has_one_parent).to be_truthy
+          end
 
+          it 'does not include the refinement property on the other ones' do
+            subject
+            unrefined = json.select { |jpi| !jpi['refinement'].present? }
+            expect(unrefined.count).to eq(size_params[:sizes][:men].size)
+          end
+
+          it 'identifies the parent on the other ones' do
             subject
 
-            mapping.each_pair do |size, included|
-              expect(json.first['configuration']['sizes']['men'][size]).to eq(included)
+            parent_index = json.index { |jpi| jpi['refinement'] == 'sized' }
+            parent = json.at(parent_index)
+            parent_identifier = parent['identifier']
+
+            json.each_index do |i|
+              next if i == parent_index
+              jpi = json[i]
+              expect(jpi['configuration']['parent_identifier']).to eq(parent_identifier)
             end
+          end
+
+          it 'includes a size on the other ones' do
+            subject
+
+            parent_index = json.index { |jpi| jpi['refinement'] == 'sized' }
+
+            json.each_index do |i|
+              next if i == parent_index
+              jpi = json[i]
+              expect(jpi['configuration']['size']).not_to be_nil
+            end
+          end
+
+          it 'excludes the sizes property from the parent' do
+            subject
+            parent_index = json.index { |jpi| jpi['refinement'] == 'sized' }
+            expect(json[parent_index]['configuration']['sizes']).to be_nil
           end
         end
       end

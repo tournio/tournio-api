@@ -20,4 +20,19 @@ module ApparelDetails
       infant: infant,
     })
   end
+
+  def self.serialize_size(group_key, size_key)
+    "#{group_key}.#{size_key}"
+  end
+
+  # sizes = default_size_set.deep_dup
+  # incoming_sizes = configuration['sizes'].with_indifferent_access
+  # unless incoming_sizes[:one_size_fits_all].nil?
+  #   sizes[:one_size_fits_all] = incoming_sizes[:one_size_fits_all]
+  # end
+  #
+  # SIZE_CATEGORIES.each { |category| sizes[category].merge!(incoming_sizes[category]) unless incoming_sizes[category].nil? }
+  #
+  # configuration['sizes'] = sizes
+
 end

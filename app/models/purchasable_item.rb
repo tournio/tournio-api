@@ -15,6 +15,7 @@
 #  value           :integer          default(0), not null
 #  created_at      :datetime         not null
 #  updated_at      :datetime         not null
+#  parent_id       :bigint
 #  tournament_id   :bigint
 #
 # Indexes
@@ -26,6 +27,7 @@ class PurchasableItem < ApplicationRecord
   include ApparelDetails
 
   belongs_to :tournament
+  belongs_to :parent, class_name: 'PurchasableItem', optional: true
   has_many :purchases
 
   has_one :stripe_product, dependent: :destroy
@@ -37,7 +39,7 @@ class PurchasableItem < ApplicationRecord
     bowling: 'bowling', # optional bowling events
     ledger: 'ledger', # mandatory items, e.g., registration, late fee, early discount
     banquet: 'banquet', # uh, banquet
-    product: 'product', #  Thing like raffle ticket bundles, shirts, and other merchandise
+    product: 'product', #  Things like raffle ticket bundles, shirts, and other merchandise
     sanction: 'sanction', # Memberships such as IGBO and USBC
     raffle: 'raffle', # Raffle ticket packs, including multi-city
     bracket: 'bracket', # Single-event and megabracket entries, individual or team
@@ -78,6 +80,8 @@ class PurchasableItem < ApplicationRecord
     double: 'double', # Used for events and brackets
     team: 'team', # Used for events and brackets
     trio: 'trio', # Used for events
+
+    sized: 'sized', # For apparel available in multiple sizes; marks the parent
   }
 
   validate :one_ledger_item_per_determination, if: proc { |pi| pi.ledger? }, on: :create
@@ -90,24 +94,6 @@ class PurchasableItem < ApplicationRecord
   before_create :generate_identifier
 
   scope :user_selectable, -> { where(user_selectable: true) }
-
-  ###################################
-  # Initializer, when we have sizes
-  ###################################
-  def initialize(*args)
-    super
-    if determination == 'apparel'
-      sizes = default_size_set.deep_dup
-      incoming_sizes = configuration['sizes'].with_indifferent_access
-      unless incoming_sizes[:one_size_fits_all].nil?
-        sizes[:one_size_fits_all] = incoming_sizes[:one_size_fits_all]
-      end
-
-      SIZE_CATEGORIES.each { |category| sizes[category].merge!(incoming_sizes[category]) unless incoming_sizes[category].nil? }
-
-      configuration['sizes'] = sizes
-    end
-  end
 
   ###################################
   # Validation methods
