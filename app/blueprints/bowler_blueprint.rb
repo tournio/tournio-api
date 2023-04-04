@@ -32,6 +32,10 @@ class BowlerBlueprint < Blueprinter::Base
       b.team&.identifier
     end
 
+    field :team_name do |b, _|
+      TournamentRegistration.team_display_name(b.team)
+    end
+
     field :amount_billed do |b, _|
       billed = TournamentRegistration.amount_billed(b).to_i
       ActionController::Base.helpers.number_to_currency(billed, precision: 0)
