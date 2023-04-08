@@ -171,7 +171,8 @@ class TournamentBlueprint < Blueprinter::Base
     division_items = tournament.purchasable_items.division
     other_bowling_items = tournament.purchasable_items.bowling.where(refinement: nil).order(name: :asc)
     banquet = tournament.purchasable_items.banquet.order(name: :asc)
-    product = tournament.purchasable_items.product.order(name: :asc)
+    raffle = tournament.purchasable_items.raffle.order(name: :asc)
+    product = tournament.purchasable_items.product.order(determination: :desc, refinement: :desc, name: :asc)
     sanction = tournament.purchasable_items.sanction.order(name: :asc)
 
     determination_order = {
@@ -195,6 +196,7 @@ class TournamentBlueprint < Blueprinter::Base
       division: PurchasableItemBlueprint.render_as_hash(division_items.sort_by { |di| di.configuration['division'] }),
       bowling: PurchasableItemBlueprint.render_as_hash(other_bowling_items),
       banquet: PurchasableItemBlueprint.render_as_hash(banquet),
+      raffle: PurchasableItemBlueprint.render_as_hash(raffle),
       product: PurchasableItemBlueprint.render_as_hash(product),
       sanction: PurchasableItemBlueprint.render_as_hash(sanction),
     }
