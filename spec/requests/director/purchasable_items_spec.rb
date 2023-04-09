@@ -453,7 +453,7 @@ describe Director::PurchasableItemsController, type: :request do
           expect(json.first['refinement']).not_to be_present
         end
 
-        context 'just for middlemen' do
+        context 'with multiple sizes' do
           let(:refinement) { 'sized' }
           let(:size_params) do
             {
@@ -631,6 +631,7 @@ describe Director::PurchasableItemsController, type: :request do
     let(:purchasable_item) { create :purchasable_item, :entry_fee, tournament: tournament }
     let(:purchasable_item_id) { purchasable_item.identifier }
 
+    let(:other_params) { {} }
     let(:configuration_param) do
       {
         order: '',
@@ -646,7 +647,7 @@ describe Director::PurchasableItemsController, type: :request do
         purchasable_item: {
           value: 99,
           configuration: configuration_param,
-        }
+        }.merge(other_params)
       }
     end
 
@@ -655,6 +656,22 @@ describe Director::PurchasableItemsController, type: :request do
     it 'succeeds with a 200 OK' do
       subject
       expect(response).to have_http_status(:ok)
+    end
+
+    it 'kicks off a Stripe::ProductUpdater job' do
+      expect(Stripe::ProductUpdater).to receive(:perform_in).once
+      subject
+    end
+
+    context 'when skip_stripe is true' do
+      before do
+        tournament.config_items << ConfigItem.new(key: 'skip_stripe', value: 'true')
+      end
+
+      it 'does not try to update the associated StripeProduct if skip_stripe is true' do
+        expect(Stripe::ProductUpdater).not_to receive(:perform_in)
+        subject
+      end
     end
 
     context 'early discount' do
@@ -673,6 +690,11 @@ describe Director::PurchasableItemsController, type: :request do
       it 'succeeds with a 200 OK' do
         subject
         expect(response).to have_http_status(:ok)
+      end
+
+      it 'does not kick off a Stripe::ProductUpdater job' do
+        expect(Stripe::ProductUpdater).not_to receive(:perform_in)
+        subject
       end
     end
 
@@ -768,6 +790,134 @@ describe Director::PurchasableItemsController, type: :request do
       it 'succeeds with a 200 OK' do
         subject
         expect(response).to have_http_status(:ok)
+      end
+    end
+
+    context 'an apparel item' do
+      let(:purchasable_item) { create :purchasable_item, :apparel, :one_size_fits_all, tournament: tournament }
+
+      context 'an apparel product' do
+        let(:configuration_param) do
+          {
+            order: 3,
+            note: 'A good fit!',
+            size: 'one_size_fits_all',
+          }
+        end
+        let(:other_params) do
+          {
+            name: 'A corrected name',
+          }
+        end
+
+        it 'succeeds with a 200 OK' do
+          subject
+          expect(response).to have_http_status(:ok)
+        end
+
+        it 'returns a singleton item in the response' do
+          subject
+          expect(json).to have_key('identifier')
+        end
+
+        # We require that a size property be sent up with an update request.
+        it 'includes the size property with the resulting product' do
+          subject
+          expect(json['configuration']).to have_key('size')
+        end
+
+        it 'includes the size value' do
+          subject
+          expect(json['configuration']['size']).to eq('one_size_fits_all')
+        end
+
+        it 'includes the updated name value' do
+          subject
+          expect(json['name']).to eq(other_params[:name])
+        end
+
+        it 'does not include a parent identifier' do
+          subject
+          expect(json['configuration']).not_to have_key('parent_identifier')
+        end
+
+        it 'still has an empty refinement property' do
+          subject
+          expect(json['refinement']).not_to be_present
+        end
+
+        context 'with multiple sizes' do
+          let(:purchasable_item) { create :purchasable_item, :apparel, :sized, tournament: tournament }
+
+          let(:configuration_param) do
+            {
+              order: 1,
+              note: 'A playful shirt',
+              sizes: {
+                infant: {
+                  newborn: true,
+                  m12: true,
+                  m24: true,
+                },
+              },
+            }
+          end
+
+          it 'returns a PI for each size, plus a parent one' do
+            subject
+            expect(json.size).to eq(configuration_param[:sizes][:infant].size + 1)
+          end
+
+          it 'identifies one of the new PIs as the parent' do
+            subject
+            has_one_parent = json.one? { |jpi| jpi['refinement'] == 'sized' }
+            expect(has_one_parent).to be_truthy
+          end
+
+          it 'does not include the refinement property on the other ones' do
+            subject
+            unrefined = json.select { |jpi| !jpi['refinement'].present? }
+            expect(unrefined.count).to eq(configuration_param[:sizes][:infant].size)
+          end
+
+          it 'identifies the parent on the other ones' do
+            subject
+
+            parent_index = json.index { |jpi| jpi['refinement'] == 'sized' }
+            parent = json.at(parent_index)
+            parent_identifier = parent['identifier']
+
+            json.each_index do |i|
+              next if i == parent_index
+              jpi = json[i]
+              expect(jpi['configuration']['parent_identifier']).to eq(parent_identifier)
+            end
+          end
+
+          it 'includes a size on the other ones' do
+            subject
+
+            parent_index = json.index { |jpi| jpi['refinement'] == 'sized' }
+
+            json.each_index do |i|
+              next if i == parent_index
+              jpi = json[i]
+              expect(jpi['configuration']['size']).not_to be_nil
+            end
+          end
+
+          it 'excludes the sizes property from the parent' do
+            subject
+            parent_index = json.index { |jpi| jpi['refinement'] == 'sized' }
+            expect(json[parent_index]['configuration']['sizes']).to be_nil
+          end
+
+          it 'has new identifiers on all the children' do
+            originals = purchasable_item.children.collect(&:identifier)
+            subject
+            expect(json.collect { |pi| pi['identifier'] }.reject { |pi| pi['identifier'] == purchasable_item.identifier }).not_to match_array(originals)
+          end
+        end
       end
     end
 

@@ -187,5 +187,44 @@ FactoryBot.define do
       name { 'IGBO Membership' }
       value { 27 }
     end
+
+    trait :apparel do
+      category { :product }
+      determination { :apparel }
+      name { 'An item of clothing for everyone' }
+    end
+
+    trait :one_size_fits_all do
+      configuration do
+        {
+          note: 'An interesting tidbit',
+          size: 'one_size_fits_all',
+        }
+      end
+    end
+
+    trait :sized do
+      refinement { :sized }
+      configuration do
+        {
+          sizes: {
+            unisex: {
+              s: true,
+              m: true,
+              l: true,
+            },
+          },
+        }
+      end
+      after(:create) do |pi, _|
+        size_strings = []
+        pi.configuration['sizes'].each_pair do |group, sizes|
+          sizes.each_key { |size| size_strings << ApparelDetails.serialize_size(group, size) }
+        end
+        size_strings.each do |str|
+          create :purchasable_item, :apparel, tournament: pi.tournament, parent: pi, name: pi.name, configuration: { size: str }
+        end
+      end
+    end
   end
 end

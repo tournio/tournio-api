@@ -27,8 +27,9 @@ class PurchasableItem < ApplicationRecord
   include ApparelDetails
 
   belongs_to :tournament
-  belongs_to :parent, class_name: 'PurchasableItem', optional: true
   has_many :purchases
+  belongs_to :parent, class_name: 'PurchasableItem', inverse_of: :children, optional: true
+  has_many :children, inverse_of: :parent, class_name: 'PurchasableItem', foreign_key: 'parent_id'
 
   has_one :stripe_product, dependent: :destroy
   has_one :stripe_coupon, dependent: :destroy
@@ -94,6 +95,7 @@ class PurchasableItem < ApplicationRecord
   before_create :generate_identifier
 
   scope :user_selectable, -> { where(user_selectable: true) }
+  # scope :the_kids, ->(parent, tournament_id) { where(tournament_id: tournament_id).where("configuration->>'parent_identifier'= :parent", parent) }
 
   ###################################
   # Validation methods

@@ -12,7 +12,7 @@ module Director
       authorize tournament, :update?
 
       if tournament.active?
-        render json: {error: 'Cannot add purchasable items to an active tournament'}, status: :forbidden
+        render json: { error: 'Cannot add purchasable items to an active tournament' }, status: :forbidden
         return
       end
 
@@ -21,7 +21,7 @@ module Director
 
         # If we're dealing with sized apparel, create PIs for each
         # size and link them to the parent
-        handle_sized_apparel_items
+        handle_sized_apparel_items_creation
 
         # Create Stripe coupons and/or products
         items.each do |i|
@@ -43,39 +43,41 @@ module Director
       render json: nil, status: :not_found
     rescue ActiveRecord::RecordInvalid => exception
       if exception.message.include? 'Determination'
-        render json: {error: 'Determination already present'}, status: :conflict
+        render json: { error: 'Determination already present' }, status: :conflict
         return
       end
 
-      render json: {error: 'Invalid item configuration'}, status: :unprocessable_entity
+      render json: { error: 'Invalid item configuration' }, status: :unprocessable_entity
     end
 
     def update
-      pi = PurchasableItem.includes(:tournament).find_by!(identifier: params[:identifier])
-      self.tournament = pi.tournament
+      self.item = PurchasableItem.includes(:tournament).find_by!(identifier: params[:identifier])
+      self.tournament = item.tournament
 
       authorize tournament, :update?
 
       if tournament.active?
-        render json: {error: 'Cannot modify purchasable items of an active tournament'}, status: :forbidden
+        render json: { error: 'Cannot modify purchasable items of an active tournament' }, status: :forbidden
         return
       end
 
-      previous_amount = pi.value
-      pi.update!(purchasable_item_update_params)
-      new_amount = pi.value
+      previous_amount = item.value
+      item.update!(purchasable_item_update_params)
+      new_amount = item.value
 
-      if pi.bundle_discount? || pi.early_discount?
-        if pi.stripe_coupon.present?
-          Stripe::CouponDestroyer.perform_async(pi.stripe_coupon.coupon_id, tournament.stripe_account.identifier)
-          pi.stripe_coupon.destroy
+      if item.bundle_discount? || item.early_discount?
+        if item.stripe_coupon.present?
+          Stripe::CouponDestroyer.perform_async(item.stripe_coupon.coupon_id, tournament.stripe_account.identifier)
+          item.stripe_coupon.destroy
         end
-        Stripe::CouponCreator.perform_async(pi.id) unless tournament.config['skip_stripe']
+        Stripe::CouponCreator.perform_async(item.id) unless tournament.config['skip_stripe']
       else
-        Stripe::ProductUpdater.perform_async(pi.id) if previous_amount != new_amount && !tournament.config['skip_stripe']
+        unless item.sized? || previous_amount == new_amount || tournament.config['skip_stripe']
+          Stripe::ProductUpdater.perform_in(Rails.configuration.sidekiq_async_delay, item.id)
+        end
       end
 
-      render json: PurchasableItemBlueprint.render(pi.reload), status: :ok
+      render json: PurchasableItemBlueprint.render(item.reload), status: :ok
     rescue ActiveRecord::RecordNotFound
       skip_authorization
       render json: nil, status: :not_found
@@ -115,10 +117,11 @@ module Director
 
     private
 
-    attr_accessor :tournament, :items
+    attr_accessor :tournament, :items, :item
 
     def purchasable_item_update_params
       params.require(:purchasable_item).permit(
+        :name,
         :value,
         configuration: [
           :order,
@@ -127,7 +130,14 @@ module Director
           :division,
           :note,
           :denomination,
+          :size,
           events: [],
+          sizes: [
+            unisex: ApparelDetails::SIZES_ADULT,
+            women: ApparelDetails::SIZES_ADULT,
+            men: ApparelDetails::SIZES_ADULT,
+            infant: ApparelDetails::SIZES_INFANT,
+          ],
         ],
       ).to_h.symbolize_keys
     end
@@ -162,7 +172,7 @@ module Director
             .map! { |pi_hash| pi_hash.merge(tournament_id: tournament.id) }
     end
 
-    def handle_sized_apparel_items
+    def handle_sized_apparel_items_creation
       children = []
       items.select { |i| i.refinement == 'sized' }.each do |pi|
         pi.configuration['sizes'].each_pair do |group, size_keys|
@@ -184,6 +194,20 @@ module Director
         pi.save
       end
       items.concat(children)
+    end
+
+    def handle_sized_apparel_item_update
+      # The idea here is to update the one we have, and then delete its children (if any)
+      # Then, if it's now sized, create child instances, with this one as the parent.
+      # If it's not sized, we're good.
+      # If it was sized, but isn't now, then we're still good, because we destroyed its children
+      # If it wasn't sized, but is now, there were no children to destroy, it's updated, and now we can create its children
+      # Set it in @items, and put all the children in there, too
+      # Controller can now return the list of items
+
+      # delete children (and clean up Stripe products)
+      # create new children
+
     end
   end
 end
