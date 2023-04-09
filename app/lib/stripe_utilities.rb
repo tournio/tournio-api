@@ -73,7 +73,7 @@ module StripeUtilities
     end
 
     # What if the account was disabled / deactivated?
-    unless charges_enabled && info_submitted && stripe_account.onboarding_completed_at.present?
+    if !charges_enabled && info_submitted && stripe_account.onboarding_completed_at.present?
       stripe_account.update(onboarding_completed_at: nil)
     end
   end
