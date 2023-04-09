@@ -1043,18 +1043,19 @@ describe Director::PurchasableItemsController, type: :request do
 
     include_examples 'an authorized action'
 
-    context 'an unrecognized item identifier' do
-      let(:purchasable_item_id) { 'i-dont-know-her' }
-
-      it 'responds with a Not Found' do
-        subject
-        expect(response).to have_http_status(:not_found)
-      end
-    end
-
     it 'tries to deactivate the associated StripeProduct' do
       expect(Stripe::ProductDeactivator).to receive(:perform_in).once
       subject
+    end
+
+    context 'A sized apparel item' do
+      let(:purchasable_item) { create :purchasable_item, :apparel, :sized, tournament: tournament }
+
+      it 'deletes the parent as well as its children' do
+        children = purchasable_item.children
+        count = children.count
+        expect { subject }.to change(PurchasableItem, :count).by(-(children.count + 1))
+      end
     end
 
     context 'Tournament modes' do
@@ -1125,6 +1126,15 @@ describe Director::PurchasableItemsController, type: :request do
             expect(exception).to be_instance_of ActiveRecord::RecordNotFound
           end
         end
+      end
+    end
+
+    context 'an unrecognized item identifier' do
+      let(:purchasable_item_id) { 'i-dont-know-her' }
+
+      it 'responds with a Not Found' do
+        subject
+        expect(response).to have_http_status(:not_found)
       end
     end
   end
