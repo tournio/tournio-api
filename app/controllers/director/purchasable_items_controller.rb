@@ -65,6 +65,7 @@ module Director
       item.update!(purchasable_item_update_params)
       new_amount = item.value
 
+      # Deal with the item's Stripe products. (Parent of children won't have one.)
       if item.bundle_discount? || item.early_discount?
         if item.stripe_coupon.present?
           Stripe::CouponDestroyer.perform_async(item.stripe_coupon.coupon_id, tournament.stripe_account.identifier)
@@ -77,7 +78,20 @@ module Director
         end
       end
 
-      render json: PurchasableItemBlueprint.render(item.reload), status: :ok
+      handle_sized_apparel_item_update
+
+      # Stripe creation for each child
+      unless tournament.config['skip_stripe']
+        item.reload.children.each do |i|
+          Stripe::ProductCreator.perform_in(Rails.configuration.sidekiq_async_delay, i.id)
+        end
+      end
+
+      if items&.count
+        render json: PurchasableItemBlueprint.render(items), status: :ok
+      else
+        render json: PurchasableItemBlueprint.render(item.reload), status: :ok
+      end
     rescue ActiveRecord::RecordNotFound
       skip_authorization
       render json: nil, status: :not_found
@@ -94,12 +108,12 @@ module Director
       unless tournament.active? || tournament.demo?
         if pi.bundle_discount? || pi.early_discount?
           if pi.stripe_coupon.present?
-            Stripe::CouponDestroyer.perform_async(pi.stripe_coupon.coupon_id, tournament.stripe_account.identifier)
+            Stripe::CouponDestroyer.perform_in(Rails.configuration.sidekiq_async_delay, pi.stripe_coupon.coupon_id, tournament.stripe_account.identifier)
             pi.stripe_coupon.destroy
           end
         else
           if pi.stripe_product.present?
-            Stripe::ProductDeactivator.perform_async(pi.stripe_product.id, tournament.stripe_account.identifier)
+            Stripe::ProductDeactivator.perform_in(Rails.configuration.sidekiq_async_delay, pi.stripe_product.id, tournament.stripe_account.identifier)
           end
         end
 
@@ -206,8 +220,36 @@ module Director
       # Controller can now return the list of items
 
       # delete children (and clean up Stripe products)
-      # create new children
+      item.children.each do |pi|
+        if pi.stripe_product.present?
+          Stripe::ProductDeactivator.perform_in(Rails.configuration.sidekiq_async_delay, pi.stripe_product.id, tournament.stripe_account.identifier)
+        end
+      end
+      item.children.destroy_all
+      item.reload
 
+      # create new children
+      if item.sized?
+        self.items = [item]
+        item.configuration['sizes'].each_pair do |group, sizes|
+          sizes.each_pair do |size_key, included|
+            if included
+              child = item.deep_dup
+
+              child.parent = item
+              child.configuration['size'] = ApparelDetails.serialize_size(group, size_key)
+              child.configuration.delete('sizes')
+              child.configuration['parent_identifier'] = item.identifier
+              child.refinement = nil
+
+              child.save
+              item.children << child
+            end
+          end
+        end
+        item.configuration.delete('sizes')
+        self.items += item.children
+      end
     end
   end
 end

@@ -906,16 +906,22 @@ describe Director::PurchasableItemsController, type: :request do
             end
           end
 
-          it 'excludes the sizes property from the parent' do
+          it 'excludes the size property from the parent' do
             subject
             parent_index = json.index { |jpi| jpi['refinement'] == 'sized' }
-            expect(json[parent_index]['configuration']['sizes']).to be_nil
+            expect(json[parent_index]['configuration']['size']).to be_nil
           end
 
           it 'has new identifiers on all the children' do
             originals = purchasable_item.children.collect(&:identifier)
             subject
             expect(json.collect { |pi| pi['identifier'] }.reject { |pi| pi['identifier'] == purchasable_item.identifier }).not_to match_array(originals)
+          end
+
+          it 'creates a Stripe::ProductDeactivator job for each child' do
+            count = purchasable_item.children.count
+            expect(Stripe::ProductDeactivator).to receive(:perform_in).exactly(count).times
+            subject
           end
         end
       end
@@ -988,6 +994,11 @@ describe Director::PurchasableItemsController, type: :request do
         subject
         expect(response).to have_http_status(:not_found)
       end
+    end
+
+    it 'tries to deactivate the associated StripeProduct' do
+      expect(Stripe::ProductDeactivator).to receive(:perform_in).once
+      subject
     end
 
     context 'Tournament modes' do

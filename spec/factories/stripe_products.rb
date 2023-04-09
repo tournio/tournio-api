@@ -18,6 +18,5 @@ FactoryBot.define do
   factory :stripe_product do
     price_id { "stripe_price_#{SecureRandom.uuid}" }
     product_id { "stripe_product_#{SecureRandom.uuid}" }
-    association :purchasable_item
   end
 end

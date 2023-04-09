@@ -21,7 +21,7 @@
 FactoryBot.define do
   factory :team do
     name { 'Strike Force' }
-    association :tournament
+    tournament
   end
 
   trait :standard_one_bowler do

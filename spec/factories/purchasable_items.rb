@@ -25,7 +25,9 @@ FactoryBot.define do
     name { 'A purchasable item' }
     value { 50 }
 
-    association :tournament, strategy: :create
+    # association :tournament, strategy: :create
+    tournament
+    association :stripe_product, strategy: :build
 
     trait :entry_fee do
       category { :ledger }
@@ -170,9 +172,9 @@ FactoryBot.define do
     end
 
     trait :with_stripe_product do
-      after(:create) do |pi, _|
-        create :stripe_product, purchasable_item: pi
-      end
+      # after(:create) do |pi, _|
+      #   create :stripe_product, purchasable_item: pi
+      # end
     end
 
     trait :with_stripe_coupon do
@@ -222,7 +224,8 @@ FactoryBot.define do
           sizes.each_key { |size| size_strings << ApparelDetails.serialize_size(group, size) }
         end
         size_strings.each do |str|
-          create :purchasable_item, :apparel, tournament: pi.tournament, parent: pi, name: pi.name, configuration: { size: str }
+          kid = create :purchasable_item, :apparel, tournament: pi.tournament, parent: pi, name: pi.name, configuration: { size: str, parent_identifier: pi.identifier }
+          create :stripe_product, purchasable_item: kid
         end
       end
     end

@@ -35,6 +35,8 @@ FactoryBot.define do
     end_date { Date.today + 92.days }
     entry_deadline { Date.today + 80.days }
 
+    association :stripe_account, strategy: :build
+
     trait :demo do
       aasm_state { :demo }
     end
