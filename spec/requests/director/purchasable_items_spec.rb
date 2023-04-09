@@ -11,6 +11,62 @@ describe Director::PurchasableItemsController, type: :request do
   end
   let(:auth_headers) { Devise::JWT::TestHelpers.auth_headers(headers, requesting_user) }
 
+  describe '#index' do
+    subject { get uri, headers: auth_headers }
+
+    let(:uri) { "/director/tournaments/#{tournament_identifier}/purchasable_items" }
+    let(:tournament) { create :tournament }
+    let(:tournament_identifier) { tournament.identifier }
+
+    before do
+      tournament.purchasable_items += [
+        build(:purchasable_item, :apparel, :one_size_fits_all),
+        build(:purchasable_item, :early_discount),
+        build(:purchasable_item, :optional_event),
+        build(:purchasable_item, :scratch_competition),
+        build(:purchasable_item, :raffle_bundle),
+      ]
+    end
+
+    it 'succeeds with a 200 OK' do
+      subject
+      expect(response).to have_http_status(:ok)
+    end
+
+    it 'returns an array of created items' do
+      subject
+      expect(json).to be_a_kind_of(Array)
+      expect(json.count).to eq(5)
+    end
+
+    context 'as an unpermitted user' do
+      let(:requesting_user) { create(:user, :unpermitted) }
+
+      it 'shall not pass' do
+        subject
+        expect(response).to have_http_status(:unauthorized)
+      end
+    end
+
+    context 'as a director' do
+      let(:requesting_user) { create(:user, :director) }
+
+      it 'shall not pass' do
+        subject
+        expect(response).to have_http_status(:unauthorized)
+      end
+
+      context 'associated with this tournament' do
+        let(:requesting_user) { create :user, :director, tournaments: [tournament] }
+
+        it 'shall pass' do
+          subject
+          expect(response).to have_http_status(:ok)
+        end
+      end
+    end
+  end
+
   describe '#create' do
     subject { post uri, headers: auth_headers, params: params, as: :json }
 

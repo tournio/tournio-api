@@ -6,9 +6,20 @@ module Director
 
     wrap_parameters false
 
-    def create
-      self.tournament = Tournament.find_by_identifier!(params[:tournament_identifier])
+    before_action :load_tournament, only: %i(index create)
 
+    def index
+      authorize tournament, :update?
+
+      self.items = policy_scope(tournament.purchasable_items)
+      render json: PurchasableItemBlueprint.render(items), status: :ok
+    rescue ActiveRecord::RecordNotFound
+      skip_policy_scope
+      skip_authorization
+      render json: nil, status: :not_found
+    end
+
+    def create
       authorize tournament, :update?
 
       if tournament.active?
@@ -132,6 +143,10 @@ module Director
     private
 
     attr_accessor :tournament, :items, :item
+
+    def load_tournament
+      self.tournament = Tournament.find_by_identifier!(params[:tournament_identifier])
+    end
 
     def purchasable_item_update_params
       params.require(:purchasable_item).permit(

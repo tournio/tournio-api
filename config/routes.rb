@@ -47,7 +47,7 @@ Rails.application.routes.draw do
       end
       resource :testing_environment, only: %i(update)
       resources :config_items, only: %i(update), shallow: true
-      resources :purchasable_items, only: %i(create update destroy), param: :identifier, shallow: true
+      resources :purchasable_items, only: %i(index create update destroy), param: :identifier, shallow: true
       resources :contacts, only: %i(create update), param: :identifier, shallow: true
       resources :shifts, only: %i(create update destroy), param: :identifier, shallow: true
     end
