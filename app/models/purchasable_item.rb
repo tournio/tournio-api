@@ -50,12 +50,16 @@ class PurchasableItem < ApplicationRecord
     entry_fee: 'entry_fee',
     late_fee: 'late_fee',
     early_discount: 'early_discount',
+    bundle_discount: 'bundle_discount', # a ledger item
+
+    # bowling items:
     single_use: 'single_use',
     multi_use: 'multi_use',
-    igbo: 'igbo', # for sanction items
-
     event: 'event', # a selectable bowling event when bowlers can choose events, like singles or baker doubles
-    bundle_discount: 'bundle_discount', # a ledger item
+
+    # sanction items:
+    igbo: 'igbo',
+    usbc: 'usbc',
 
     # this allows directors to cancel out an early-registration discount when
     # a bowler has failed to complete their registration, e.g., pay fees, before
@@ -63,7 +67,7 @@ class PurchasableItem < ApplicationRecord
     # Currently only available to use by superusers via console.
     discount_expiration: 'discount_expiration',
 
-    # Various kinds of products
+    # Product items:
     general: 'general', # For things that don't fit into the other groups
     apparel: 'apparel', # shirts and such
 
@@ -75,7 +79,6 @@ class PurchasableItem < ApplicationRecord
   enum refinement: {
     input: 'input',
     division: 'division',
-    denomination: 'denomination',
     event_linked: 'event_linked', # on a ledger late_fee item, linked with an event (when event selection is permitted)
     single: 'single', # Used for events and brackets
     double: 'double', # Used for events and brackets
@@ -90,12 +93,15 @@ class PurchasableItem < ApplicationRecord
   validate :contains_valid_until, if: proc { |pi| pi.ledger? && pi.early_discount? }
   validate :contains_input_label, if: proc { |pi| pi.input? }
   validate :contains_division, if: proc { |pi| pi.division? }
-  validate :contains_denomination, if: proc { |pi| pi.denomination? }
 
   before_create :generate_identifier
 
   scope :user_selectable, -> { where(user_selectable: true) }
-  # scope :the_kids, ->(parent, tournament_id) { where(tournament_id: tournament_id).where("configuration->>'parent_identifier'= :parent", parent) }
+  scope :one_time, -> { where(category: %w(ledger sanction)).or(where(determination: %w(single_use event))) }
+
+  def one_time?
+    %w(ledger sanction).include?(category) || %w(single_use event).include?(determination)
+  end
 
   ###################################
   # Validation methods

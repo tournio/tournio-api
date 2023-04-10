@@ -159,7 +159,7 @@ module Director
           :valid_until,
           :division,
           :note,
-          :denomination,
+          :quantity,
           :size,
           events: [],
           sizes: [
@@ -186,7 +186,7 @@ module Director
             :valid_until,
             :division,
             :note,
-            :denomination,
+            :quantity,
             :event,
             :size,
             events: [],

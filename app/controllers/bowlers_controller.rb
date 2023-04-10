@@ -334,14 +334,14 @@ class BowlersController < ApplicationController
 
     # are we purchasing more than one of anything?
     multiples = item_quantities.filter { |i| i[:quantity] > 1 }
-    # make sure they're all multi-use
+    # make sure none of them is one-time
     multiples.filter! do |i|
       identifier = i[:identifier]
       item = purchasable_items[identifier]
-      !item.multi_use?
+      item.one_time?
     end
     unless multiples.empty?
-      raise PurchaseError.new('Cannot purchase multiple instances of single-use items.', :unprocessable_entity)
+      raise PurchaseError.new('Cannot purchase multiple instances of one-time items.', :unprocessable_entity)
     end
 
     # apply any relevant event bundle discounts

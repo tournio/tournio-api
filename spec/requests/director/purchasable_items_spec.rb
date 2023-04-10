@@ -575,16 +575,13 @@ describe Director::PurchasableItemsController, type: :request do
       end
     end
 
-    # Come back to this one when we bring in support for the Raffle category
-    context 'a product item with denomination refinement' do
-      let(:category) { 'product' }
-      let(:determination) { 'multi_use' }
-      let(:refinement) { 'denomination' }
+    context 'a raffle item' do
+      let(:category) { 'raffle' }
       let(:configuration_param) do
         {
           order: 2,
           note: 'Available for pre-purchase only',
-          denomination: '237 of the thing',
+          quantity: '237 of the thing',
         }
       end
 
@@ -603,22 +600,22 @@ describe Director::PurchasableItemsController, type: :request do
         subject
       end
 
-      context 'without providing a denomination' do
+      context 'without providing a quantity' do
         let(:configuration_param) do
           {
             order: 3,
             note: 'A special item',
-            denomination: '',
+            quantity: '',
           }
         end
 
-        it 'fails with unprocessable entity' do
+        it 'succeeds with a 201 Created' do
           subject
-          expect(response).to have_http_status(:unprocessable_entity)
+          expect(response).to have_http_status(:created)
         end
 
         it 'kicks off a Stripe::ProductCreator job' do
-          expect(Stripe::ProductCreator).not_to receive(:perform_in)
+          expect(Stripe::ProductCreator).to receive(:perform_in).once
           subject
         end
 
@@ -695,7 +692,7 @@ describe Director::PurchasableItemsController, type: :request do
         valid_until: '',
         division: '',
         note: '',
-        denomination: '',
+        quantity: '',
       }
     end
     let(:params) do
@@ -739,7 +736,7 @@ describe Director::PurchasableItemsController, type: :request do
           valid_until: (Time.zone.now + 2.weeks).strftime("%FT%T%:z"),
           division: '',
           note: '',
-          denomination: '',
+          quantity: '',
         }
       end
 
@@ -763,7 +760,7 @@ describe Director::PurchasableItemsController, type: :request do
           valid_until: '',
           division: '',
           note: '',
-          denomination: '',
+          quantity: '',
         }
       end
 
@@ -782,7 +779,7 @@ describe Director::PurchasableItemsController, type: :request do
           valid_until: '',
           division: '',
           note: '',
-          denomination: '',
+          quantity: '',
         }
       end
 
@@ -801,7 +798,7 @@ describe Director::PurchasableItemsController, type: :request do
           valid_until: '',
           division: 'B',
           note: '170-189',
-          denomination: '',
+          quantity: '',
         }
       end
 
@@ -820,7 +817,7 @@ describe Director::PurchasableItemsController, type: :request do
           valid_until: '',
           division: '',
           note: '',
-          denomination: '',
+          quantity: '',
         }
       end
 
@@ -839,7 +836,7 @@ describe Director::PurchasableItemsController, type: :request do
           valid_until: '',
           division: '',
           note: 'Nice.',
-          denomination: '69 tickets',
+          quantity: '69 tickets',
         }
       end
 
