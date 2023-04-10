@@ -850,9 +850,9 @@ describe Director::PurchasableItemsController, type: :request do
     end
 
     context 'an apparel item' do
-      let(:purchasable_item) { create :purchasable_item, :apparel, :one_size_fits_all, tournament: tournament }
+      context 'one size fits all' do
+        let(:purchasable_item) { create :purchasable_item, :apparel, :one_size_fits_all, tournament: tournament }
 
-      context 'an apparel product' do
         let(:configuration_param) do
           {
             order: 3,
@@ -901,84 +901,154 @@ describe Director::PurchasableItemsController, type: :request do
           subject
           expect(json['refinement']).not_to be_present
         end
+      end
 
-        context 'with multiple sizes' do
-          let(:purchasable_item) { create :purchasable_item, :apparel, :sized, tournament: tournament }
+      context 'with multiple sizes' do
+        let(:purchasable_item) { create :purchasable_item, :apparel, :sized, tournament: tournament }
 
-          let(:configuration_param) do
-            {
-              order: 1,
-              note: 'A playful shirt',
-              sizes: {
-                infant: {
-                  newborn: true,
-                  m12: true,
-                  m24: true,
-                },
+        let(:configuration_param) do
+          {
+            order: 1,
+            note: 'A playful shirt',
+            sizes: {
+              infant: {
+                newborn: true,
+                m12: true,
+                m24: true,
               },
-            }
+            },
+          }
+        end
+
+        let(:other_params) do
+          {
+            refinement: :sized
+          }
+        end
+
+        it 'returns a PI for each size, plus a parent one' do
+          subject
+          expect(json.size).to eq(configuration_param[:sizes][:infant].size + 1)
+        end
+
+        it 'identifies one of the new PIs as the parent' do
+          subject
+          has_one_parent = json.one? { |jpi| jpi['refinement'] == 'sized' }
+          expect(has_one_parent).to be_truthy
+        end
+
+        it 'does not include the refinement property on the other ones' do
+          subject
+          unrefined = json.select { |jpi| !jpi['refinement'].present? }
+          expect(unrefined.count).to eq(configuration_param[:sizes][:infant].size)
+        end
+
+        it 'identifies the parent on the other ones' do
+          subject
+
+          parent_index = json.index { |jpi| jpi['refinement'] == 'sized' }
+          parent = json.at(parent_index)
+          parent_identifier = parent['identifier']
+
+          json.each_index do |i|
+            next if i == parent_index
+            jpi = json[i]
+            expect(jpi['configuration']['parent_identifier']).to eq(parent_identifier)
           end
+        end
 
-          it 'returns a PI for each size, plus a parent one' do
-            subject
-            expect(json.size).to eq(configuration_param[:sizes][:infant].size + 1)
+        it 'includes a size on the other ones' do
+          subject
+
+          parent_index = json.index { |jpi| jpi['refinement'] == 'sized' }
+
+          json.each_index do |i|
+            next if i == parent_index
+            jpi = json[i]
+            expect(jpi['configuration']['size']).not_to be_nil
           end
+        end
 
-          it 'identifies one of the new PIs as the parent' do
-            subject
-            has_one_parent = json.one? { |jpi| jpi['refinement'] == 'sized' }
-            expect(has_one_parent).to be_truthy
+        it 'excludes the size property from the parent' do
+          subject
+          parent_index = json.index { |jpi| jpi['refinement'] == 'sized' }
+          expect(json[parent_index]['configuration']['size']).to be_nil
+        end
+
+        it 'has new identifiers on all the children' do
+          originals = purchasable_item.children.collect(&:identifier)
+          subject
+          expect(json.collect { |pi| pi['identifier'] }.reject { |pi| pi['identifier'] == purchasable_item.identifier }).not_to match_array(originals)
+        end
+
+        it 'creates a Stripe::ProductDeactivator job for each child' do
+          count = purchasable_item.children.count
+          expect(Stripe::ProductDeactivator).to receive(:perform_in).exactly(count).times
+          subject
+        end
+      end
+
+      context 'one size becoming sized' do
+        let(:purchasable_item) { create :purchasable_item, :apparel, :one_size_fits_all, tournament: tournament }
+
+        let(:configuration_param) do
+          {
+            order: 1,
+            note: 'A playful shirt',
+            sizes: {
+              infant: {
+                newborn: true,
+                m12: true,
+                m24: true,
+              },
+            },
+          }
+        end
+
+        let(:other_params) do
+          {
+            refinement: :sized
+          }
+        end
+
+        it 'returns a PI for each size, plus a parent one' do
+          subject
+          expect(json.size).to eq(configuration_param[:sizes][:infant].size + 1)
+        end
+
+        it 'identifies the modified original as the parent' do
+          subject
+          has_correct_parent = json.all? { |jpi| jpi['refinement'] == 'sized' || jpi['configuration']['parent_identifier'] == purchasable_item_id}
+          expect(has_correct_parent).to be_truthy
+        end
+
+        it 'does not include the refinement property on the other ones' do
+          subject
+          unrefined = json.select { |jpi| !jpi['refinement'].present? }
+          expect(unrefined.count).to eq(configuration_param[:sizes][:infant].size)
+        end
+
+        it 'includes a size on the other ones' do
+          subject
+
+          parent_index = json.index { |jpi| jpi['refinement'] == 'sized' }
+
+          json.each_index do |i|
+            next if i == parent_index
+            jpi = json[i]
+            expect(jpi['configuration']['size']).not_to be_nil
           end
+        end
 
-          it 'does not include the refinement property on the other ones' do
-            subject
-            unrefined = json.select { |jpi| !jpi['refinement'].present? }
-            expect(unrefined.count).to eq(configuration_param[:sizes][:infant].size)
-          end
+        it 'excludes the size property from the parent' do
+          subject
+          parent_index = json.index { |jpi| jpi['refinement'] == 'sized' }
+          expect(json[parent_index]['configuration']['size']).to be_nil
+        end
 
-          it 'identifies the parent on the other ones' do
-            subject
-
-            parent_index = json.index { |jpi| jpi['refinement'] == 'sized' }
-            parent = json.at(parent_index)
-            parent_identifier = parent['identifier']
-
-            json.each_index do |i|
-              next if i == parent_index
-              jpi = json[i]
-              expect(jpi['configuration']['parent_identifier']).to eq(parent_identifier)
-            end
-          end
-
-          it 'includes a size on the other ones' do
-            subject
-
-            parent_index = json.index { |jpi| jpi['refinement'] == 'sized' }
-
-            json.each_index do |i|
-              next if i == parent_index
-              jpi = json[i]
-              expect(jpi['configuration']['size']).not_to be_nil
-            end
-          end
-
-          it 'excludes the size property from the parent' do
-            subject
-            parent_index = json.index { |jpi| jpi['refinement'] == 'sized' }
-            expect(json[parent_index]['configuration']['size']).to be_nil
-          end
-
-          it 'has new identifiers on all the children' do
-            originals = purchasable_item.children.collect(&:identifier)
-            subject
-            expect(json.collect { |pi| pi['identifier'] }.reject { |pi| pi['identifier'] == purchasable_item.identifier }).not_to match_array(originals)
-          end
-
-          it 'creates a Stripe::ProductDeactivator job for each child' do
-            count = purchasable_item.children.count
-            expect(Stripe::ProductDeactivator).to receive(:perform_in).exactly(count).times
-            subject
-          end
+        it 'creates no Stripe::ProductDeactivator jobs' do
+          expect(Stripe::ProductDeactivator).not_to receive(:perform_in)
+          subject
         end
       end
     end

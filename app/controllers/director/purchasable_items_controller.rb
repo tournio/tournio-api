@@ -152,6 +152,7 @@ module Director
       params.require(:purchasable_item).permit(
         :name,
         :value,
+        :refinement, # Apparel items can change from sized to not
         configuration: [
           :order,
           :applies_at,
