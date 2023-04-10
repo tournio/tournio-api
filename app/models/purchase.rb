@@ -46,6 +46,11 @@ class Purchase < ApplicationRecord
   scope :late_fee, -> { joins(:purchasable_item).where(purchasable_item: {category: :ledger, determination: :late_fee})}
   scope :event_linked, -> { joins(:purchasable_item).where(purchasable_item: {refinement: :event_linked})}
   scope :sanction, -> { joins(:purchasable_item).where(purchasable_item: {category: :sanction}) }
+  scope :one_time, -> do
+    joins(:purchasable_item).
+      where(purchasable_item: {category: %w(ledger sanction)}).
+      or(where(purchasable_item: {determination: %w(single_use event)}))
+  end
 
   validates :paid_at, absence: true, if: proc { |p| p.voided_at.present? }
   validates :voided_at, absence: true, if: proc { |p| p.paid_at.present? }
