@@ -5,7 +5,7 @@
 #  id              :bigint           not null, primary key
 #  category        :string           not null
 #  configuration   :jsonb
-#  determination   :string           not null
+#  determination   :string
 #  identifier      :string           not null
 #  name            :string           not null
 #  refinement      :string
@@ -122,14 +122,11 @@ FactoryBot.define do
 
     trait :banquet_entry do
       category { :banquet }
-      determination { :multi_use }
       name { 'Banquet entry for a non-bowler' }
     end
 
     trait :raffle_bundle do
-      category { :product }
-      determination { :multi_use }
-      refinement { :denomination }
+      category { :raffle }
       name { 'Raffle ticket bundle' }
       configuration do
         {

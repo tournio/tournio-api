@@ -7,7 +7,7 @@
 #  id              :bigint           not null, primary key
 #  category        :string           not null
 #  configuration   :jsonb
-#  determination   :string           not null
+#  determination   :string
 #  identifier      :string           not null
 #  name            :string           not null
 #  refinement      :string
