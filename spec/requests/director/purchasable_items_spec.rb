@@ -1162,6 +1162,25 @@ describe Director::PurchasableItemsController, type: :request do
         end
       end
 
+      context 'Demo' do
+        let(:tournament) { create :tournament, :demo }
+
+        it 'responds with No Content' do
+          subject
+          expect(response).to have_http_status(:no_content)
+        end
+
+        it 'destroys the item' do
+          subject
+          begin
+            purchasable_item.reload
+          rescue => exception
+          ensure
+            expect(exception).to be_instance_of ActiveRecord::RecordNotFound
+          end
+        end
+      end
+
       context 'Active' do
         let(:tournament) { create :tournament, :active }
 
@@ -1179,19 +1198,14 @@ describe Director::PurchasableItemsController, type: :request do
       context 'Closed' do
         let(:tournament) { create :tournament, :closed }
 
-        it 'responds with No Content' do
+        it 'responds with Forbidden' do
           subject
-          expect(response).to have_http_status(:no_content)
+          expect(response).to have_http_status(:forbidden)
         end
 
-        it 'destroys the item' do
+        it 'does not destroy the item' do
           subject
-          begin
-            purchasable_item.reload
-          rescue => exception
-          ensure
-            expect(exception).to be_instance_of ActiveRecord::RecordNotFound
-          end
+          expect(purchasable_item.reload).not_to be_nil
         end
       end
     end

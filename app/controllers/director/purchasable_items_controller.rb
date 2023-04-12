@@ -116,7 +116,7 @@ module Director
 
       authorize tournament, :update?
 
-      unless tournament.active? || tournament.demo?
+      unless tournament.active? || tournament.closed?
         if pi.bundle_discount? || pi.early_discount?
           if pi.stripe_coupon.present?
             Stripe::CouponDestroyer.perform_in(Rails.configuration.sidekiq_async_delay, pi.stripe_coupon.coupon_id, tournament.stripe_account.identifier)
