@@ -63,8 +63,6 @@ class PaymentReceiptNotifierJob < TemplateMailerJob
       }
       item[:item_details] = if pi.division?
                               "Division: #{pi.configuration['division']}"
-                            elsif pi.denomination?
-                              pi.configuration['denomination']
                             end
       c << item
     end
