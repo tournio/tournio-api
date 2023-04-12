@@ -5,7 +5,7 @@
 #  id              :bigint           not null, primary key
 #  category        :string           not null
 #  configuration   :jsonb
-#  determination   :string           not null
+#  determination   :string
 #  identifier      :string           not null
 #  name            :string           not null
 #  refinement      :string
@@ -13,6 +13,7 @@
 #  value           :integer          default(0), not null
 #  created_at      :datetime         not null
 #  updated_at      :datetime         not null
+#  parent_id       :bigint
 #  tournament_id   :bigint
 #
 # Indexes
@@ -132,7 +133,6 @@ RSpec.describe PurchasableItem, type: :model do
     # Things like a non-bowler banquet entry, which require some kind of text.
     describe '#contains_input_label' do
       let(:category) { :banquet }
-      let(:determination) { :multi_use }
       let(:refinement) { :input }
       let(:label) { 'Attendee name' }
       let(:configuration) { base_configuration.merge({ input_label: label }) }

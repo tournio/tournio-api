@@ -7,7 +7,7 @@
 #  id              :bigint           not null, primary key
 #  category        :string           not null
 #  configuration   :jsonb
-#  determination   :string           not null
+#  determination   :string
 #  identifier      :string           not null
 #  name            :string           not null
 #  refinement      :string
@@ -15,6 +15,7 @@
 #  value           :integer          default(0), not null
 #  created_at      :datetime         not null
 #  updated_at      :datetime         not null
+#  parent_id       :bigint
 #  tournament_id   :bigint
 #
 # Indexes
@@ -23,48 +24,68 @@
 #
 
 class PurchasableItem < ApplicationRecord
+  include ApparelDetails
+
   belongs_to :tournament
   has_many :purchases
+  belongs_to :parent, class_name: 'PurchasableItem', inverse_of: :children, optional: true
+  has_many :children, inverse_of: :parent, class_name: 'PurchasableItem', foreign_key: 'parent_id', dependent: :destroy
 
   has_one :stripe_product, dependent: :destroy
   has_one :stripe_coupon, dependent: :destroy
+
+  # has_one_attached :image
 
   enum category: {
     bowling: 'bowling', # optional bowling events
     ledger: 'ledger', # mandatory items, e.g., registration, late fee, early discount
     banquet: 'banquet', # uh, banquet
-    product: 'product', #  Thing like raffle ticket bundles, shirts, and other merchandise
+    product: 'product', #  Things like raffle ticket bundles, shirts, and other merchandise
     sanction: 'sanction', # Memberships such as IGBO and USBC
-    # add other categories here as we support them, e.g., program
+    raffle: 'raffle', # Raffle ticket packs, including multi-city
+    bracket: 'bracket', # Single-event and megabracket entries, individual or team
   }
 
   enum determination: {
     entry_fee: 'entry_fee',
     late_fee: 'late_fee',
     early_discount: 'early_discount',
+    bundle_discount: 'bundle_discount', # a ledger item
+
+    # bowling items:
     single_use: 'single_use',
     multi_use: 'multi_use',
-    igbo: 'igbo', # for sanction items
-
     event: 'event', # a selectable bowling event when bowlers can choose events, like singles or baker doubles
-    bundle_discount: 'bundle_discount', # a ledger item
+
+    # sanction items:
+    igbo: 'igbo',
+    usbc: 'usbc',
 
     # this allows directors to cancel out an early-registration discount when
     # a bowler has failed to complete their registration, e.g., pay fees, before
     # the deadline.
     # Currently only available to use by superusers via console.
     discount_expiration: 'discount_expiration',
+
+    # Product items:
+    general: 'general', # For things that don't fit into the other groups
+    apparel: 'apparel', # shirts and such
+
+    # For brackets, and more!
+    handicap: 'handicap',
+    scratch: 'scratch',
   }
 
   enum refinement: {
     input: 'input',
     division: 'division',
-    denomination: 'denomination',
     event_linked: 'event_linked', # on a ledger late_fee item, linked with an event (when event selection is permitted)
-    single: 'single', # for events
-    double: 'double', # for events
-    team: 'team',       # for events
-    trio: 'trio',     # for events
+    single: 'single', # Used for events and brackets
+    double: 'double', # Used for events and brackets
+    team: 'team', # Used for events and brackets
+    trio: 'trio', # Used for events
+
+    sized: 'sized', # For apparel available in multiple sizes; marks the parent
   }
 
   validate :one_ledger_item_per_determination, if: proc { |pi| pi.ledger? }, on: :create
@@ -72,11 +93,15 @@ class PurchasableItem < ApplicationRecord
   validate :contains_valid_until, if: proc { |pi| pi.ledger? && pi.early_discount? }
   validate :contains_input_label, if: proc { |pi| pi.input? }
   validate :contains_division, if: proc { |pi| pi.division? }
-  validate :contains_denomination, if: proc { |pi| pi.denomination? }
 
   before_create :generate_identifier
 
   scope :user_selectable, -> { where(user_selectable: true) }
+  scope :one_time, -> { where(category: %w(ledger sanction)).or(where(determination: %w(single_use event))) }
+
+  def one_time?
+    %w(ledger sanction).include?(category) || %w(single_use event).include?(determination)
+  end
 
   ###################################
   # Validation methods

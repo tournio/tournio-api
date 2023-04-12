@@ -150,6 +150,12 @@ class TournamentBlueprint < Blueprinter::Base
         last_week_purchases_by_day: ChartDataQueries.last_week_item_purchases_by_day(t),
       }
     end
+
+    # field :direct_upload_url do |t, options|
+    #   if options[:host].present?
+    #     Rails.application.routes.url_helpers.rails_direct_uploads_url(options)
+    #   end
+    # end
   end
 
   private
@@ -165,7 +171,8 @@ class TournamentBlueprint < Blueprinter::Base
     division_items = tournament.purchasable_items.division
     other_bowling_items = tournament.purchasable_items.bowling.where(refinement: nil).order(name: :asc)
     banquet = tournament.purchasable_items.banquet.order(name: :asc)
-    product = tournament.purchasable_items.product.order(name: :asc)
+    raffle = tournament.purchasable_items.raffle.order(name: :asc)
+    product = tournament.purchasable_items.product.order(determination: :desc, refinement: :desc, name: :asc)
     sanction = tournament.purchasable_items.sanction.order(name: :asc)
 
     determination_order = {
@@ -173,9 +180,15 @@ class TournamentBlueprint < Blueprinter::Base
       early_discount: 1,
       late_fee: 2,
       discount_expiration: 3,
-      igbo: 4,
-      single_use: 5,
-      multi_use: 6,
+      event: 4,
+      igbo: 5,
+      single_use: 6,
+      multi_use: 7,
+      bundle_discount: 8,
+      apparel: 9,
+      general: 10,
+      handicap: 11,
+      scratch: 12,
     }
 
     {
@@ -183,6 +196,7 @@ class TournamentBlueprint < Blueprinter::Base
       division: PurchasableItemBlueprint.render_as_hash(division_items.sort_by { |di| di.configuration['division'] }),
       bowling: PurchasableItemBlueprint.render_as_hash(other_bowling_items),
       banquet: PurchasableItemBlueprint.render_as_hash(banquet),
+      raffle: PurchasableItemBlueprint.render_as_hash(raffle),
       product: PurchasableItemBlueprint.render_as_hash(product),
       sanction: PurchasableItemBlueprint.render_as_hash(sanction),
     }

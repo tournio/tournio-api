@@ -157,7 +157,7 @@ describe Director::TournamentsController, type: :controller do
     end
 
     let(:tournament) { create :tournament }
-    let(:stripe_account) { create :stripe_account, tournament: tournament }
+    let(:stripe_account) { tournament.stripe_account }
     let(:stripe_response_obj) do
       {
         id: stripe_account.identifier,
@@ -237,7 +237,7 @@ describe Director::TournamentsController, type: :controller do
 
     context 'when we are no longer able to make charges' do
       let(:stripe_account) do
-        create :stripe_account, tournament: tournament, onboarding_completed_at: 2.weeks.ago
+        build :stripe_account, onboarding_completed_at: 2.weeks.ago
       end
 
       let(:stripe_response_obj) do
@@ -247,6 +247,8 @@ describe Director::TournamentsController, type: :controller do
           details_submitted: true,
         }
       end
+
+      before { tournament.update(stripe_account: stripe_account) }
 
       it 'clears out the onboarding_completed_at time' do
         expect { subject }.to change { stripe_account.reload.onboarding_completed_at }.to(nil)

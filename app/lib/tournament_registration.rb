@@ -17,6 +17,8 @@ module TournamentRegistration
       sanction: 150,
       banquet: 200,
       product: 300,
+      raffle: 400,
+      bracket: 500,
     },
     determination: {
       entry_fee: 1,
@@ -28,6 +30,10 @@ module TournamentRegistration
       event: 10,
       single_use: 11,
       multi_use: 12,
+      apparel: 13,
+      general: 14,
+      handicap: 15,
+      scratch: 16,
     },
     refinement: {
       division: -1,
@@ -253,10 +259,16 @@ module TournamentRegistration
   end
 
   def self.purchasable_item_sort(purchase_or_item)
-    PURCHASABLE_ITEM_SORTING[:category][purchase_or_item&.category&.to_sym] +
-      PURCHASABLE_ITEM_SORTING[:determination][purchase_or_item&.determination&.to_sym] +
-      (PURCHASABLE_ITEM_SORTING[:refinement][purchase_or_item&.refinement&.to_sym] || 0) +
-      (purchase_or_item&.configuration['order']&.to_i || 0)
+    category = purchase_or_item.category
+    determination = purchase_or_item.determination
+    refinement = purchase_or_item.refinement
+
+    [
+      PURCHASABLE_ITEM_SORTING[:category][category.to_sym],
+      determination.present? ? PURCHASABLE_ITEM_SORTING[:determination][determination.to_sym] : 0,
+      refinement.present? ? PURCHASABLE_ITEM_SORTING[:refinement][refinement.to_sym] : 0,
+      purchase_or_item&.configuration['order']&.to_i || 0,
+    ].sum
   end
 
   def self.try_confirming_bowler_shift(bowler)

@@ -269,7 +269,7 @@ module DirectorUtilities
     end
 
     # Add multi-use items, with the number of each
-    multiuse_items = t.purchasable_items.multi_use
+    multiuse_items = t.purchasable_items - t.purchasable_items.one_time
     multiuse_items.each do |item|
       key = item.name
       quantity = purchased_item_identifiers.count(item.identifier)

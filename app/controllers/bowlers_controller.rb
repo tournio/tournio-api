@@ -212,7 +212,7 @@ class BowlersController < ApplicationController
   end
 
   def rendered_purchasable_items_by_identifier
-    excluded_item_names = (bowler.purchases.single_use + bowler.purchases.event).collect { |p| p.purchasable_item.name }
+    excluded_item_names = bowler.purchases.one_time.collect { |p| p.purchasable_item.name }
     items = tournament.purchasable_items.user_selectable.where.not(name: excluded_item_names)
     items.each_with_object({}) { |i, result| result[i.identifier] = PurchasableItemBlueprint.render_as_hash(i) }
   end
@@ -334,14 +334,14 @@ class BowlersController < ApplicationController
 
     # are we purchasing more than one of anything?
     multiples = item_quantities.filter { |i| i[:quantity] > 1 }
-    # make sure they're all multi-use
+    # make sure none of them is one-time
     multiples.filter! do |i|
       identifier = i[:identifier]
       item = purchasable_items[identifier]
-      !item.multi_use?
+      item.one_time?
     end
     unless multiples.empty?
-      raise PurchaseError.new('Cannot purchase multiple instances of single-use items.', :unprocessable_entity)
+      raise PurchaseError.new('Cannot purchase multiple instances of one-time items.', :unprocessable_entity)
     end
 
     # apply any relevant event bundle discounts

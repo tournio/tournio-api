@@ -5,7 +5,7 @@
 #  id              :bigint           not null, primary key
 #  category        :string           not null
 #  configuration   :jsonb
-#  determination   :string           not null
+#  determination   :string
 #  identifier      :string           not null
 #  name            :string           not null
 #  refinement      :string
@@ -13,6 +13,7 @@
 #  value           :integer          default(0), not null
 #  created_at      :datetime         not null
 #  updated_at      :datetime         not null
+#  parent_id       :bigint
 #  tournament_id   :bigint
 #
 # Indexes
@@ -24,7 +25,9 @@ FactoryBot.define do
     name { 'A purchasable item' }
     value { 50 }
 
-    association :tournament, strategy: :create
+    # association :tournament, strategy: :create
+    tournament
+    association :stripe_product, strategy: :build
 
     trait :entry_fee do
       category { :ledger }
@@ -119,14 +122,11 @@ FactoryBot.define do
 
     trait :banquet_entry do
       category { :banquet }
-      determination { :multi_use }
       name { 'Banquet entry for a non-bowler' }
     end
 
     trait :raffle_bundle do
-      category { :product }
-      determination { :multi_use }
-      refinement { :denomination }
+      category { :raffle }
       name { 'Raffle ticket bundle' }
       configuration do
         {
@@ -169,9 +169,9 @@ FactoryBot.define do
     end
 
     trait :with_stripe_product do
-      after(:create) do |pi, _|
-        create :stripe_product, purchasable_item: pi
-      end
+      # after(:create) do |pi, _|
+      #   create :stripe_product, purchasable_item: pi
+      # end
     end
 
     trait :with_stripe_coupon do
@@ -185,6 +185,46 @@ FactoryBot.define do
       determination { :igbo }
       name { 'IGBO Membership' }
       value { 27 }
+    end
+
+    trait :apparel do
+      category { :product }
+      determination { :apparel }
+      name { 'An item of clothing for everyone' }
+    end
+
+    trait :one_size_fits_all do
+      configuration do
+        {
+          note: 'An interesting tidbit',
+          size: 'one_size_fits_all',
+        }
+      end
+    end
+
+    trait :sized do
+      refinement { :sized }
+      configuration do
+        {
+          sizes: {
+            unisex: {
+              s: true,
+              m: true,
+              l: true,
+            },
+          },
+        }
+      end
+      after(:create) do |pi, _|
+        size_strings = []
+        pi.configuration['sizes'].each_pair do |group, sizes|
+          sizes.each_key { |size| size_strings << ApparelDetails.serialize_size(group, size) }
+        end
+        size_strings.each do |str|
+          kid = create :purchasable_item, :apparel, tournament: pi.tournament, parent: pi, name: pi.name, configuration: { size: str, parent_identifier: pi.identifier }
+          create :stripe_product, purchasable_item: kid
+        end
+      end
     end
   end
 end

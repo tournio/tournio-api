@@ -536,7 +536,7 @@ RSpec.describe DirectorUtilities do
       let(:items) do
         [
           tournament.purchasable_items.banquet.first,
-          tournament.purchasable_items.product.first,
+          tournament.purchasable_items.raffle.first,
         ]
       end
 
