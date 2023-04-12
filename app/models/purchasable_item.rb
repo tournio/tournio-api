@@ -162,12 +162,6 @@ class PurchasableItem < ApplicationRecord
     end
   end
 
-  def contains_denomination
-    unless configuration['denomination'].present?
-      errors.add(:configuration, 'needs a denomination indicator')
-    end
-  end
-
   private
 
   def generate_identifier
