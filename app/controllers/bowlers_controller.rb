@@ -144,11 +144,11 @@ class BowlersController < ApplicationController
     process_purchase_details(details)
 
     session = {}
-    if tournament.testing? && params[:simulate_failure].present?
+    if (tournament.testing? || tournament.demo?) && params[:simulate_failure].present?
       session[:id] = "pretend_checkout_session_#{bowler.id}_#{Time.zone.now.strftime('%FT%T')}"
       session[:url] = "/bowlers/#{bowler.identifier}/finish_checkout"
       bowler.stripe_checkout_sessions << StripeCheckoutSession.new(identifier: session[:id], status: :expired)
-    elsif Rails.env.development? && tournament.config['skip_stripe'] || tournament.testing?
+    elsif Rails.env.development? && tournament.config['skip_stripe'] || tournament.testing? || tournament.demo?
       finish_checkout_without_stripe
       session[:id] = "pretend_checkout_session_#{bowler.id}_#{Time.zone.now.strftime('%FT%T')}"
       session[:url] = "/bowlers/#{bowler.identifier}/finish_checkout"
