@@ -82,7 +82,7 @@ class PaymentReceiptNotifierJob < TemplateMailerJob
 
   def treasurer_contact
     if Rails.env.production?
-      tournament.contacts.treasurer.first&.email || tournament.contacts.payment_notifiable.first&.email || tournament.contacts.registration_notifiable.first&.email
+      tournament.contacts.treasurer.first&.email || tournament.contacts.payment_notifiable.first&.email || tournament.contacts.director.first&.email
     else
       FROM_ADDRESS
     end

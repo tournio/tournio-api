@@ -73,7 +73,7 @@ class RegistrationConfirmationNotifierJob < TemplateMailerJob
 
   def secretary_contact
     if Rails.env.production?
-      (tournament.contacts.secretary.first || tournament.contacts.registration_notifiable.first).email
+      (tournament.contacts.secretary&.first || tournament.contacts.director&.first || tournament.contacts.registration_notifiable&.first).email
     else
       FROM_ADDRESS
     end
