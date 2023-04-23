@@ -110,8 +110,6 @@ describe BowlersController, type: :request do
           end
 
           context 'a team on a shift' do
-            let(:shift) { tournament.shifts.first }
-
             let(:bowler_params) do
               {
                 bowlers: [
@@ -138,6 +136,29 @@ describe BowlersController, type: :request do
               expect { subject }.not_to change { shift.reload.confirmed }
             end
           end
+
+          context 'a team with zero bowlers' do
+            let(:bowler_params) do
+              {
+                bowlers: [
+                  create_bowler_test_data.merge({ position: 1, shift_identifier: shift.identifier })
+                ]
+              }
+            end
+
+            it 'creates a BowlerShift instance' do
+              expect { subject }.to change(BowlerShift, :count).by(1)
+            end
+
+            it 'bumps the requested count by one' do
+              expect { subject }.to change { shift.reload.requested }.by(1)
+            end
+
+            it 'does not bump the confirmed count' do
+              expect { subject }.not_to change { shift.reload.confirmed }
+            end
+          end
+
         end
 
         context 'with a full team' do
