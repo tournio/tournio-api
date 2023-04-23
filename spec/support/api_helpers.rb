@@ -447,7 +447,6 @@ module ApiHelpers
           'response' => 'I like pizza!',
         },
       ],
-      'shift_identifier' => 'this-is-a-shift',
     }
   end
 

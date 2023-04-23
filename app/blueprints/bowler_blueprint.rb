@@ -8,12 +8,14 @@ class BowlerBlueprint < Blueprinter::Base
   field :full_name do |b, _|
     TournamentRegistration.person_display_name(b.person)
   end
-
-  association :tournament, blueprint: TournamentBlueprint
-
   field :amount_due do |b, _|
     TournamentRegistration.amount_due(b).to_i
   end
+  field :doubles_partner_name do |b, _|
+    b.doubles_partner.present? ? TournamentRegistration.person_display_name(b.doubles_partner.person) : 'n/a'
+  end
+
+  association :tournament, blueprint: TournamentBlueprint
 
   view :list do
     association :events, blueprint: PurchaseBlueprint do |bowler, _|
