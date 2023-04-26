@@ -73,7 +73,7 @@ GEM
       activerecord (>= 3.2, < 8.0)
       rake (>= 10.4, < 14.0)
     aws-eventstream (1.2.0)
-    aws-partitions (1.744.0)
+    aws-partitions (1.754.0)
     aws-sdk-core (3.171.0)
       aws-eventstream (~> 1, >= 1.0.2)
       aws-partitions (~> 1, >= 1.651.0)
@@ -82,7 +82,7 @@ GEM
     aws-sdk-kms (1.63.0)
       aws-sdk-core (~> 3, >= 3.165.0)
       aws-sigv4 (~> 1.1)
-    aws-sdk-s3 (1.120.1)
+    aws-sdk-s3 (1.121.0)
       aws-sdk-core (~> 3, >= 3.165.0)
       aws-sdk-kms (~> 1)
       aws-sigv4 (~> 1.4)
@@ -133,7 +133,7 @@ GEM
       railties (>= 5.0.0)
     globalid (1.1.0)
       activesupport (>= 5.0)
-    i18n (1.12.0)
+    i18n (1.13.0)
       concurrent-ruby (~> 1.0)
     io-console (0.6.0)
     irb (1.6.4)
@@ -168,13 +168,13 @@ GEM
     nokogiri (1.14.3-x86_64-linux)
       racc (~> 1.4)
     orm_adapter (0.5.0)
-    pg (1.4.6)
-    puma (5.6.5)
+    pg (1.5.2)
+    puma (6.2.2)
       nio4r (~> 2.0)
     pundit (2.3.0)
       activesupport (>= 3.0.0)
     racc (1.6.2)
-    rack (2.2.6.4)
+    rack (2.2.7)
     rack-cors (2.0.1)
       rack (>= 2.0.0)
     rack-test (2.1.0)
@@ -206,7 +206,8 @@ GEM
       thor (~> 1.0)
       zeitwerk (~> 2.5)
     rake (13.0.6)
-    redis (4.8.1)
+    redis (5.0.6)
+      redis-client (>= 0.9.0)
     redis-client (0.14.1)
       connection_pool
     reline (0.3.3)
@@ -214,9 +215,9 @@ GEM
     responders (3.1.0)
       actionpack (>= 5.2)
       railties (>= 5.2)
-    rspec-core (3.12.1)
+    rspec-core (3.12.2)
       rspec-support (~> 3.12.0)
-    rspec-expectations (3.12.2)
+    rspec-expectations (3.12.3)
       diff-lcs (>= 1.2.0, < 2.0)
       rspec-support (~> 3.12.0)
     rspec-mocks (3.12.5)
@@ -236,7 +237,7 @@ GEM
       ruby_http_client (~> 3.4)
     shoulda-matchers (5.3.0)
       activesupport (>= 5.2.0)
-    sidekiq (7.0.8)
+    sidekiq (7.0.9)
       concurrent-ruby (< 2)
       connection_pool (>= 2.3.0)
       rack (>= 2.2.4)
@@ -261,13 +262,14 @@ GEM
 
 PLATFORMS
   arm64-darwin-21
+  arm64-darwin-22
   x86_64-linux
 
 DEPENDENCIES
   aasm
   amazing_print
   annotate
-  aws-sdk-s3 (~> 1.114)
+  aws-sdk-s3 (~> 1.121)
   blueprinter
   bootsnap
   bugsnag
@@ -277,11 +279,11 @@ DEPENDENCIES
   devise-jwt
   factory_bot_rails
   pg (~> 1.1)
-  puma (~> 5.0)
+  puma (~> 6.2.2)
   pundit
   rack-cors
   rails (~> 7.0.4, >= 7.0.4)
-  redis (~> 4.0)
+  redis (~> 5.0)
   rspec-rails
   sendgrid-ruby
   shoulda-matchers
@@ -291,7 +293,7 @@ DEPENDENCIES
   tzinfo-data
 
 RUBY VERSION
-   ruby 3.1.2p20
+   ruby 3.2.2p53
 
 BUNDLED WITH
    2.3.22
