@@ -4,6 +4,7 @@ module Stripe
 
     def handle_event
       self.stripe_account = StripeAccount.find(event[:account])
+      self.tournament = stripe_account.tournament
       account_obj = get_account_details
       update_account_details(account_obj)
     rescue ActiveRecord::RecordNotFound => e
