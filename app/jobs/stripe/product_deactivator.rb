@@ -24,6 +24,8 @@ module Stripe
           stripe_account: stripe_account_identifier,
         }
       )
+    rescue ActiveRecord::RecordNotFound => e
+      Rails.logger.warn "Failed to find StripeProduct with id = #{stripe_product_id}. It was probably too soon to delete it."
     rescue StripeError => e
       Rails.logger.warn "Failed to deactivate Stripe Product: #{e.message}"
     end
