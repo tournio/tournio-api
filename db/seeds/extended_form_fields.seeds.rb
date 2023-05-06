@@ -218,3 +218,33 @@ ExtendedFormField.create(
   helper_text: '(vegetarian / vegan / allergies / etc.)',
   helper_url: '',
 ) unless ExtendedFormField.find_by(name: 'dietary').present?
+
+ExtendedFormField.create(
+  name: 'staying_at_host_hotel',
+  label: 'Do you plan to stay at the host hotel?',
+  html_element_type: 'checkbox',
+  html_element_config: { label: 'Yes', value: 'no' },
+  validation_rules: { required: false },
+  helper_text: '(vegetarian / vegan / allergies / etc.)',
+  helper_url: '',
+) unless ExtendedFormField.find_by(name: 'staying_at_host_hotel').present?
+
+ExtendedFormField.create(
+  name: 'volunteer_while_not_bowling',
+  label: "'Are you able to volunteer when you're not bowling?'",
+  html_element_type: 'checkbox',
+  html_element_config: { label: 'Yes', value: 'no' },
+  validation_rules: { required: false },
+  helper_text: '(vegetarian / vegan / allergies / etc.)',
+  helper_url: '',
+) unless ExtendedFormField.find_by(name: 'staying_at_host_hotel').present?
+
+ExtendedFormField.create(
+  name: 'birth_year',
+  label: 'Birth year',
+  html_element_type: 'input',
+  html_element_config: { type: 'number', value: '', placeholder: 'YYYY' },
+  validation_rules: { required: false, min: 0, max: 2050 },
+  helper_text: '',
+  helper_url: '',
+) unless ExtendedFormField.find_by(name: 'birth_year').present?
