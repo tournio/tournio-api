@@ -1,6 +1,6 @@
 require 'rails_helper'
 
-RSpec.describe StripeWebhooksController, type: :controller do
+RSpec.describe WebhooksController, type: :controller do
   let(:headers) do
     {
       'Accept': 'application/json',
@@ -8,10 +8,10 @@ RSpec.describe StripeWebhooksController, type: :controller do
     }
   end
 
-  describe "#webhook" do
+  describe "#stripe" do
     subject do
       request.headers.merge!(headers)
-      post :webhook
+      post :stripe
     end
 
     let(:event_type) { 'something.unfamiliar' }

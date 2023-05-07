@@ -1,11 +1,11 @@
-class StripeWebhooksController < ApplicationController
+class WebhooksController < ApplicationController
   include ActiveSupport::Inflector
 
   wrap_parameters false
 
-  ENDPOINT_SECRET = ENV['STRIPE_WEBHOOK_KEY']
+  STRIPE_ENDPOINT_SECRET = ENV['STRIPE_WEBHOOK_KEY']
 
-  def webhook
+  def stripe
     event = build_stripe_event
 
     # this lets us specify which event types we support
@@ -15,7 +15,7 @@ class StripeWebhooksController < ApplicationController
       'account.updated',
       'charge.refunded'
       # other types here
-      event_to_class(event[:type]).perform_async(event[:id], event[:account])
+      event_to_class('stripe', event[:type]).perform_async(event[:id], event[:account])
     else
       Rails.logger.warn "Received a webhook for an unsupported event type: #{event[:type]}, event_id=#{event[:id]}, account=#{event[:account]}"
     end
@@ -33,11 +33,11 @@ class StripeWebhooksController < ApplicationController
     body = request.body.read
     sig_header = request.headers['HTTP_STRIPE_SIGNATURE']
 
-    Stripe::Webhook.construct_event(body, sig_header, ENDPOINT_SECRET)
+    Stripe::Webhook.construct_event(body, sig_header, STRIPE_ENDPOINT_SECRET)
   end
 
-  def event_to_class(event_name)
-    name = 'stripe/' + event_name.gsub('.', '_')
+  def event_to_class(namespace, event_name)
+    name = namespace + '/' + event_name.gsub('.', '_')
     constantize(camelize(name))
   end
 end
