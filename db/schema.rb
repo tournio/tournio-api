@@ -10,7 +10,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema[7.0].define(version: 2023_04_10_145440) do
+ActiveRecord::Schema[7.0].define(version: 2023_05_08_141647) do
   # These are extensions that must be enabled in order to support this database
   enable_extension "plpgsql"
 
@@ -291,6 +291,13 @@ ActiveRecord::Schema[7.0].define(version: 2023_04_10_145440) do
     t.datetime "created_at", null: false
     t.datetime "updated_at", null: false
     t.index ["tournament_id"], name: "index_scratch_divisions_on_tournament_id"
+  end
+
+  create_table "send_grid_events", primary_key: "sg_event_id", id: :string, force: :cascade do |t|
+    t.string "email"
+    t.bigint "event_timestamp"
+    t.datetime "created_at", null: false
+    t.datetime "updated_at", null: false
   end
 
   create_table "shifts", force: :cascade do |t|

@@ -68,4 +68,5 @@ Rails.application.routes.draw do
   resources :checkout_sessions, only: %i(show), param: :identifier
 
   post 'stripe_webhook', to: 'webhooks#stripe'
+  post 'sendgrid_webhook', to: 'webhooks#sendgrid'
 end
