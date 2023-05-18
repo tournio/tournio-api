@@ -40,7 +40,14 @@ module Director
     attr_accessor :tournament, :question
 
     def new_question_params
-      params.permit(:tournament_identifier, additional_question: %i(extended_form_field_id, required)).require(:additional_question)
+      params.permit(
+        :tournament_identifier,
+        additional_question: [
+          :extended_form_field_id,
+          :order,
+          validation_rules: %i(required),
+        ],
+      ).require(:additional_question)
     end
 
     def update_question_params
