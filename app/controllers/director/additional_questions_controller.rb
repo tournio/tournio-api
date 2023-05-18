@@ -18,13 +18,13 @@ module Director
     end
 
     def update
-      question = Question.includes(:tournament).find_by_identifier!(params[:identifier])
+      question = AdditionalQuestion.includes(:tournament).find_by_identifier!(params[:identifier])
       self.tournament = question.tournament
 
       authorize tournament, :update?
 
       if question.update(update_question_params)
-        render json: QuestionBlueprint.render(question.reload), status: :ok
+        render json: AdditionalQuestionBlueprint.render(question.reload), status: :ok
       end
     rescue ActiveRecord::RecordNotFound
       skip_authorization
@@ -32,7 +32,20 @@ module Director
     end
 
     def destroy
+      self.question = AdditionalQuestion.includes(:tournament).find_by_identifier!(params[:identifier])
+      self.tournament = question.tournament
 
+      authorize tournament, :update?
+
+      unless tournament.active?
+        question.destroy
+        render json: nil, status: :no_content
+        return;
+      end
+      render json: { error: 'Cannot delete a question from an active tournament' }, status: :forbidden
+    rescue ActiveRecord::RecordNotFound
+      skip_authorization
+      render json: nil, status: :not_found
     end
 
     private
@@ -51,7 +64,12 @@ module Director
     end
 
     def update_question_params
-      params.require(:additional_question).permit(%i(required))
+      params.require(:additional_question).permit([
+        :order,
+        validation_rules: [
+          :required,
+        ],
+      ])
     end
   end
 end

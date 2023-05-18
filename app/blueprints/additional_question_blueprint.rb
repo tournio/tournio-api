@@ -2,7 +2,8 @@
 
 class AdditionalQuestionBlueprint < Blueprinter::Base
   # fields :name, :label, :html_element_type, :html_element_config, :helper_text, :helper_url, :validation_rules
-  identifier :id
+  identifier :identifier
+  field :extended_form_field_id
 
   fields :label, :order, :name
 
