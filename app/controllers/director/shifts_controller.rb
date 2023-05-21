@@ -29,7 +29,7 @@ module Director
 
       authorize tournament, :update?
 
-      unless tournament.active? || tournament.demo?
+      unless tournament.active?
         shift.destroy
         render json: nil, status: :no_content
         return
