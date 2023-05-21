@@ -3,6 +3,7 @@
 # Table name: additional_questions
 #
 #  id                     :bigint           not null, primary key
+#  identifier             :string
 #  order                  :integer
 #  validation_rules       :jsonb
 #  created_at             :datetime         not null
@@ -19,5 +20,13 @@ class AdditionalQuestion < ApplicationRecord
   belongs_to :tournament
   belongs_to :extended_form_field
 
+  before_create :generate_identifier
+
   delegate :helper_text, :helper_url, :html_element_config, :html_element_type, :label, :name, to: :extended_form_field
+
+  private
+
+  def generate_identifier
+    self.identifier = SecureRandom.uuid
+  end
 end

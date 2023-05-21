@@ -10,7 +10,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema[7.0].define(version: 2023_05_08_141647) do
+ActiveRecord::Schema[7.0].define(version: 2023_05_17_230645) do
   # These are extensions that must be enabled in order to support this database
   enable_extension "plpgsql"
 
@@ -59,6 +59,7 @@ ActiveRecord::Schema[7.0].define(version: 2023_05_08_141647) do
     t.integer "order"
     t.datetime "created_at", null: false
     t.datetime "updated_at", null: false
+    t.string "identifier"
     t.index ["extended_form_field_id"], name: "index_additional_questions_on_extended_form_field_id"
     t.index ["tournament_id"], name: "index_additional_questions_on_tournament_id"
   end

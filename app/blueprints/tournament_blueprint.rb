@@ -80,6 +80,10 @@ class TournamentBlueprint < Blueprinter::Base
       end
       types
     end
+
+    field :event_items do |t, _|
+      organized_event_items(tournament: t)
+    end
   end
 
   view :director_detail do
@@ -199,6 +203,32 @@ class TournamentBlueprint < Blueprinter::Base
       raffle: PurchasableItemBlueprint.render_as_hash(raffle),
       product: PurchasableItemBlueprint.render_as_hash(product),
       sanction: PurchasableItemBlueprint.render_as_hash(sanction),
+    }
+  end
+
+  def self.organized_event_items(tournament:)
+    event_items = tournament.purchasable_items.event
+    ledger_items = tournament.purchasable_items.ledger
+
+    determination_order = {
+      entry_fee: 0,
+      early_discount: 1,
+      late_fee: 2,
+      discount_expiration: 3,
+      event: 4,
+      bundle_discount: 8,
+    }
+
+    event_refinement_order = {
+      single: 1,
+      double: 2,
+      trio: 3,
+      team: 4,
+    }
+
+    {
+      ledger: PurchasableItemBlueprint.render_as_hash(ledger_items.sort_by { |li| determination_order[li.determination.to_sym] }),
+      event: PurchasableItemBlueprint.render_as_hash(event_items.sort_by { |ei| event_refinement_order[ei.refinement.to_sym] }),
     }
   end
 end
