@@ -24,8 +24,9 @@ module TournamentRegistration
       entry_fee: 1,
       early_discount: 2,
       late_fee: 3,
-      bundle_discount: 4,
-      discount_expiration: 5,
+      event_linked: 4,
+      bundle_discount: 5,
+      discount_expiration: 6,
       igbo: 9,
       event: 10,
       single_use: 11,
@@ -34,11 +35,17 @@ module TournamentRegistration
       general: 14,
       handicap: 15,
       scratch: 16,
+      usbc: 17,
     },
     refinement: {
       division: -1,
       denomination: 1,
       input: 2,
+      single: 3,
+      double: 4,
+      trio: 5,
+      team: 6,
+      sized: 10,
     },
   }
 
@@ -263,7 +270,6 @@ module TournamentRegistration
     category = purchase_or_item.category
     determination = purchase_or_item.determination
     refinement = purchase_or_item.refinement
-
     [
       PURCHASABLE_ITEM_SORTING[:category][category.to_sym],
       determination.present? ? PURCHASABLE_ITEM_SORTING[:determination][determination.to_sym] : 0,
