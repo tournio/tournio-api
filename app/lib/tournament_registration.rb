@@ -24,7 +24,6 @@ module TournamentRegistration
       entry_fee: 1,
       early_discount: 2,
       late_fee: 3,
-      event_linked: 4,
       bundle_discount: 5,
       discount_expiration: 6,
       igbo: 9,
@@ -39,8 +38,7 @@ module TournamentRegistration
     },
     refinement: {
       division: -1,
-      denomination: 1,
-      input: 2,
+      event_linked: 1,
       single: 3,
       double: 4,
       trio: 5,
