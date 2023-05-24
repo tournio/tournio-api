@@ -101,7 +101,11 @@ module StripeUtilities
   end
 
   def create_stripe_coupons
-    (tournament.purchasable_items.early_discount + tournament.purchasable_items.bundle_discount).where(stripe_coupon: nil).each do |pi|
+    tournament.purchasable_items.early_discount.where(stripe_coupon: nil).each do |pi|
+      Stripe::CouponCreator.perform_in(Rails.configuration.sidekiq_async_delay, pi.id)
+    end
+
+    tournament.purchasable_items.bundle_discount.where(stripe_coupon: nil).each do |pi|
       Stripe::CouponCreator.perform_in(Rails.configuration.sidekiq_async_delay, pi.id)
     end
   end
