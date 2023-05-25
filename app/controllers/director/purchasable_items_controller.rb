@@ -181,6 +181,7 @@ module Director
           :category,
           :determination,
           :refinement,
+          :user_selectable,
           configuration: [
             :order,
             :applies_at,
