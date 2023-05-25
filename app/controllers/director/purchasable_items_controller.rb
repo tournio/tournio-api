@@ -161,6 +161,7 @@ module Director
           :note,
           :quantity,
           :size,
+          :event,
           events: [],
           sizes: [
             unisex: ApparelDetails::SIZES_ADULT,
@@ -180,6 +181,7 @@ module Director
           :category,
           :determination,
           :refinement,
+          :user_selectable,
           configuration: [
             :order,
             :applies_at,

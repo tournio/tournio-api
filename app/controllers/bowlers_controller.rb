@@ -158,6 +158,8 @@ class BowlersController < ApplicationController
       # matching_purchases -- all the unpaid purchases (entry fee, late fee, and early discount)
       # item_quantities -- an array of hashes, with identifier and quantity as keys
       # purchasable_items -- all the additional items being bought, indexed by identifier
+      # applicable_fees -- Any event-linked fees that apply, e.g., late fees
+      # applicable_discounts -- Any event-linked or bundle discounts that apply
 
       session = stripe_checkout_session
       bowler.stripe_checkout_sessions << StripeCheckoutSession.new(identifier: session[:id])
@@ -178,6 +180,8 @@ class BowlersController < ApplicationController
     :bowler,
     :parameters,
     :matching_purchases,
+    :applicable_discounts, # An array of PurchasableItems representing event-linked discounts (early-registration, bundle)
+    :applicable_fees, # An array of PurchasableItems representing late fees (currently, only event-linked late fees)
     :purchasable_items,
     :item_quantities,
     :total_to_charge
@@ -214,7 +218,10 @@ class BowlersController < ApplicationController
   def rendered_purchasable_items_by_identifier
     excluded_item_names = bowler.purchases.one_time.collect { |p| p.purchasable_item.name }
     items = tournament.purchasable_items.user_selectable.where.not(name: excluded_item_names)
-    items.each_with_object({}) { |i, result| result[i.identifier] = PurchasableItemBlueprint.render_as_hash(i) }
+
+    extra_ledger_items = tournament.purchasable_items.event_linked + tournament.purchasable_items.bundle_discount
+
+    (items + extra_ledger_items).each_with_object({}) { |i, result| result[i.identifier] = PurchasableItemBlueprint.render_as_hash(i) }
   end
 
   def clean_up_bowler_data(permitted_params)
@@ -344,17 +351,21 @@ class BowlersController < ApplicationController
       raise PurchaseError.new('Cannot purchase multiple instances of one-time items.', :unprocessable_entity)
     end
 
+    # Here is where we'll want to determine any applicable discounts that aren't bundle_discount,
+    # such as event-linked early-registration discount. (We don't do that yet, since there has not yet
+    # been a need.)
+
     # apply any relevant event bundle discounts
     bundle_discount_items = tournament.purchasable_items.bundle_discount
     previous_paid_event_item_identifiers = bowler.purchases.event.paid.map { |p| p.purchasable_item.identifier }
-    applicable_discounts = bundle_discount_items.select do |discount|
+    @applicable_discounts = bundle_discount_items.select do |discount|
       (identifiers + previous_paid_event_item_identifiers).intersection(discount.configuration['events']).length == discount.configuration['events'].length
     end
     total_discount = applicable_discounts.sum(&:value)
 
     # apply any relevant event-linked late fees
-    late_fee_items = tournament.purchasable_items.event_linked.late_fee
-    applicable_fees = late_fee_items.select do |fee|
+    late_fee_items = tournament.purchasable_items.late_fee.event_linked
+    @applicable_fees = late_fee_items.select do |fee|
       identifiers.include?(fee.configuration['event']) && tournament.in_late_registration?(event_linked_late_fee: fee)
     end
     total_fees = applicable_fees.sum(&:value)
@@ -388,8 +399,11 @@ class BowlersController < ApplicationController
       line_item_for_purchasable_item(pi, iq[:quantity])
     end
 
-    discounts = matching_purchases.each_with_object([]) do |mp, a|
-      pi = mp.purchasable_item
+    line_items += applicable_fees.each_with_object([]) do |pi, a|
+      line_item_for_purchasable_item(pi, 1)
+    end
+
+    discounts = applicable_discounts.each_with_object([]) do |pi, a|
       if pi.early_discount? || pi.bundle_discount?
         a.push(discount_for_purchasable_item(pi))
       end
@@ -462,6 +476,39 @@ class BowlersController < ApplicationController
         )
         total_credit += pi.value
       end
+    end
+
+    # applicable fees
+    applicable_fees.each do |pi|
+      bowler.purchases << Purchase.create(
+        purchasable_item: pi,
+        amount: pi.value,
+        paid_at: Time.zone.now,
+        external_payment_id: extp.id
+      )
+
+      bowler.ledger_entries << LedgerEntry.new(
+        debit: pi.value,
+        source: :purchase,
+        identifier: pi.name
+      )
+      total_credit += pi.value
+    end
+
+    applicable_discounts.each do |pi|
+      bowler.purchases << Purchase.create(
+        purchasable_item: pi,
+        amount: pi.value,
+        paid_at: Time.zone.now,
+        external_payment_id: extp.id
+      )
+
+      bowler.ledger_entries << LedgerEntry.new(
+        credit: pi.value,
+        source: :purchase,
+        identifier: pi.name
+      )
+      total_credit -= pi.value
     end
 
     bowler.ledger_entries << LedgerEntry.new(

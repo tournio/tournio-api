@@ -3,6 +3,7 @@
 # Table name: additional_questions
 #
 #  id                     :bigint           not null, primary key
+#  identifier             :string
 #  order                  :integer
 #  validation_rules       :jsonb
 #  created_at             :datetime         not null

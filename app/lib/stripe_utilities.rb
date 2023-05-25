@@ -70,6 +70,7 @@ module StripeUtilities
 
       # look for any PurchasableItems without associated Stripe products and create them
       create_stripe_products
+      create_stripe_coupons
     end
 
     # What if the account was disabled / deactivated?
@@ -96,6 +97,16 @@ module StripeUtilities
   def create_stripe_products
     tournament.purchasable_items.bowling.where(stripe_product: nil).each do |pi|
       Stripe::ProductCreator.perform_in(Rails.configuration.sidekiq_async_delay, pi.id)
+    end
+  end
+
+  def create_stripe_coupons
+    tournament.purchasable_items.early_discount.where(stripe_coupon: nil).each do |pi|
+      Stripe::CouponCreator.perform_in(Rails.configuration.sidekiq_async_delay, pi.id)
+    end
+
+    tournament.purchasable_items.bundle_discount.where(stripe_coupon: nil).each do |pi|
+      Stripe::CouponCreator.perform_in(Rails.configuration.sidekiq_async_delay, pi.id)
     end
   end
 end
