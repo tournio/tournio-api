@@ -24,6 +24,7 @@ module Director
       ].freeze
 
     def index
+      mem = GetProcessMem.new
       load_tournament
       unless tournament.present?
         skip_policy_scope
@@ -40,16 +41,17 @@ module Director
         :free_entry,
         purchases: :purchasable_item,
         doubles_partner: :person,
-        tournament: [:additional_questions]
-      ).order('people.last_name')
-                  : policy_scope(tournament.bowlers).includes(:person, :free_entry, :team).order('people.last_name')
+      )
+                  : policy_scope(tournament.bowlers).includes(:person, :free_entry, :team)
 
       if params[:unpartnered]
         bowlers = bowlers.where(doubles_partner_id: nil)
       end
 
       blueprint_view = include_details ? :director_detail : :director_list
-      render json: BowlerBlueprint.render(bowlers, view: blueprint_view), status: :ok
+      hashed_bowlers = bowlers.map { |b| BowlerBlueprint.render_as_hash(b, view: blueprint_view) }
+      hashed_bowlers.sort_by! { |h| h[:full_name] }
+      render json: hashed_bowlers, status: :ok
     end
 
     def show
