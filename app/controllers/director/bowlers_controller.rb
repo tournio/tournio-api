@@ -25,7 +25,6 @@ module Director
 
     def index
       mem = GetProcessMem.new
-      Rails.logger.info ("========== Memory: #{mem.mb}")
       load_tournament
       unless tournament.present?
         skip_policy_scope
@@ -52,7 +51,6 @@ module Director
       blueprint_view = include_details ? :director_detail : :director_list
       hashed_bowlers = bowlers.map { |b| BowlerBlueprint.render_as_hash(b, view: blueprint_view) }
       hashed_bowlers.sort_by! { |h| h[:full_name] }
-      Rails.logger.info ("========== Memory: #{mem.mb}")
       render json: hashed_bowlers, status: :ok
     end
 
