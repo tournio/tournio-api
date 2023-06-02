@@ -31,7 +31,7 @@ class Tournament < ApplicationRecord
 
   has_and_belongs_to_many :users
   has_many :additional_questions, dependent: :destroy
-  has_many :bowlers, -> { order(person.last_name) }, dependent: :destroy
+  has_many :bowlers, dependent: :destroy
   has_many :config_items, dependent: :destroy
   has_many :contacts, -> { order(role: :asc)}, dependent: :destroy
   has_many :data_points, dependent: :destroy
