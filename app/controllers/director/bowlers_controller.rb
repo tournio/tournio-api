@@ -24,7 +24,6 @@ module Director
       ].freeze
 
     def index
-      mem = GetProcessMem.new
       load_tournament
       unless tournament.present?
         skip_policy_scope
