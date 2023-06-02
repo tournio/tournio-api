@@ -241,7 +241,7 @@ module Fixtures
     def add_purchases_to_bowlers
       single_items = tournament.purchasable_items.bowling.where(refinement: nil)
       division_items = tournament.purchasable_items.bowling.where(refinement: :division)
-      multi_use_items = tournament.purchasable_items.multi_use
+      non_bowling_items = tournament.purchasable_items.where.not(category: %i(ledger bowling))
 
       tournament.bowlers.each do |b|
         items_for_bowler = []
@@ -258,9 +258,9 @@ module Fixtures
         end
 
         # how about multi_use items?
-        count = Random.rand(multi_use_items.count)
+        count = Random.rand(non_bowling_items.count)
         if (count > 0)
-          items_for_bowler += multi_use_items.sample(count)
+          items_for_bowler += non_bowling_items.sample(count)
         end
 
         add_purchases_to_bowler(bowler: b, items: items_for_bowler) unless items_for_bowler.empty?
@@ -284,8 +284,11 @@ module Fixtures
 
     def create_payments
       tournament.bowlers.each do |b|
-        make_payment = Random.rand(3) > 0 # we should have payments about 2/3 of the time
-        create_payment(bowler: b) unless make_payment
+        # make_payment = Random.rand(3) > 0 # we should have payments about 2/3 of the time
+        # create_payment(bowler: b) unless make_payment
+
+        # Let's have payments for all purchases. That reflects current reality.
+        create_payment(bowler: b)
       end
     end
 
