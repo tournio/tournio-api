@@ -463,18 +463,38 @@ RSpec.describe TournamentRegistration do
   describe '#amount_due' do
     subject { subject_class.amount_due(bowler) }
 
-    let(:bowler) { instance_double('Bowler', ledger_entries: ledger_entries) }
-    let(:ledger_entries) do
-      [
-        instance_double('LedgerEntry', debit: 30, credit: 0),
-        instance_double('LedgerEntry', debit: 30, credit: 0),
-        instance_double('LedgerEntry', debit: 30, credit: 0),
-        instance_double('LedgerEntry', debit: 0, credit: 40),
-      ]
+    let(:tournament) { create :tournament, :active }
+    let(:bowler) { create :bowler, tournament: tournament }
+
+    before do
+      create :ledger_entry, debit: 30, bowler: bowler
+      create :ledger_entry, debit: 30, bowler: bowler
+      create :ledger_entry, debit: 30, bowler: bowler
+      create :ledger_entry, credit: 40, source: :manual, bowler: bowler
     end
 
     it 'correctly diffs credits and debits' do
       expect(subject).to eq(50)
+    end
+
+    context 'when there is an early registration discount' do
+      before do
+        create :ledger_entry, :early_registration, credit: 10, bowler: bowler
+      end
+
+      it 'accounts for the discount' do
+        expect(subject).to eq(40)
+      end
+    end
+
+    context 'when a purchase has been voided' do
+      before do
+        create :ledger_entry, :void_purchase, credit: 30, bowler: bowler
+      end
+
+      it 'excludes the voided amount from billed total' do
+        expect(subject).to eq(20)
+      end
     end
   end
 
@@ -493,6 +513,26 @@ RSpec.describe TournamentRegistration do
 
     it 'correctly sums debits' do
       expect(subject).to eq(90)
+    end
+
+    context 'when there is an early registration discount' do
+      before do
+        create :ledger_entry, :early_registration, credit: 10, bowler: bowler
+      end
+
+      it 'accounts for the discount' do
+        expect(subject).to eq(80)
+      end
+    end
+
+    context 'when a purchase has been voided' do
+      before do
+        create :ledger_entry, :void_purchase, credit: 30, bowler: bowler
+      end
+
+      it 'excludes the voided amount from billed total' do
+        expect(subject).to eq(60)
+      end
     end
   end
 
