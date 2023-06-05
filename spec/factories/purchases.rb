@@ -39,4 +39,9 @@ FactoryBot.define do
   trait :paid do
     paid_at { Time.zone.now }
   end
+
+  trait :voided do
+    voided_at { Time.zone.now }
+    void_reason { 'Because I said so.' }
+  end
 end
