@@ -5,7 +5,7 @@ class VoidPurchaseJob
 
   def perform(purchase_id, why)
     p = Purchase.find(purchase_id)
-    unless p.paid_at.present? || p.voided_at.present?
+    unless p.paid_at.present?
       p.update(voided_at: Time.zone.now, void_reason: why)
 
       # Having this be a debit assumes that the voided charge was a credit, such
@@ -17,5 +17,7 @@ class VoidPurchaseJob
         source: :void
       )
     end
+  rescue ActiveRecord::RecordNotFound => e
+    Rails.logger.info "Could not find purchase with id=#{purchase_id}. Maybe it was already voided?"
   end
 end
