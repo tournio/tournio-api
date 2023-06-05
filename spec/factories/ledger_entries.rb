@@ -42,5 +42,8 @@ FactoryBot.define do
     trait :stripe do
       source { :stripe }
     end
+    trait :void_purchase do
+      source { :void }
+    end
   end
 end

@@ -7,6 +7,9 @@ class VoidPurchaseJob
     p = Purchase.find(purchase_id)
     unless p.paid_at.present? || p.voided_at.present?
       p.update(voided_at: Time.zone.now, void_reason: why)
+
+      # Having this be a debit assumes that the voided charge was a credit, such
+      # as an early-registration discount. We shouldn't make that assumption!
       p.bowler.ledger_entries << LedgerEntry.new(
         debit: p.amount,
         identifier: p.identifier,
