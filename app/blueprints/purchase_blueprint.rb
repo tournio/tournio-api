@@ -7,4 +7,5 @@ class PurchaseBlueprint < Blueprinter::Base
   field :purchasable_item_identifier do |p, _|
     p.purchasable_item.identifier
   end
+  field :voided_at, datetime_format: '%b %-d, %Y'
 end
