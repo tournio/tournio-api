@@ -248,3 +248,14 @@ ExtendedFormField.create(
   helper_text: '',
   helper_url: '',
 ) unless ExtendedFormField.find_by(name: 'birth_year').present?
+
+ExtendedFormField.create(
+  name: 'igbo_rep',
+  label: "'Are you an IGBO Representative for a league or tournament?'",
+  html_element_type: 'checkbox',
+  html_element_config: { label: 'Yes', value: 'no' },
+  validation_rules: { required: false },
+  helper_text: '',
+  helper_url: '',
+) unless ExtendedFormField.find_by(name: 'igbo_rep').present?
+
