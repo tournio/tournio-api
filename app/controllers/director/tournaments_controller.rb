@@ -272,7 +272,9 @@ module Director
         return
       end
 
-      PaymentReminderSchedulerJob.perform_async(tournament.id)
+      if tournament.config[:email_in_dev]
+        PaymentReminderSchedulerJob.perform_async(tournament.id)
+      end
 
       render json: nil, status: :ok
     end

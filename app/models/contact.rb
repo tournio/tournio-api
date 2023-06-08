@@ -44,6 +44,7 @@ class Contact < ApplicationRecord
     :'igbo-representative',
     :technologist,
     :'member-at-large',
+    :operations,
   ]
   enum notification_preference: [ :daily_summary, :individually ]
 
