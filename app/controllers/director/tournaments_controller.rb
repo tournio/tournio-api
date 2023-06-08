@@ -272,7 +272,7 @@ module Director
         return
       end
 
-      if tournament.config[:email_in_dev]
+      unless Rails.env.development? && !tournament.config[:email_in_dev]
         PaymentReminderSchedulerJob.perform_async(tournament.id)
       end
 
