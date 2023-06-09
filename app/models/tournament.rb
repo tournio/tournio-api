@@ -60,7 +60,7 @@ class Tournament < ApplicationRecord
   after_create :initiate_testing_environment, :create_default_config
 
   scope :upcoming, ->(right_now = Time.zone.now) { where('end_date > ?', right_now) }
-  scope :available, -> { upcoming.where(aasm_state: %w[active closed]).where(config_items: { key: 'publicly_visible', value: 'true' }) }
+  scope :available, -> { upcoming.where(aasm_state: %w[active closed]).where(config_items: { key: 'publicly_listed', value: ['true', 't'] }) }
 
   SUPPORTED_DETAILS = %w(registration_types)
   SUPPORTED_REGISTRATION_OPTIONS = %w(new_team solo join_team partner new_pair)
@@ -126,7 +126,7 @@ class Tournament < ApplicationRecord
       self.config_items += [
         ConfigItem.new(key: 'email_in_dev', value: 'false'),
         ConfigItem.new(key: 'skip_stripe', value: 'true'),
-        ConfigItem.new(key: 'publicly_visible', value: 'true'), # applies to tournaments in the "active" state
+        ConfigItem.new(key: 'publicly_listed', value: 'true'), # applies to tournaments in the "active" state
       ]
     end
   end

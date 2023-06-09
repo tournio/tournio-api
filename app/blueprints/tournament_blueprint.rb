@@ -24,6 +24,9 @@ class TournamentBlueprint < Blueprinter::Base
   field :display_capacity do |t,_|
     t.config[:display_capacity]
   end
+  field :publicly_listed do |t,_|
+    t.config[:publicly_listed]
+  end
   field :email_in_dev do |t,_|
     t.config[:email_in_dev]
   end
