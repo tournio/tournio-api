@@ -122,11 +122,11 @@ class Tournament < ApplicationRecord
 
   def create_default_config
     self.config_items << ConfigItem.new(key: 'display_capacity', value: 'false')
+    self.config_items << ConfigItem.new(key: 'publicly_listed', value: 'true') # applies to tournaments in the "active" state
     if Rails.env.development?
       self.config_items += [
         ConfigItem.new(key: 'email_in_dev', value: 'false'),
         ConfigItem.new(key: 'skip_stripe', value: 'true'),
-        ConfigItem.new(key: 'publicly_listed', value: 'true'), # applies to tournaments in the "active" state
       ]
     end
   end
