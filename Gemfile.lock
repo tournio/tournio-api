@@ -68,6 +68,7 @@ GEM
       i18n (>= 1.6, < 2)
       minitest (>= 5.1)
       tzinfo (~> 2.0)
+    alba (2.3.0)
     amazing_print (1.5.0)
     annotate (3.2.0)
       activerecord (>= 3.2, < 8.0)
@@ -170,6 +171,7 @@ GEM
       racc (~> 1.4)
     nokogiri (1.15.2-x86_64-linux)
       racc (~> 1.4)
+    oj (3.15.0)
     orm_adapter (0.5.0)
     pg (1.5.3)
     puma (6.2.2)
@@ -271,6 +273,7 @@ PLATFORMS
 
 DEPENDENCIES
   aasm
+  alba (~> 2.3.0)
   amazing_print
   annotate
   aws-sdk-s3 (~> 1.121)
@@ -283,6 +286,7 @@ DEPENDENCIES
   devise-jwt
   factory_bot_rails
   get_process_mem
+  oj (~> 3.15.0)
   pg (~> 1.1)
   puma (~> 6.2.2)
   pundit
