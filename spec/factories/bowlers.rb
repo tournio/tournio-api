@@ -30,5 +30,6 @@ FactoryBot.define do
     position { 1 }
 
     association :person, strategy: :create
+    association :shift, stragegy: :build
   end
 end
