@@ -86,7 +86,7 @@ module TournamentRegistration
     DISPLAY_STATES[tournament.aasm_state.to_sym]
   end
 
-  def self.person_display_name(person)
+  def self.person_list_name(person)
     preferred_name = person.nickname.present? ? person.nickname : person.first_name
     "#{person.last_name}, #{preferred_name}"
   end
@@ -95,6 +95,11 @@ module TournamentRegistration
     nickname = bowler.nickname
     display_nickname = nickname.present? ? "'#{nickname}'" : ''
     "#{bowler.first_name} #{display_nickname} #{bowler.last_name}".squish
+  end
+
+  def self.person_display_name(person)
+    preferred_name = person.nickname.present? ? person.nickname : person.first_name
+    "#{preferred_name} #{person.last_name}"
   end
 
   def self.bowler_paid?(bowler)

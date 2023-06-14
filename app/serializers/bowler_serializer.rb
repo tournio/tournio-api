@@ -11,11 +11,11 @@ class BowlerSerializer
   attribute :registered_on do |b|
     b.created_at.strftime('%F')
   end
-  attribute :name do |b|
-    TournamentRegistration.person_display_name(b.person)
+  attribute :list_name do |b|
+    TournamentRegistration.person_list_name(b.person)
   end
-  attribute :doubles_partner do |b|
-    TournamentRegistration.person_display_name(b.doubles_partner.person) if b.doubles_partner.present?
+  attribute :full_name do |b|
+    TournamentRegistration.person_display_name(b.person)
   end
   attribute :usbc_id do |b|
     b.usbc_id
@@ -24,4 +24,11 @@ class BowlerSerializer
     TournamentRegistration.team_display_name(b.team) if b.team.present?
   end
 
+  one :doubles_partner, resource: BowlerSerializer
+
+  # Alba doesn't support associations of the has_one :through variety. At least, not yet.
+  # one :shift, resource: ShiftSerializer
+  attribute :shift do |b|
+    ShiftSerializer.new(b.shift).to_h
+  end
 end

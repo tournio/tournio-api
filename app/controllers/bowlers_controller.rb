@@ -52,7 +52,7 @@ class BowlersController < ApplicationController
     end
 
     list = parameters[:unpartnered].present? ? tournament.bowlers.without_doubles_partner : tournament.bowlers
-    render json: BowlerSerializer.new(list).serialize, status: :ok
+    render json: BowlerSerializer.new(list, within: {doubles_partner: :doubles_partner}).serialize, status: :ok
   end
 
   def create

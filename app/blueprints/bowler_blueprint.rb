@@ -6,13 +6,13 @@ class BowlerBlueprint < Blueprinter::Base
   field :nickname, name: :preferred_name
   field :created_at, name: :date_registered, datetime_format: "%F"
   field :full_name do |b, _|
-    TournamentRegistration.person_display_name(b.person)
+    TournamentRegistration.person_list_name(b.person)
   end
   field :amount_due do |b, _|
     TournamentRegistration.amount_due(b).to_i
   end
   field :doubles_partner_name do |b, _|
-    b.doubles_partner.present? ? TournamentRegistration.person_display_name(b.doubles_partner.person) : 'n/a'
+    b.doubles_partner.present? ? TournamentRegistration.person_list_name(b.doubles_partner.person) : 'n/a'
   end
 
   association :tournament, blueprint: TournamentBlueprint
