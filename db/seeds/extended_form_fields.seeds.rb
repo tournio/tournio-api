@@ -225,7 +225,7 @@ ExtendedFormField.create(
   html_element_type: 'checkbox',
   html_element_config: { label: 'Yes', value: 'no' },
   validation_rules: { required: false },
-  helper_text: '(vegetarian / vegan / allergies / etc.)',
+  helper_text: '',
   helper_url: '',
 ) unless ExtendedFormField.find_by(name: 'staying_at_host_hotel').present?
 
@@ -235,7 +235,7 @@ ExtendedFormField.create(
   html_element_type: 'checkbox',
   html_element_config: { label: 'Yes', value: 'no' },
   validation_rules: { required: false },
-  helper_text: '(vegetarian / vegan / allergies / etc.)',
+  helper_text: '',
   helper_url: '',
 ) unless ExtendedFormField.find_by(name: 'staying_at_host_hotel').present?
 
