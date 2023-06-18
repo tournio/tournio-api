@@ -40,7 +40,11 @@ class BowlersController < ApplicationController
 
   def index
     permit_params
-    load_tournament
+
+    identifier = parameters[:tournament_identifier]
+    if identifier.present?
+      @tournament = Tournament.includes(bowlers: [:person, :team, doubles_partner: [:person]]).find_by_identifier(identifier)
+    end
 
     unless tournament.present?
       render json: nil, status: :not_found
@@ -48,13 +52,17 @@ class BowlersController < ApplicationController
     end
 
     list = parameters[:unpartnered].present? ? tournament.bowlers.without_doubles_partner : tournament.bowlers
-    render json: BowlerBlueprint.render(list, view: :list), status: :ok
+    render json: BowlerSerializer.new(list, within: {doubles_partner: :doubles_partner}).serialize, status: :ok
   end
 
   def create
     permit_params
     load_team
-    load_tournament
+
+    identifier = parameters[:tournament_identifier]
+    if identifier.present?
+      @tournament = Tournament.includes(:config_items).find_by_identifier(identifier)
+    end
 
     # the tournament should be loaded either by association with the team, or finding by its identifier
     unless tournament.present?
@@ -204,14 +212,6 @@ class BowlersController < ApplicationController
     if identifier.present?
       @team = Team.find_by_identifier(identifier)
       @tournament = team&.tournament
-    end
-  end
-
-  def load_tournament
-    return unless tournament.nil?
-    identifier = parameters[:tournament_identifier]
-    if identifier.present?
-      @tournament = Tournament.includes(:stripe_account, bowlers: [:person]).find_by_identifier(identifier)
     end
   end
 
