@@ -50,7 +50,7 @@ class NewPaymentNotifierJob < MailerJob
       Received at: #{received_at}
 
       Tournament: #{tournament.name}
-      Bowler: #{TournamentRegistration.person_display_name(bowler)}
+      Bowler: #{TournamentRegistration.person_list_name(bowler)}
       Amount: #{number_to_currency(amount, precision: 0)}
       Payment identifier: #{payment_identifier}
     HEREDOC
@@ -69,7 +69,7 @@ class NewPaymentNotifierJob < MailerJob
       <p>
         Tournament: #{tournament.name}
         <br />
-        Bowler: #{TournamentRegistration.person_display_name(bowler)}
+        Bowler: #{TournamentRegistration.person_list_name(bowler)}
         <br />
         Amount: #{number_to_currency(amount, precision: 0)}
         <br />

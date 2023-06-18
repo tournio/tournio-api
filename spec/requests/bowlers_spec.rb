@@ -17,7 +17,7 @@ describe BowlersController, type: :request do
 
     before do
       10.times do |i|
-        create :bowler, tournament: tournament, position: nil
+        create :bowler, tournament: tournament, position: nil, shift: tournament.shifts.first
       end
     end
 

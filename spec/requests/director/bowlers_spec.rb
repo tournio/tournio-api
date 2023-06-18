@@ -356,7 +356,7 @@ describe Director::BowlersController, type: :request do
 
       it 'includes the updated doubles partner in the response' do
         subject
-        expect(json['doubles_partner']['full_name']).to eq(TournamentRegistration.person_display_name(new_partner.person))
+        expect(json['doubles_partner']['full_name']).to eq(TournamentRegistration.person_list_name(new_partner.person))
       end
     end
 
