@@ -85,7 +85,7 @@ module Director
       tournament = free_entry.tournament
       authorize free_entry.tournament, :update?
 
-      if free_entry.bowler_id.present?
+      if free_entry.confirmed?
         render json: nil, status: :conflict
         return
       end
@@ -97,6 +97,7 @@ module Director
       end
 
       free_entry.update(bowler_id: bowler.id)
+
       if params[:confirm].present?
         TournamentRegistration.confirm_free_entry(free_entry, current_user&.email)
         TournamentRegistration.try_confirming_bowler_shift(bowler)

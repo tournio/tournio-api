@@ -213,6 +213,15 @@ describe Director::FreeEntriesController, type: :request do
         subject
         expect(free_entry.reload.confirmed).to be_truthy
       end
+
+      context 'when it was linked but unconfirmed before' do
+        let(:free_entry) { create :free_entry, tournament: tournament, bowler: bowler }
+
+        it 'succeeds with a 200 OK' do
+          subject
+          expect(response).to have_http_status(:ok)
+        end
+      end
     end
 
     context 'with confirm present but "false"' do
@@ -286,7 +295,7 @@ describe Director::FreeEntriesController, type: :request do
       end
 
       context 'a free entry already linked to someone else' do
-        let(:free_entry) { create :free_entry, tournament: tournament, bowler: create(:bowler, tournament: tournament) }
+        let(:free_entry) { create :free_entry, tournament: tournament, confirmed: true, bowler: create(:bowler, tournament: tournament) }
 
         it 'fails' do
           subject
