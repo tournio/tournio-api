@@ -17,7 +17,11 @@ module Director
               else
                 policy_scope(tournament.teams).order('created_at asc')
               end
-      render json: TeamBlueprint.render(teams, view: :director_list), status: :ok
+
+      hashed_teams = teams.map { |b| TeamBlueprint.render_as_hash(b, view: :director_list, **url_options) }
+      hashed_teams.sort_by! { |h| h[:name] }
+
+      render json: hashed_teams, status: :ok
     end
 
     def show
@@ -122,7 +126,10 @@ module Director
     end
 
     def team_params
-      params.require(:team).permit(:name).to_h.symbolize_keys
+      params.require(:team).permit(
+        :name,
+        options: {},
+      ).to_h.symbolize_keys
     end
 
     def edit_team_params
