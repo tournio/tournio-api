@@ -268,63 +268,65 @@ describe Director::FreeEntriesController, type: :request do
         expect(free_entry.reload.bowler_id).to be_nil
       end
     end
-  end
 
-  context 'error scenarios' do
-    context 'an unrecognized free entry id' do
-      let(:free_entry_identifier) { 'say-what-now' }
+    context 'error scenarios' do
+      context 'an unrecognized free entry id' do
+        let(:free_entry_identifier) { 'say-what-now' }
 
-      it 'yields a 404 Not Found' do
-        subject
-        expect(response).to have_http_status(:not_found)
-      end
-    end
-
-    context 'an unrecognized bowler identifier' do
-      let(:bowler_identifier) { 'say-what-now' }
-
-      it 'yields a 404 Not Found' do
-        subject
-        expect(response).to have_http_status(:not_found)
-      end
-    end
-
-    context 'a free entry already linked to someone else' do
-      let(:free_entry) { create :free_entry, tournament: tournament, confirmed: true, bowler: create(:bowler, tournament: tournament) }
-
-      it 'fails' do
-        subject
-        expect(response).to have_http_status(:conflict)
-      end
-    end
-
-    context 'as an unpermitted user' do
-      let(:requesting_user) { create(:user, :unpermitted) }
-
-      it 'shall not pass' do
-        subject
-        expect(response).to have_http_status(:unauthorized)
-      end
-    end
-
-    context 'as a director' do
-      let(:requesting_user) { create(:user, :director) }
-
-      it 'shall not pass' do
-        subject
-        expect(response).to have_http_status(:unauthorized)
-      end
-
-      context 'associated with this tournament' do
-        let(:requesting_user) { create :user, :director, tournaments: [tournament] }
-
-        it 'shall pass' do
+        it 'yields a 404 Not Found' do
           subject
-          expect(response).to have_http_status(:ok)
+          expect(response).to have_http_status(:not_found)
+        end
+      end
+
+      context 'an unrecognized bowler identifier' do
+        let(:bowler_identifier) { 'say-what-now' }
+
+        it 'yields a 404 Not Found' do
+          subject
+          expect(response).to have_http_status(:not_found)
+        end
+      end
+
+      context 'a free entry already linked to someone else' do
+        let(:free_entry) { create :free_entry, tournament: tournament, confirmed: true, bowler: create(:bowler, tournament: tournament) }
+
+        it 'fails' do
+          subject
+          expect(response).to have_http_status(:conflict)
+        end
+      end
+
+      context 'as an unpermitted user' do
+        let(:requesting_user) { create(:user, :unpermitted) }
+
+        it 'shall not pass' do
+          subject
+          expect(response).to have_http_status(:unauthorized)
+        end
+      end
+
+      context 'as a director' do
+        let(:requesting_user) { create(:user, :director) }
+
+        it 'shall not pass' do
+          subject
+          expect(response).to have_http_status(:unauthorized)
+        end
+
+        context 'associated with this tournament' do
+          let(:requesting_user) { create :user, :director, tournaments: [tournament] }
+
+          it 'shall pass' do
+            subject
+            expect(response).to have_http_status(:ok)
+          end
         end
       end
     end
   end
+
+
 
   describe '#destroy' do
     subject { delete uri, headers: auth_headers, as: :json }
