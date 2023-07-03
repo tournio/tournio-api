@@ -15,6 +15,11 @@ module Stripe
 
       cs = retrieve_stripe_object
       scp = StripeCheckoutSession.find_by(identifier: cs[:id])
+
+      # Do we want to do anything when we're completed a checkout session that didn't originate with us?
+      # Example: a fundraiser entry initiated from bigdclassic.com
+      return unless scp.present?
+
       self.bowler = scp.bowler
       self.paid_at = Time.at(event[:created])
       self.external_payment = ExternalPayment.create(
