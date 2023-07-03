@@ -8,6 +8,10 @@ module Stripe
       cs = retrieve_stripe_object
       scp = StripeCheckoutSession.find_by(identifier: cs[:id])
 
+      # Do we want to do anything when we're completed a checkout session that didn't originate with us?
+      # Example: a fundraiser entry initiated from bigdclassic.com
+      return unless scp.present?
+
       # TODO: any sanity-checking, e.g.,
       #  - in the event the SCP model shows it was anything but open
 
