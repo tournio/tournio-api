@@ -62,7 +62,7 @@ module Director
       end
 
       authorize tournament, :show?
-      render json: BowlerBlueprint.render(bowler, view: :director_detail)
+      render json: BowlerBlueprint.render(bowler, view: :director_detail, **url_options)
     end
 
     def update
