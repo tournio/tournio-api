@@ -143,6 +143,11 @@ class BowlersController < ApplicationController
       return
     end
 
+    unless tournament.config['accept_payments']
+      render json: { error: 'The tournament is no longer accepting online payments.' }, status: :bad_request
+      return
+    end
+
     load_stripe_account
 
     # permit and parse params (quantities come in as strings)

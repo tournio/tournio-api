@@ -4,7 +4,7 @@ module Director
   class ConfigItemsController < BaseController
     rescue_from Pundit::NotAuthorizedError, with: :unauthorized
 
-    PERMITTED_WHILE_ACTIVE = %w(display_capacity email_in_dev skip_stripe publicly_listed)
+    PERMITTED_WHILE_ACTIVE = %w(display_capacity email_in_dev skip_stripe publicly_listed accept_payments)
 
     def update
       ci = ConfigItem.includes(:tournament).find(params[:id])

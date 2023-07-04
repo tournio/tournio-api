@@ -30,6 +30,10 @@ class TournamentBlueprint < Blueprinter::Base
   field :email_in_dev do |t,_|
     t.config[:email_in_dev]
   end
+  field :accepting_payments do |t,_|
+    t.config[:accept_payments]
+  end
+
   field :website do |t,_|
     t.config[:website]
   end
