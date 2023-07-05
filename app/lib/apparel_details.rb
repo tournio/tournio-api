@@ -2,7 +2,7 @@
 
 module ApparelDetails
   SIZE_CATEGORIES = %i(unisex women men infant)
-  SIZES_ADULT = %i(xxs xs s m l xl xxl xxl xxxl)
+  SIZES_ADULT = %i(xxs xs s m l xl xxl xxl xxxl xxxxl)
   SIZES_INFANT = %i(newborn m6 m12 m18 m24)
 
   def self.default_size_set
