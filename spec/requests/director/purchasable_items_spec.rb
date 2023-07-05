@@ -711,6 +711,11 @@ describe Director::PurchasableItemsController, type: :request do
       expect(response).to have_http_status(:ok)
     end
 
+    it 'returns an array' do
+      subject
+      expect(json).to be_a_kind_of(Array)
+    end
+
     it 'kicks off a Stripe::ProductUpdater job' do
       expect(Stripe::ProductUpdater).to receive(:perform_in).once
       subject
@@ -870,33 +875,33 @@ describe Director::PurchasableItemsController, type: :request do
 
         it 'returns a singleton item in the response' do
           subject
-          expect(json).to have_key('identifier')
+          expect(json[0]).to have_key('identifier')
         end
 
         # We require that a size property be sent up with an update request.
         it 'includes the size property with the resulting product' do
           subject
-          expect(json['configuration']).to have_key('size')
+          expect(json[0]['configuration']).to have_key('size')
         end
 
         it 'includes the size value' do
           subject
-          expect(json['configuration']['size']).to eq('one_size_fits_all')
+          expect(json[0]['configuration']['size']).to eq('one_size_fits_all')
         end
 
         it 'includes the updated name value' do
           subject
-          expect(json['name']).to eq(other_params[:name])
+          expect(json[0]['name']).to eq(other_params[:name])
         end
 
         it 'does not include a parent identifier' do
           subject
-          expect(json['configuration']).not_to have_key('parent_identifier')
+          expect(json[0]['configuration']).not_to have_key('parent_identifier')
         end
 
         it 'still has an empty refinement property' do
           subject
-          expect(json['refinement']).not_to be_present
+          expect(json[0]['refinement']).not_to be_present
         end
       end
 
