@@ -62,7 +62,7 @@ module Director
     end
 
     def update
-      self.item = PurchasableItem.includes(:tournament).find_by!(identifier: params[:identifier])
+      self.item = PurchasableItem.unscoped.includes(:tournament).find_by!(identifier: params[:identifier])
       self.tournament = item.tournament
 
       authorize tournament, :update?

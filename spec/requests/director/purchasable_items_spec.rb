@@ -743,6 +743,17 @@ describe Director::PurchasableItemsController, type: :request do
       end
     end
 
+    context 'when it is disabled' do
+      before do
+        purchasable_item.update(enabled: false)
+      end
+
+      it 'succeeds' do
+        subject
+        expect(response).to have_http_status(:ok)
+      end
+    end
+
     context 'early discount' do
       let(:purchasable_item) { create :purchasable_item, :early_discount, tournament: tournament }
       let(:configuration_param) do
