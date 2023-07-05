@@ -8,6 +8,7 @@
 #  category        :string           not null
 #  configuration   :jsonb
 #  determination   :string
+#  enabled         :boolean          default(TRUE)
 #  identifier      :string           not null
 #  name            :string           not null
 #  refinement      :string
