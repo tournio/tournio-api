@@ -67,13 +67,16 @@ module Director
 
       authorize tournament, :update?
 
-      if tournament.active?
+      changes = purchasable_item_update_params
+      non_enabled_keys = changes.keys - %i(enabled)
+
+      if tournament.active? && non_enabled_keys.size > 0
         render json: { error: 'Cannot modify purchasable items of an active tournament' }, status: :forbidden
         return
       end
 
       previous_amount = item.value
-      item.update!(purchasable_item_update_params)
+      item.update!(changes)
       new_amount = item.value
 
       # Deal with the item's Stripe products. (Parent of children won't have one.)
@@ -151,6 +154,7 @@ module Director
     def purchasable_item_update_params
       params.require(:purchasable_item).permit(
         :name,
+        :enabled,
         :value,
         :refinement, # Apparel items can change from sized to not
         configuration: [

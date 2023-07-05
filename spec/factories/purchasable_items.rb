@@ -227,5 +227,9 @@ FactoryBot.define do
         end
       end
     end
+
+    trait :disabled do
+      enabled { false }
+    end
   end
 end

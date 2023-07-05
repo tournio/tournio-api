@@ -1053,9 +1053,26 @@ describe Director::PurchasableItemsController, type: :request do
     context 'an active tournament' do
       let(:tournament) { create :tournament, :active }
 
-      it 'prevents updates' do
-        subject
-        expect(response).to have_http_status(:forbidden)
+      context 'just changing the "enabled" attribute' do
+        let(:params) do
+          {
+            purchasable_item: {
+              enabled: false,
+            },
+          }
+        end
+
+        it 'succeeds with a 200 OK' do
+          subject
+          expect(response).to have_http_status(:ok)
+        end
+      end
+
+      context 'anything other than the "enabled" attribute' do
+        it 'prevents updates' do
+          subject
+          expect(response).to have_http_status(:forbidden)
+        end
       end
     end
 
