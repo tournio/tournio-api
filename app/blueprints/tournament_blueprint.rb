@@ -67,13 +67,13 @@ class TournamentBlueprint < Blueprinter::Base
     end
     field :max_bowlers_per_entry, name: :max_bowlers
     field :registration_fee do |t, _|
-      t.purchasable_items.entry_fee.take&.value
+      t.purchasable_items.unscoped.entry_fee.take&.value
     end
     field :late_registration_fee do |t, _|
-      t.purchasable_items.late_fee.take&.value
+      t.purchasable_items.unscoped.late_fee.take&.value
     end
     field :early_registration_discount do |t, _|
-      t.purchasable_items.early_discount.take&.value
+      t.purchasable_items.unscoped.early_discount.take&.value
     end
 
     field :registration_options do |t, _|
@@ -145,7 +145,7 @@ class TournamentBlueprint < Blueprinter::Base
       if t.active? || t.closed?
         organized_purchasable_items(tournament: t)
       else
-        PurchasableItemBlueprint.render_as_hash(t.purchasable_items)
+        PurchasableItemBlueprint.render_as_hash(t.purchasable_items.unscoped)
       end
     end
 
@@ -174,14 +174,14 @@ class TournamentBlueprint < Blueprinter::Base
   end
 
   def self.organized_purchasable_items(tournament:)
-    ledger_items = tournament.purchasable_items.ledger
-    event_items = tournament.purchasable_items.event
-    division_items = tournament.purchasable_items.division
-    other_bowling_items = tournament.purchasable_items.bowling.where(refinement: nil).order(name: :asc)
-    banquet = tournament.purchasable_items.banquet.order(name: :asc)
-    raffle = tournament.purchasable_items.raffle.order(name: :asc)
-    product = tournament.purchasable_items.product.order(determination: :desc, refinement: :desc, name: :asc)
-    sanction = tournament.purchasable_items.sanction.order(name: :asc)
+    ledger_items = tournament.purchasable_items.unscoped.ledger
+    event_items = tournament.purchasable_items.unscoped.event
+    division_items = tournament.purchasable_items.unscoped.division
+    other_bowling_items = tournament.purchasable_items.unscoped.bowling.where(refinement: nil).order(name: :asc)
+    banquet = tournament.purchasable_items.unscoped.banquet.order(name: :asc)
+    raffle = tournament.purchasable_items.unscoped.raffle.order(name: :asc)
+    product = tournament.purchasable_items.unscoped.product.order(determination: :desc, refinement: :desc, name: :asc)
+    sanction = tournament.purchasable_items.unscoped.sanction.order(name: :asc)
 
     determination_order = {
       entry_fee: 0,
@@ -212,8 +212,8 @@ class TournamentBlueprint < Blueprinter::Base
   end
 
   def self.organized_event_items(tournament:)
-    event_items = tournament.purchasable_items.event
-    ledger_items = tournament.purchasable_items.ledger
+    event_items = tournament.purchasable_items.unscoped.event
+    ledger_items = tournament.purchasable_items.unscoped.ledger
 
     determination_order = {
       entry_fee: 0,

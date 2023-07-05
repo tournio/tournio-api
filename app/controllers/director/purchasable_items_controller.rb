@@ -11,7 +11,7 @@ module Director
     def index
       authorize tournament, :update?
 
-      self.items = policy_scope(tournament.purchasable_items)
+      self.items = policy_scope(tournament.purchasable_items.unscoped)
       render json: PurchasableItemBlueprint.render(items), status: :ok
     rescue ActiveRecord::RecordNotFound
       skip_policy_scope

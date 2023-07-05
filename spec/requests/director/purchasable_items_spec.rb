@@ -39,6 +39,17 @@ describe Director::PurchasableItemsController, type: :request do
       expect(json.count).to eq(5)
     end
 
+    context 'when one is disabled' do
+      before do
+        tournament.purchasable_items.raffle.first.update(enabled: false)
+      end
+
+      it 'includes the disabled one' do
+        subject
+        expect(json.count).to eq(5)
+      end
+    end
+
     context 'as an unpermitted user' do
       let(:requesting_user) { create(:user, :unpermitted) }
 
