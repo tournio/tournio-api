@@ -11,7 +11,7 @@ module Director
     def index
       authorize tournament, :update?
 
-      self.items = policy_scope(tournament.purchasable_items.unscoped)
+      self.items = policy_scope(tournament.purchasable_items)
       render json: PurchasableItemBlueprint.render(items), status: :ok
     rescue ActiveRecord::RecordNotFound
       skip_policy_scope
@@ -62,7 +62,7 @@ module Director
     end
 
     def update
-      self.item = PurchasableItem.unscoped.includes(:tournament).find_by!(identifier: params[:identifier])
+      self.item = PurchasableItem.includes(:tournament).find_by!(identifier: params[:identifier])
       self.tournament = item.tournament
 
       authorize tournament, :update?
@@ -78,6 +78,10 @@ module Director
       previous_amount = item.value
       item.update!(changes)
       new_amount = item.value
+
+      unless changes['enabled'].nil?
+        item.children.map { |c| c.update!(changes) }
+      end
 
       # Deal with the item's Stripe products. (Parent of children won't have one.)
       if item.bundle_discount? || item.early_discount?
@@ -265,6 +269,7 @@ module Director
               child.configuration.delete('sizes')
               child.configuration['parent_identifier'] = item.identifier
               child.refinement = nil
+              child.enabled = item.enabled
 
               child.save
               item.children << child

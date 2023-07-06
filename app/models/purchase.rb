@@ -36,7 +36,7 @@ class Purchase < ApplicationRecord
   default_scope { where(voided_at: nil) }
   scope :unpaid, -> { where(paid_at: nil, voided_at: nil) }
   scope :paid, -> { where.not(paid_at: nil) }
-  scope :voided, -> { unscoped.where.not(voided_at: nil) }
+  scope :voided, -> { where.not(voided_at: nil) }
   scope :bowling, -> { joins(:purchasable_item).where(purchasable_item: {category: :bowling}) }
   scope :single_use, -> { joins(:purchasable_item).where(purchasable_item: {determination: :single_use}) }
   scope :entry_fee, -> { joins(:purchasable_item).where(purchasable_item: {determination: :entry_fee}) }

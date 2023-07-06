@@ -1093,6 +1093,15 @@ describe Director::PurchasableItemsController, type: :request do
           subject
           expect(response).to have_http_status(:ok)
         end
+
+        context 'on a sized apparel item' do
+          let(:purchasable_item) { create :purchasable_item, :apparel, :sized, tournament: tournament }
+
+          it 'disables the children as well' do
+            subject
+            expect(purchasable_item.children.enabled).to be_empty
+          end
+        end
       end
 
       context 'anything other than the "enabled" attribute' do

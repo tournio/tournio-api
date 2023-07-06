@@ -97,7 +97,7 @@ class PurchasableItem < ApplicationRecord
 
   before_create :generate_identifier
 
-  default_scope { where(enabled: true) }
+  scope :enabled, -> { where(enabled: true) }
   scope :user_selectable, -> { where(user_selectable: true) }
   scope :one_time, -> { where(category: %w(ledger sanction)).or(where(determination: %w(single_use event))) }
 
