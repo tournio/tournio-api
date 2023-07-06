@@ -34,6 +34,8 @@ class TournamentBlueprint < Blueprinter::Base
     t.config[:website]
   end
 
+  association :testing_environment, blueprint: TestingEnvironmentBlueprint, if: ->(_field_name, tournament, options) { tournament.testing? || tournament.demo? }
+
   view :list do
     field :status do |t, _|
       TournamentRegistration.display_status(t)
@@ -58,7 +60,6 @@ class TournamentBlueprint < Blueprinter::Base
       ShiftBlueprint.render_as_hash(t.shifts.available)
     end
 
-    association :testing_environment, blueprint: TestingEnvironmentBlueprint, if: ->(_field_name, tournament, options) { tournament.testing? || tournament.demo? }
     field :early_registration_ends do |t, _|
       t.early_registration_ends.present? ? datetime_with_timezone(t.early_registration_ends, t) : nil
     end
