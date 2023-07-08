@@ -123,6 +123,7 @@ class Tournament < ApplicationRecord
   def create_default_config
     self.config_items << ConfigItem.new(key: 'display_capacity', value: 'false')
     self.config_items << ConfigItem.new(key: 'publicly_listed', value: 'true') # applies to tournaments in the "active" state
+    self.config_items << ConfigItem.new(key: 'accept_payments', value: 'true')
     if Rails.env.development?
       self.config_items += [
         ConfigItem.new(key: 'email_in_dev', value: 'false'),
