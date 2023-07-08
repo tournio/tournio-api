@@ -222,7 +222,7 @@ class BowlersController < ApplicationController
 
   def rendered_purchasable_items_by_identifier
     excluded_item_names = bowler.purchases.one_time.collect { |p| p.purchasable_item.name }
-    items = tournament.purchasable_items.user_selectable.where.not(name: excluded_item_names)
+    items = tournament.purchasable_items.user_selectable.enabled.where.not(name: excluded_item_names)
 
     extra_ledger_items = tournament.purchasable_items.event_linked + tournament.purchasable_items.bundle_discount
 

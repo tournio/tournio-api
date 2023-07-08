@@ -67,14 +67,21 @@ module Director
 
       authorize tournament, :update?
 
-      if tournament.active?
+      changes = purchasable_item_update_params
+      non_enabled_keys = changes.keys - %w(enabled)
+
+      if tournament.active? && non_enabled_keys.size > 0
         render json: { error: 'Cannot modify purchasable items of an active tournament' }, status: :forbidden
         return
       end
 
       previous_amount = item.value
-      item.update!(purchasable_item_update_params)
+      item.update!(changes)
       new_amount = item.value
+
+      unless changes['enabled'].nil?
+        item.children.map { |c| c.update!(changes) }
+      end
 
       # Deal with the item's Stripe products. (Parent of children won't have one.)
       if item.bundle_discount? || item.early_discount?
@@ -89,19 +96,21 @@ module Director
         end
       end
 
-      handle_sized_apparel_item_update
+      if changes['configuration'].present? && changes['configuration']['sizes'].present?
+        handle_sized_apparel_item_update
 
-      # Stripe creation for each child
-      unless tournament.config['skip_stripe']
-        item.reload.children.each do |i|
-          Stripe::ProductCreator.perform_in(Rails.configuration.sidekiq_async_delay, i.id)
+        # Stripe creation for each child
+        unless tournament.config['skip_stripe']
+          item.reload.children.each do |i|
+            Stripe::ProductCreator.perform_in(Rails.configuration.sidekiq_async_delay, i.id)
+          end
         end
       end
 
       if items&.count
         render json: PurchasableItemBlueprint.render(items), status: :ok
       else
-        render json: PurchasableItemBlueprint.render(item.reload), status: :ok
+        render json: PurchasableItemBlueprint.render([item]), status: :ok
       end
     rescue ActiveRecord::RecordNotFound
       skip_authorization
@@ -151,6 +160,7 @@ module Director
     def purchasable_item_update_params
       params.require(:purchasable_item).permit(
         :name,
+        :enabled,
         :value,
         :refinement, # Apparel items can change from sized to not
         configuration: [
@@ -170,7 +180,7 @@ module Director
             infant: ApparelDetails::SIZES_INFANT,
           ],
         ],
-      ).to_h.symbolize_keys
+      ).to_h
     end
 
     def purchasable_item_create_params
@@ -259,6 +269,7 @@ module Director
               child.configuration.delete('sizes')
               child.configuration['parent_identifier'] = item.identifier
               child.refinement = nil
+              child.enabled = item.enabled
 
               child.save
               item.children << child

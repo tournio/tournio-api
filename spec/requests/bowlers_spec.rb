@@ -451,7 +451,7 @@ describe BowlersController, type: :request do
                                 :with_entry_fee,
                                 :with_scratch_competition_divisions,
                                 :with_an_optional_event,
-                                :with_a_banquet }
+                                :with_extra_stuff }
 
       it 'has available items' do
         subject
@@ -471,6 +471,19 @@ describe BowlersController, type: :request do
         item_keys = json['available_items'].keys
         entry_fee_identifier = tournament.purchasable_items.entry_fee.first.identifier
         expect(item_keys).not_to include(entry_fee_identifier)
+      end
+
+      context 'when a purchasable item is disabled' do
+        before do
+          tournament.purchasable_items.raffle.update_all(enabled: false)
+        end
+
+        it 'excludes the disabled item' do
+          subject
+          item_keys = json['available_items'].keys
+          raffle_identifier = tournament.purchasable_items.unscoped.raffle.first.identifier
+          expect(item_keys).not_to include(raffle_identifier)
+        end
       end
     end
   end

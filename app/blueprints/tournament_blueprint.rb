@@ -180,6 +180,7 @@ class TournamentBlueprint < Blueprinter::Base
 
   def self.organized_purchasable_items(tournament:)
     ledger_items = tournament.purchasable_items.ledger
+    event_items = tournament.purchasable_items.event
     division_items = tournament.purchasable_items.division
     other_bowling_items = tournament.purchasable_items.bowling.where(refinement: nil).order(name: :asc)
     banquet = tournament.purchasable_items.banquet.order(name: :asc)
@@ -205,6 +206,7 @@ class TournamentBlueprint < Blueprinter::Base
 
     {
       ledger: PurchasableItemBlueprint.render_as_hash(ledger_items.sort_by { |li| determination_order[li.determination.to_sym] }),
+      event: PurchasableItemBlueprint.render_as_hash(event_items),
       division: PurchasableItemBlueprint.render_as_hash(division_items.sort_by { |di| di.configuration['division'] }),
       bowling: PurchasableItemBlueprint.render_as_hash(other_bowling_items),
       banquet: PurchasableItemBlueprint.render_as_hash(banquet),

@@ -2,5 +2,5 @@
 
 class PurchasableItemBlueprint < Blueprinter::Base
   identifier :identifier
-  fields :category, :determination, :refinement, :name, :value, :configuration
+  fields :category, :determination, :refinement, :name, :value, :configuration, :enabled
 end
