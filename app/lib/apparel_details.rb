@@ -42,6 +42,6 @@ module ApparelDetails
 
   def self.humanize_size(serialized_size)
     parts = serialized_size.split('.')
-    "#{parts[0].titleize} #{SIZE_STRINGS[parts[1].to_sym]}"
+    "#{parts[0].titleize} #{SIZE_STRINGS[parts[1]&.to_sym]}".strip
   end
 end
