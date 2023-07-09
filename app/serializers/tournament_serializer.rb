@@ -1,5 +1,29 @@
 # frozen_string_literal: true
 
+# == Schema Information
+#
+# Table name: tournaments
+#
+#  id             :bigint           not null, primary key
+#  aasm_state     :string           not null
+#  abbreviation   :string
+#  details        :jsonb
+#  end_date       :date
+#  entry_deadline :datetime
+#  identifier     :string           not null
+#  location       :string
+#  name           :string           not null
+#  start_date     :date
+#  timezone       :string           default("America/New_York")
+#  year           :integer          not null
+#  created_at     :datetime         not null
+#  updated_at     :datetime         not null
+#
+# Indexes
+#
+#  index_tournaments_on_aasm_state  (aasm_state)
+#  index_tournaments_on_identifier  (identifier)
+#
 class TournamentSerializer
   include Alba::Resource
 

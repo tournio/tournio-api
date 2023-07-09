@@ -269,7 +269,7 @@ module DirectorUtilities
     end
 
     # Add multi-use items, with the number of each
-    multiuse_items = t.purchasable_items - t.purchasable_items.one_time
+    multiuse_items = t.purchasable_items - t.purchasable_items.one_time - t.purchasable_items.apparel
     multiuse_items.each do |item|
       key = item.name
       quantity = purchased_item_identifiers.count(item.identifier)
@@ -281,6 +281,26 @@ module DirectorUtilities
     sanction_items.each do |item|
       key = item.name
       output[key] = purchased_item_identifiers.include?(item.identifier) ? 'X' : ''
+    end
+
+    # Now for the apparel items: include the size and quantity of each
+    apparel_items = t.purchasable_items.apparel
+    apparel_output = {}
+    apparel_items.each do |item|
+      key = item.name
+      unless apparel_output[key].present?
+        apparel_output[key] = []
+      end
+
+      size = item.configuration['size']
+      quantity = purchased_item_identifiers.count(item.identifier)
+
+      if quantity > 0
+        apparel_output[key] << "#{ApparelDetails.humanize_size(size)} (#{quantity})"
+      end
+    end
+    apparel_output.each_pair do |key, counts|
+      output[key] = counts.join('; ')
     end
 
     # et voila!

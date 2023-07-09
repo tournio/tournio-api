@@ -30,9 +30,15 @@ class TournamentBlueprint < Blueprinter::Base
   field :email_in_dev do |t,_|
     t.config[:email_in_dev]
   end
+  field :accepting_payments do |t,_|
+    t.config[:accept_payments]
+  end
+
   field :website do |t,_|
     t.config[:website]
   end
+
+  association :testing_environment, blueprint: TestingEnvironmentBlueprint, if: ->(_field_name, tournament, options) { tournament.testing? || tournament.demo? }
 
   view :list do
     field :status do |t, _|
@@ -58,7 +64,6 @@ class TournamentBlueprint < Blueprinter::Base
       ShiftBlueprint.render_as_hash(t.shifts.available)
     end
 
-    association :testing_environment, blueprint: TestingEnvironmentBlueprint, if: ->(_field_name, tournament, options) { tournament.testing? || tournament.demo? }
     field :early_registration_ends do |t, _|
       t.early_registration_ends.present? ? datetime_with_timezone(t.early_registration_ends, t) : nil
     end
@@ -175,6 +180,7 @@ class TournamentBlueprint < Blueprinter::Base
 
   def self.organized_purchasable_items(tournament:)
     ledger_items = tournament.purchasable_items.ledger
+    event_items = tournament.purchasable_items.event
     division_items = tournament.purchasable_items.division
     other_bowling_items = tournament.purchasable_items.bowling.where(refinement: nil).order(name: :asc)
     banquet = tournament.purchasable_items.banquet.order(name: :asc)
@@ -200,6 +206,7 @@ class TournamentBlueprint < Blueprinter::Base
 
     {
       ledger: PurchasableItemBlueprint.render_as_hash(ledger_items.sort_by { |li| determination_order[li.determination.to_sym] }),
+      event: PurchasableItemBlueprint.render_as_hash(event_items),
       division: PurchasableItemBlueprint.render_as_hash(division_items.sort_by { |di| di.configuration['division'] }),
       bowling: PurchasableItemBlueprint.render_as_hash(other_bowling_items),
       banquet: PurchasableItemBlueprint.render_as_hash(banquet),

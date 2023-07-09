@@ -181,88 +181,91 @@ describe Director::FreeEntriesController, type: :request do
 
     include_examples 'an authorized action'
 
-    it 'succeeds with a 200 OK' do
-      subject
-      expect(response).to have_http_status(:ok)
-    end
-
-    it 'results in the free entry actually being linked' do
-      subject
-      expect(free_entry.reload.bowler_id).to eq(bowler.id)
-    end
-
-    context 'with confirm checked' do
-      let(:params) do
-        {
-          bowler_identifier: bowler_identifier,
-          confirm: true,
-        }
-      end
-
+    context "linking with a bowler" do
       it 'succeeds with a 200 OK' do
         subject
         expect(response).to have_http_status(:ok)
       end
 
-      it 'includes confirmed in the response' do
+      it 'results in the free entry actually being linked' do
         subject
-        expect(json['confirmed']).to be_truthy
+        expect(free_entry.reload.bowler_id).to eq(bowler.id)
       end
 
-      it 'results in the free entry actually being confirmed' do
-        subject
-        expect(free_entry.reload.confirmed).to be_truthy
-      end
-    end
+      context 'with confirm checked' do
+        let(:params) do
+          {
+            bowler_identifier: bowler_identifier,
+            confirm: true,
+          }
+        end
 
-    context 'with confirm present but "false"' do
-      let(:params) do
-        {
-          bowler_identifier: bowler_identifier,
-          confirm: false,
-        }
-      end
-
-      it 'succeeds with a 200 OK' do
-        subject
-        expect(response).to have_http_status(:ok)
-      end
-
-      it 'includes confirmed in the response' do
-        subject
-        expect(json['confirmed']).to be_falsey
-      end
-
-      it 'does not result in the free entry actually being confirmed' do
-        subject
-        expect(free_entry.reload.confirmed).to be_falsey
-      end
-    end
-
-    context 'as an unpermitted user' do
-      let(:requesting_user) { create(:user, :unpermitted) }
-
-      it 'shall not pass' do
-        subject
-        expect(response).to have_http_status(:unauthorized)
-      end
-    end
-
-    context 'as a director' do
-      let(:requesting_user) { create(:user, :director) }
-
-      it 'shall not pass' do
-        subject
-        expect(response).to have_http_status(:unauthorized)
-      end
-
-      context 'associated with this tournament' do
-        let(:requesting_user) { create :user, :director, tournaments: [tournament] }
-
-        it 'shall pass' do
+        it 'succeeds with a 200 OK' do
           subject
           expect(response).to have_http_status(:ok)
         end
+
+        it 'includes confirmed in the response' do
+          subject
+          expect(json['confirmed']).to be_truthy
+        end
+
+        it 'results in the free entry actually being confirmed' do
+          subject
+          expect(free_entry.reload.confirmed).to be_truthy
+        end
+
+        context 'when it was linked but unconfirmed before' do
+          let(:free_entry) { create :free_entry, tournament: tournament, bowler: bowler }
+
+          it 'succeeds with a 200 OK' do
+            subject
+            expect(response).to have_http_status(:ok)
+          end
+        end
+      end
+
+      context 'with confirm present but "false"' do
+        let(:params) do
+          {
+            bowler_identifier: bowler_identifier,
+            confirm: false,
+          }
+        end
+
+        it 'succeeds with a 200 OK' do
+          subject
+          expect(response).to have_http_status(:ok)
+        end
+
+        it 'includes confirmed in the response' do
+          subject
+          expect(json['confirmed']).to be_falsey
+        end
+
+        it 'does not result in the free entry actually being confirmed' do
+          subject
+          expect(free_entry.reload.confirmed).to be_falsey
+        end
+      end
+    end
+
+    context "unlinking from a bowler" do
+      let(:free_entry) { create :free_entry, tournament: tournament, bowler: create(:bowler, tournament: tournament) }
+      let(:params) do
+        {
+          bowler_identifier: nil,
+        }
+      end
+
+      it 'succeeds with a 200 OK' do
+        subject
+        expect(response).to have_http_status(:ok)
+      end
+
+      it 'results in the free entry no longer being linked' do
+        subject
+        expect(free_entry.reload.bowler_id).to be_nil
       end
     end
 
@@ -286,90 +289,44 @@ describe Director::FreeEntriesController, type: :request do
       end
 
       context 'a free entry already linked to someone else' do
-        let(:free_entry) { create :free_entry, tournament: tournament, bowler: create(:bowler, tournament: tournament) }
+        let(:free_entry) { create :free_entry, tournament: tournament, confirmed: true, bowler: create(:bowler, tournament: tournament) }
 
         it 'fails' do
           subject
           expect(response).to have_http_status(:conflict)
         end
       end
-    end
-  end
 
-  describe '#confirm' do
-    subject { post uri, headers: auth_headers, as: :json }
+      context 'as an unpermitted user' do
+        let(:requesting_user) { create(:user, :unpermitted) }
 
-    let(:uri) { "/director/free_entries/#{free_entry_identifier}/confirm" }
-
-    let(:tournament) { create :tournament, :active }
-    let(:team) { create :team, tournament: tournament }
-    let(:bowler) { create :bowler, tournament: tournament, team: team }
-    let(:free_entry) { create :free_entry, tournament: tournament, bowler: bowler }
-    let(:free_entry_identifier) { free_entry.identifier }
-
-    include_examples 'an authorized action'
-
-    it 'succeeds with a 200 OK' do
-      subject
-      expect(response).to have_http_status(:ok)
-    end
-
-    context 'as an unpermitted user' do
-      let(:requesting_user) { create(:user, :unpermitted) }
-
-      it 'shall not pass' do
-        subject
-        expect(response).to have_http_status(:unauthorized)
-      end
-    end
-
-    context 'as a director' do
-      let(:requesting_user) { create(:user, :director) }
-
-      it 'shall not pass' do
-        subject
-        expect(response).to have_http_status(:unauthorized)
-      end
-
-      context 'associated with this tournament' do
-        let(:requesting_user) { create :user, :director, tournaments: [tournament] }
-
-        it 'shall pass' do
+        it 'shall not pass' do
           subject
-          expect(response).to have_http_status(:ok)
-        end
-      end
-    end
-
-    context 'error scenarios' do
-      context 'an unrecognized id' do
-        let(:free_entry_identifier) { 99999 }
-
-        it 'yields a 404 Not Found' do
-          subject
-          expect(response).to have_http_status(:not_found)
+          expect(response).to have_http_status(:unauthorized)
         end
       end
 
-      context 'an already-confirmed free entry' do
-        let(:free_entry) { create :free_entry, tournament: tournament, confirmed: true }
+      context 'as a director' do
+        let(:requesting_user) { create(:user, :director) }
 
-        it 'yields a 409 Conflict' do
+        it 'shall not pass' do
           subject
-          expect(response).to have_http_status(:conflict)
+          expect(response).to have_http_status(:unauthorized)
         end
-      end
 
-      context 'a free entry without a bowler associated' do
-        let(:free_entry) { create :free_entry, tournament: tournament }
+        context 'associated with this tournament' do
+          let(:requesting_user) { create :user, :director, tournaments: [tournament] }
 
-        it 'yields a 409 Conflict' do
-          subject
-          expect(response).to have_http_status(:conflict)
+          it 'shall pass' do
+            subject
+            expect(response).to have_http_status(:ok)
+          end
         end
       end
     end
   end
+
+
 
   describe '#destroy' do
     subject { delete uri, headers: auth_headers, as: :json }

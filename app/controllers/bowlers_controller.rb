@@ -143,6 +143,11 @@ class BowlersController < ApplicationController
       return
     end
 
+    unless tournament.config['accept_payments']
+      render json: { error: 'The tournament is no longer accepting online payments.' }, status: :bad_request
+      return
+    end
+
     load_stripe_account
 
     # permit and parse params (quantities come in as strings)
@@ -217,7 +222,7 @@ class BowlersController < ApplicationController
 
   def rendered_purchasable_items_by_identifier
     excluded_item_names = bowler.purchases.one_time.collect { |p| p.purchasable_item.name }
-    items = tournament.purchasable_items.user_selectable.where.not(name: excluded_item_names)
+    items = tournament.purchasable_items.user_selectable.enabled.where.not(name: excluded_item_names)
 
     extra_ledger_items = tournament.purchasable_items.event_linked + tournament.purchasable_items.bundle_discount
 

@@ -6,6 +6,7 @@
 #  category        :string           not null
 #  configuration   :jsonb
 #  determination   :string
+#  enabled         :boolean          default(TRUE)
 #  identifier      :string           not null
 #  name            :string           not null
 #  refinement      :string
@@ -225,6 +226,10 @@ FactoryBot.define do
           create :stripe_product, purchasable_item: kid
         end
       end
+    end
+
+    trait :disabled do
+      enabled { false }
     end
   end
 end
