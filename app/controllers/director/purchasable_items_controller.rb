@@ -107,13 +107,9 @@ module Director
         end
       end
 
-      Rails.logger.info "Updated purchasable item: #{item.inspect}"
-
       if items&.count
-        Rails.logger.info "------> Returning an array of items."
         render json: PurchasableItemBlueprint.render(items), status: :ok
       else
-        Rails.logger.info "------> Returning a single item."
         render json: PurchasableItemBlueprint.render([item]), status: :ok
       end
     rescue ActiveRecord::RecordNotFound
