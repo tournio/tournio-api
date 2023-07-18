@@ -31,7 +31,9 @@ class BowlerSerializer
 
   root_key :bowler
 
-  attributes :identifier
+  attributes :identifier,
+    :position
+
   attribute :registered_on do |b|
     b.created_at.strftime('%F')
   end
