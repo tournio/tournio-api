@@ -366,8 +366,7 @@ describe BowlersController, type: :request do
 
     let(:uri) { "/bowlers/#{bowler.identifier}" }
     let(:tournament) { create :tournament, :active, :with_entry_fee }
-    let(:team) { create :team, tournament: tournament }
-    let(:bowler) { create :bowler, team: team, tournament: tournament }
+    let(:bowler) { create :bowler, :with_team, tournament: tournament }
 
     it 'succeeds' do
       subject
@@ -393,7 +392,7 @@ describe BowlersController, type: :request do
 
     context 'a bowler with a nickname' do
       let(:person) { create :person, nickname: 'Gorgeous' }
-      let(:bowler) { create :bowler, team: team, tournament: tournament, person: person }
+      let(:bowler) { create :bowler, :with_team, tournament: tournament, person: person }
 
       it 'includes the preferred name' do
         subject

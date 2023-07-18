@@ -38,6 +38,10 @@ FactoryBot.define do
 
     trait :with_shift do
       tournament { create :tournament, :one_shift }
+
+      after(:create) do |bowler, _|
+        create :bowler_shift, bowler: bowler, shift: bowler.tournament.shifts.first
+      end
     end
   end
 end

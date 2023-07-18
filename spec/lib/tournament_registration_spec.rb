@@ -168,9 +168,7 @@ RSpec.describe TournamentRegistration do
   describe '#register_bowler' do
     subject { subject_class.register_bowler(bowler) }
 
-    let(:tournament) { create :tournament, :active, :one_shift }
-    let(:team) { create :team, tournament: tournament }
-    let(:bowler) { create(:bowler, person: create(:person), tournament: tournament, team: team) }
+    let(:bowler) { create :bowler, :with_team }
 
     before do
       allow(subject_class).to receive(:purchase_entry_fee)
