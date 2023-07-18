@@ -33,7 +33,20 @@ class BowlerSerializer
 
   attributes :identifier,
     :position,
-    :shift
+    :shift,
+    :address1,
+    :address2,
+    :birth_day,
+    :birth_month,
+    :city,
+    :country,
+    :email,
+    :first_name,
+    :last_name,
+    :nickname,
+    :phone,
+    :postal_code,
+    :state
 
   attribute :registered_on do |b|
     b.created_at.strftime('%F')

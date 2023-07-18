@@ -42,7 +42,7 @@ RSpec.describe Bowler, type: :model do
   # subject { BowlerSerializer.new(bowler, within: {doubles_partner: :doubles_partner}).serialize }
 
   it 'parses as JSON' do
-    expect(json_hash).to be_an_instance_of(Hash)
+    expect(json_hash).to be_an_instance_of(HashWithIndifferentAccess)
   end
 
   it 'has the expected root key' do
@@ -50,9 +50,31 @@ RSpec.describe Bowler, type: :model do
   end
 
   describe 'model attributes' do
-    let(:expected_attributes) { %w(identifier position shift) }
+    let(:expected_attributes) { %w(identifier position) }
 
     it 'has the expected attributes' do
+      expect(json_hash[:bowler].keys).to include(*expected_attributes)
+    end
+  end
+
+  describe 'delegated attributes' do
+    let(:expected_attributes) do
+      %w(address1
+        address2
+        birthDay
+        birthMonth
+        city
+        country
+        email
+        firstName
+        lastName
+        nickname
+        phone
+        postalCode
+        state)
+    end
+
+    it 'has the expected attributes delegated to the associated Person' do
       expect(json_hash[:bowler].keys).to include(*expected_attributes)
     end
   end
@@ -62,6 +84,14 @@ RSpec.describe Bowler, type: :model do
 
     it 'has the expected attributes' do
       expect(json_hash[:bowler].keys).to include(*expected_attributes)
+    end
+  end
+
+  describe 'associations' do
+    let(:expected_keys) { %w(shift)}
+
+    it 'has the expected keys' do
+      expect(json_hash[:bowler].keys).to include(*expected_keys)
     end
   end
 end
