@@ -27,8 +27,13 @@
 
 FactoryBot.define do
   factory :bowler do
-    position { 1 }
+    person
+    tournament
 
-    association :person, strategy: :create
+    trait :with_team do
+      position { 1 }
+
+      team { build :team, tournament: tournament }
+    end
   end
 end

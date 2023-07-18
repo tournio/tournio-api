@@ -66,6 +66,7 @@ RSpec.configure do |config|
 
   # Added by me
   config.include ApiHelpers
+  config.include SerializerHelpers
   config.include StripeApiHelpers
   config.include StripeApiHelpers::CheckoutSessionCompleted
 

@@ -38,7 +38,30 @@ RSpec.describe Bowler, type: :model do
   # Ideally, we would not need to add :tournament as a testable association, since
   # it's the belongs-to side of a has-many relationship
 
+  subject { BowlerSerializer.new(bowler).serialize }
+  # subject { BowlerSerializer.new(bowler, within: {doubles_partner: :doubles_partner}).serialize }
+
+  it 'parses as JSON' do
+    expect(json_hash).to be_an_instance_of(Hash)
+  end
+
+  it 'has the expected root key' do
+    expect(json_hash).to have_key(:bowler)
+  end
+
   describe 'model attributes' do
-    let(:expected_attributes) { %i(identifier position) }
+    let(:expected_attributes) { %w(identifier position shift) }
+
+    it 'has the expected attributes' do
+      expect(json_hash[:bowler].keys).to include(*expected_attributes)
+    end
+  end
+
+  describe 'other simple attributes' do
+    let(:expected_attributes) { %w(registeredOn listName fullName usbcId teamName doublesPartner) }
+
+    it 'has the expected attributes' do
+      expect(json_hash[:bowler].keys).to include(*expected_attributes)
+    end
   end
 end

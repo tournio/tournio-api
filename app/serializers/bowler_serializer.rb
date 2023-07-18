@@ -32,7 +32,8 @@ class BowlerSerializer
   root_key :bowler
 
   attributes :identifier,
-    :position
+    :position,
+    :shift
 
   attribute :registered_on do |b|
     b.created_at.strftime('%F')
@@ -54,7 +55,7 @@ class BowlerSerializer
 
   # Alba doesn't support associations of the has_one :through variety. At least, not yet.
   # one :shift, resource: ShiftSerializer
-  attribute :shift do |b|
-    ShiftSerializer.new(b.shift).to_h
-  end
+  # one :shift do |b|
+  #   b.shift
+  # end, resource: ShiftSerializer
 end
