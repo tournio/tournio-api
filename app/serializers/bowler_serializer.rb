@@ -33,7 +33,6 @@ class BowlerSerializer
 
   attributes :identifier,
     :position,
-    :shift,
     :address1,
     :address2,
     :birth_day,
@@ -46,7 +45,11 @@ class BowlerSerializer
     :nickname,
     :phone,
     :postal_code,
-    :state
+    :state,
+
+    # associations that don't require special treatment
+    :shift,
+    :team
 
   attribute :registered_on do |b|
     b.created_at.strftime('%F')

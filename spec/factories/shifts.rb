@@ -25,7 +25,7 @@ FactoryBot.define do
     description { 'One event on Friday, the other two on Saturday' }
     name { 'Main' }
 
-    association :tournament, strategy: :create
+    # association :tournament, strategy: :create
   end
 
   trait :half_requested do

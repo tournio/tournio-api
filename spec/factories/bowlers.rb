@@ -35,5 +35,9 @@ FactoryBot.define do
 
       team { build :team, tournament: tournament }
     end
+
+    trait :with_shift do
+      tournament { create :tournament, :one_shift }
+    end
   end
 end

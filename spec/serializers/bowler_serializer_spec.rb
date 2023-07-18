@@ -31,9 +31,9 @@
 
 require 'rails_helper'
 
-RSpec.describe Bowler, type: :model do
+RSpec.describe BowlerSerializer do
   let(:person) { create :person }
-  let(:bowler) { create :bowler, person: person }
+  let(:bowler) { create :bowler }
 
   # Ideally, we would not need to add :tournament as a testable association, since
   # it's the belongs-to side of a has-many relationship
@@ -88,10 +88,28 @@ RSpec.describe Bowler, type: :model do
   end
 
   describe 'associations' do
-    let(:expected_keys) { %w(shift)}
+    let(:expected_keys) { %w(shift team) }
 
     it 'has the expected keys' do
       expect(json_hash[:bowler].keys).to include(*expected_keys)
+    end
+
+    it 'has nil values for those keys' do
+      expected_keys.each do |attr|
+        expect(json_hash[:bowler][attr]).to be_nil
+      end
+    end
+
+    context 'a bowler on a team' do
+      let(:bowler) { create :bowler, :with_team }
+
+      it 'has something for the team' do
+        expect(json_hash[:bowler][:team]).not_to be_nil
+      end
+
+      it 'gives the bowler a position' do
+        expect(json_hash[:bowler][:position]).to be_a(Integer)
+      end
     end
   end
 end
