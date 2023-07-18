@@ -42,9 +42,9 @@ class BowlerSerializer
     :email,
     :first_name,
     :last_name,
-    :nickname,
     :phone,
     :postal_code,
+    :preferred_name,
     :state,
 
     # associations that don't require special treatment
@@ -69,9 +69,4 @@ class BowlerSerializer
 
   one :doubles_partner, resource: BowlerSerializer
 
-  # Alba doesn't support associations of the has_one :through variety. At least, not yet.
-  # one :shift, resource: ShiftSerializer
-  # one :shift do |b|
-  #   b.shift
-  # end, resource: ShiftSerializer
 end

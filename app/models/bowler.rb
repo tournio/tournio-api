@@ -59,6 +59,7 @@ class Bowler < ApplicationRecord
            :nickname,
            :phone,
            :postal_code,
+           :preferred_name,
            :state,
            :igbo_id,
            :usbc_id, to: :person

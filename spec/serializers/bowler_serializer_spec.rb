@@ -68,7 +68,7 @@ RSpec.describe BowlerSerializer do
         email
         firstName
         lastName
-        nickname
+        preferredName
         phone
         postalCode
         state)
