@@ -9,7 +9,6 @@ class TeamsController < ApplicationController
       first_name
       last_name
       usbc_id
-      igbo_id
       birth_month
       birth_day
       nickname
@@ -24,7 +23,7 @@ class TeamsController < ApplicationController
     ].freeze
   BOWLER_ATTRS = [
     :position,
-    :doubles_partner_num,
+    :doubles_partner_index,
     :shift_identifier,
     person_attributes: PERSON_ATTRS,
     additional_question_responses: ADDITIONAL_QUESTION_RESPONSES_ATTRS,
@@ -111,7 +110,6 @@ class TeamsController < ApplicationController
 
   def clean_up_form_data(permitted_params)
     cleaned_up = permitted_params.dup
-    # cleaned_up['bowlers_attributes'].transform_keys!(&:to_i)
     cleaned_up['bowlers_attributes'].map! { |bowler_attrs| clean_up_bowler_data(bowler_attrs) }
 
     cleaned_up

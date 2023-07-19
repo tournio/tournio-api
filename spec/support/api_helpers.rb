@@ -19,7 +19,7 @@ module ApiHelpers
       'bowlers_attributes' => [
         {
           'position' => 1,
-          'doubles_partner_num' => 2,
+          'doubles_partner_index' => 2,
           'person_attributes' => {
             'first_name' => 'Gannon',
             'last_name' => 'Wong',
@@ -47,7 +47,7 @@ module ApiHelpers
         },
         {
           'position' => 2,
-          'doubles_partner_num' => 1,
+          'doubles_partner_index' => 3,
           'person_attributes' => {
             'first_name' => 'Giacomo',
             'last_name' => 'Hale',
@@ -79,7 +79,7 @@ module ApiHelpers
         },
         {
           'position' => 3,
-          'doubles_partner_num' => 4,
+          'doubles_partner_index' => 0,
           'person_attributes' => {
             'first_name' => 'Nelle',
             'last_name' => 'Reeves',
@@ -107,7 +107,7 @@ module ApiHelpers
         },
         {
           'position' => 4,
-          'doubles_partner_num' => 3,
+          'doubles_partner_index' => 1,
           'person_attributes' => {
             'first_name' => 'Gloria',
             'last_name' => 'Chang',
@@ -142,8 +142,8 @@ module ApiHelpers
       'name' => 'Blood To Spare',
       'bowlers_attributes' => [
         {
-          'position' => 1,
-          'doubles_partner_num' => 2,
+          'position' => 3,
+          'doubles_partner_index' => 3,
           'person_attributes' => {
             'first_name' => 'Gannon',
             'last_name' => 'Wong',
@@ -169,8 +169,8 @@ module ApiHelpers
           ],
         },
         {
-          'position' => 2,
-          'doubles_partner_num' => 1,
+          'position' => 1,
+          'doubles_partner_index' => 2,
           'person_attributes' => {
             'first_name' => 'Giacomo',
             'last_name' => 'Hale',
@@ -200,8 +200,8 @@ module ApiHelpers
           ],
         },
         {
-          'position' => 3,
-          'doubles_partner_num' => 4,
+          'position' => 4,
+          'doubles_partner_index' => 1,
           'person_attributes' => {
             'first_name' => 'Nelle',
             'last_name' => 'Reeves',
@@ -227,8 +227,8 @@ module ApiHelpers
           ],
         },
         {
-          'position' => 4,
-          'doubles_partner_num' => 3,
+          'position' => 2,
+          'doubles_partner_index' => 0,
           'person_attributes' => {
             'first_name' => 'Gloria',
             'last_name' => 'Chang',
@@ -257,7 +257,7 @@ module ApiHelpers
       'bowlers_attributes' => [
         {
           'position' => 1,
-          'doubles_partner_num' => 2,
+          'doubles_partner_index' => 1,
           'person_attributes' => {
             'first_name' => 'Gannon',
             'last_name' => 'Wong',
@@ -285,7 +285,7 @@ module ApiHelpers
         },
         {
           'position' => 2,
-          'doubles_partner_num' => 1,
+          'doubles_partner_index' => 0,
           'person_attributes' => {
             'first_name' => 'Giacomo',
             'last_name' => 'Hale',
@@ -317,7 +317,7 @@ module ApiHelpers
         },
         {
           'position' => 3,
-          'doubles_partner_num' => nil,
+          'doubles_partner_index' => nil,
           'person_attributes' => {
             'first_name' => 'Nelle',
             'last_name' => 'Reeves',
@@ -356,7 +356,7 @@ module ApiHelpers
       'bowlers_attributes' => [
         {
           'position' => 1,
-          'doubles_partner_num' => 2,
+          'doubles_partner_index' => 1,
           'person_attributes' => {
             'first_name' => 'Gannon',
             'last_name' => '',
@@ -384,7 +384,7 @@ module ApiHelpers
         },
         {
           'position' => 2,
-          'doubles_partner_num' => 1,
+          'doubles_partner_index' => 0,
           'person_attributes' => {
             'first_name' => 'Giacomo',
             'last_name' => 'Hale',

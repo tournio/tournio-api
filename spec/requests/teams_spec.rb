@@ -56,6 +56,16 @@ describe TeamsController, type: :request do
         expect(team.options['place_with_others']).to be_nil
       end
 
+      it 'correctly pairs up the doubles pairs' do
+        subject
+        team = Team.last
+        team.bowlers.each do |me|
+          you = Bowler.find(me.doubles_partner_id)
+
+          expect(you.doubles_partner_id).to eq(me.id)
+        end
+      end
+
       it 'includes the new team in the response' do
         subject
         expect(json).to have_key('name')
