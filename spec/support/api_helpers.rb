@@ -424,7 +424,6 @@ module ApiHelpers
         'first_name' => 'Giacomo',
         'last_name' => 'Hale',
         'usbc_id' => '6621-43399',
-        # 'igbo_id' => 'YW-5457',
         'birth_month' => '6',
         'birth_day' => '16',
         'nickname' => 'Gio',

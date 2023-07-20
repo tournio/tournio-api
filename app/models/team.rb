@@ -20,7 +20,7 @@
 
 class Team < ApplicationRecord
   belongs_to :tournament
-  has_many :bowlers, dependent: :destroy
+  has_many :bowlers, -> { order(position: :asc) }, dependent: :destroy
   accepts_nested_attributes_for :bowlers
 
   before_create :generate_identifier
