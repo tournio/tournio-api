@@ -64,12 +64,13 @@ describe BowlersController, type: :request do
 
     context 'joining a team on a standard tournament' do
       let(:uri) { "/tournaments/#{tournament.identifier}/bowlers" }
+      let(:requested_position) { 4 }
 
       context 'with valid bowler input' do
         let(:bowler_params) do
           {
             team_identifier: team.identifier,
-            bowlers: [create_bowler_test_data.merge({ position: 4 })]
+            bowlers: [create_bowler_test_data.merge({ position: requested_position })]
           }
         end
 
@@ -85,6 +86,29 @@ describe BowlersController, type: :request do
             subject
             bowler = Bowler.last
             expect(json[0]['identifier']).to eq(bowler.identifier)
+          end
+
+          context 'when the requested position is available' do
+            # has positions 1 and 2 assigned
+            let(:team) { create(:team, :standard_two_bowlers, tournament: tournament) }
+
+            it 'assigns them to that position' do
+              subject
+              bowler = Bowler.find_by(identifier: json[0]['identifier'])
+              expect(bowler.position).to eq(requested_position)
+            end
+          end
+
+          context 'when the requested position is not available' do
+            # has positions 1 and 2 assigned
+            let(:team) { create(:team, :standard_two_bowlers, tournament: tournament) }
+            let(:requested_position) { 1 }
+
+            it 'assigns them the first open one' do
+              subject
+              bowler = Bowler.find_by(identifier: json[0]['identifier'])
+              expect(bowler.position).to eq(3)
+            end
           end
 
           it 'creates a join_team data point' do

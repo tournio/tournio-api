@@ -92,6 +92,9 @@ class BowlersController < ApplicationController
         return
       end
       registration_type = 'join_team'
+      if team.position_occupied? bowlers.first.position
+        bowlers.first.position = team.first_available_position
+      end
     else
       # registering solo, doubles, or partner
       if bowlers.count == 2

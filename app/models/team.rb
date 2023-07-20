@@ -19,6 +19,8 @@
 #
 
 class Team < ApplicationRecord
+  include TeamBusiness
+
   belongs_to :tournament
   has_many :bowlers, -> { order(position: :asc) }, dependent: :destroy
   accepts_nested_attributes_for :bowlers
