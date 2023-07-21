@@ -24,7 +24,7 @@ module Stripe
       self.paid_at = Time.at(event[:created])
       self.external_payment = ExternalPayment.create(
         payment_type: :stripe,
-        identifier: cs[:id],
+        identifier: cs[:payment_intent],
         details: cs.to_hash,
         tournament: bowler.tournament
       )
