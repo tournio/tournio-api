@@ -25,6 +25,7 @@ Rails.application.routes.draw do
         post 'clear_test_data'
         post 'state_change'
         get 'csv_download'
+        get 'financial_csv_download'
         get 'igbots_download'
         post 'email_payment_reminders'
         get 'stripe_refresh'

@@ -113,6 +113,13 @@ module Director
       send_data xml_data, filename: 'igbots_import.xml', type: 'application/xml', disposition: 'attachment'
     end
 
+    def financial_csv_download
+      authorize tournament
+      export_data = DirectorUtilities.financial_csv(tournament_id: tournament.id)
+
+      send_data export_data, filename: 'financial_report.csv', type: 'text/plain', disposition: 'attachment'
+    end
+
     def state_change
       unless tournament.present?
         render json: nil, status: 404
