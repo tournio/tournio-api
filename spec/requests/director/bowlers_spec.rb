@@ -21,7 +21,7 @@ describe Director::BowlersController, type: :request do
 
     before do
       10.times do
-        create :bowler, tournament: tournament, team: create(:team, tournament: tournament), shift: tournament.shifts.first
+        create :bowler, :with_team, tournament: tournament, shift: tournament.shifts.first
       end
       for i in 0..4 do
         src = tournament.bowlers[i*2]
@@ -48,7 +48,7 @@ describe Director::BowlersController, type: :request do
 
       before do
         7.times do
-          create :bowler, tournament: tournament, team: create(:team, tournament: tournament), shift: tournament.shifts.first
+          create :bowler, :with_team, tournament: tournament, shift: tournament.shifts.first
         end
       end
 
@@ -102,8 +102,8 @@ describe Director::BowlersController, type: :request do
 
     let(:uri) { "/director/bowlers/#{bowler_identifier}" }
 
-    let(:tournament) { create :tournament, :one_shift }
-    let(:bowler) { create :bowler, tournament: tournament, team: create(:team, tournament: tournament), shift: tournament.shifts.first }
+    let(:bowler) { create :bowler, :with_team, :with_shift }
+    let(:tournament) { bowler.tournament }
     let(:bowler_identifier) { bowler.identifier }
 
     include_examples 'an authorized action'
@@ -157,9 +157,9 @@ describe Director::BowlersController, type: :request do
 
     let(:uri) { "/director/bowlers/#{bowler_identifier}" }
 
-    let(:tournament) { create :tournament, :active }
-    let(:bowler) { create :bowler, tournament: tournament }
+    let(:bowler) { create :bowler }
     let(:bowler_identifier) { bowler.identifier }
+    let(:tournament) { bowler.tournament }
 
     include_examples 'an authorized action'
 
@@ -169,8 +169,8 @@ describe Director::BowlersController, type: :request do
     end
 
     context 'on a shift' do
-      let(:shift) { create :shift, :high_demand, tournament: tournament }
-      let!(:bowler_shift) { create :bowler_shift, bowler: bowler, shift: shift }
+      let(:bowler) { create :bowler, :with_shift }
+      let(:shift) { bowler.shift }
 
       it "drops the requested count of the shift" do
         expect { subject }.to change { shift.reload.requested }.by(-1)
@@ -181,7 +181,9 @@ describe Director::BowlersController, type: :request do
       end
 
       context 'when the bowler is confirmed in the shift' do
-        let!(:bowler_shift) { create :bowler_shift, :confirmed, bowler: bowler, shift: shift }
+        before do
+          bowler.bowler_shift.confirm!
+        end
 
         it "drops the confirmed count of the shift" do
           expect { subject }.to change { shift.reload.confirmed }.by(-1)
@@ -237,9 +239,9 @@ describe Director::BowlersController, type: :request do
 
     let(:uri) { "/director/bowlers/#{bowler_identifier}" }
 
-    let(:tournament) { create :tournament, :active, :one_shift }
-    let(:team) { create :team, name: 'Ladies Who Lunch', tournament: tournament }
-    let(:bowler) { create :bowler, tournament: tournament, team: team, shift: tournament.shifts.first }
+    let(:bowler) { create :bowler, :with_team, :with_shift }
+    let(:tournament) { bowler.tournament }
+    let(:team) { bowler.team }
     let(:bowler_identifier) { bowler.identifier }
     let(:person_attributes) { { nickname: 'Freddy' } }
     let(:team_params) { {} }
@@ -259,6 +261,10 @@ describe Director::BowlersController, type: :request do
     end
 
     include_examples 'an authorized action'
+
+    before do
+      team.update(name: 'Ladies Who Lunch')
+    end
 
     it 'succeeds with a 200 OK' do
       subject
@@ -345,9 +351,12 @@ describe Director::BowlersController, type: :request do
     end
 
     context 'assigning a new doubles partner' do
-      let(:tournament) { create :tournament, :active, :one_shift, :with_a_doubles_event }
       let(:new_partner) { create :bowler, tournament: tournament }
       let(:partner_params) { { identifier: new_partner.identifier } }
+
+      before do
+        create :purchasable_item, :doubles_event, tournament: tournament
+      end
 
       it 'succeeds with a 200 OK' do
         subject
@@ -514,9 +523,9 @@ describe Director::BowlersController, type: :request do
 
     let(:uri) { "/director/bowlers/#{bowler_identifier}/resend_email" }
 
-    let(:tournament) { create :tournament, :active }
+    let(:tournament) { bowler.tournament }
     let(:recipient_email) { 'the_bowler@the.correct.domain' }
-    let(:bowler) { create :bowler, tournament: tournament, person: create(:person, email: recipient_email) }
+    let(:bowler) { create :bowler, person: create(:person, email: recipient_email) }
     let(:bowler_identifier) { bowler.identifier }
 
     let(:email_type) { 'registration' }

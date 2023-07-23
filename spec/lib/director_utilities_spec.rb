@@ -9,7 +9,7 @@ RSpec.describe DirectorUtilities do
     before do
       # for the tournament under test
       team = create :team, tournament: tournament
-      b1 = create :bowler, tournament: tournament, team: team, person: create(:person), shift: tournament.shifts.first
+      b1 = create :bowler, tournament: tournament, position: 1, team: team, person: create(:person), shift: tournament.shifts.first
       b2 = create :bowler, tournament: tournament, position: 2, team: team, person: create(:person), shift: tournament.shifts.first
       b3 = create :bowler, tournament: tournament, position: 3, team: team, person: create(:person), shift: tournament.shifts.first
       b4 = create :bowler, tournament: tournament, position: 4, team: team, person: create(:person), shift: tournament.shifts.first
@@ -48,7 +48,7 @@ RSpec.describe DirectorUtilities do
         before do
           # for the tournament under test
           team = create :team, tournament: other_tournament
-          b1 = create :bowler, tournament: other_tournament, team: team, person: create(:person)
+          b1 = create :bowler, tournament: other_tournament, position: 1, team: team, person: create(:person)
           create :bowler, tournament: other_tournament, position: 2, team: team, person: create(:person)
           create :bowler, tournament: other_tournament, position: 3, team: team, person: create(:person)
           create :bowler, tournament: other_tournament, position: 4, team: team, person: create(:person)
@@ -144,7 +144,7 @@ RSpec.describe DirectorUtilities do
     let(:b3) { create(:bowler, tournament: tournament, position: 3, person: create(:person), shift: destination_team_shift) }
     let(:dest_team_bowlers) { [b1, b2, b3] }
     let(:from_team_bowlers) { [moving_bowler] }
-    let(:moving_bowler) { create :bowler, tournament: tournament, shift: source_team_shift, person: create(:person) }
+    let(:moving_bowler) { create :bowler, tournament: tournament, position: 1, shift: source_team_shift, person: create(:person) }
     let!(:from_team) { create :team, name: 'solo registrant', tournament: tournament, bowlers: from_team_bowlers }
     let!(:destination_team) { create :team, tournament: tournament, bowlers: dest_team_bowlers }
 
@@ -298,7 +298,7 @@ RSpec.describe DirectorUtilities do
     end
 
     context 'when they had a doubles partner on their old team' do
-      let(:remaining_bowler) { create :bowler, tournament: tournament, person: create(:person) }
+      let(:remaining_bowler) { create :bowler, tournament: tournament, position: 2, person: create(:person) }
       let(:from_team_bowlers) { [moving_bowler, remaining_bowler] }
 
       before do

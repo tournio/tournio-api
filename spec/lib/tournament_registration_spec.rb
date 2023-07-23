@@ -168,9 +168,7 @@ RSpec.describe TournamentRegistration do
   describe '#register_bowler' do
     subject { subject_class.register_bowler(bowler) }
 
-    let(:tournament) { create :tournament, :active, :one_shift }
-    let(:team) { create :team, tournament: tournament }
-    let(:bowler) { create(:bowler, person: create(:person), tournament: tournament, team: team) }
+    let(:bowler) { create :bowler, :with_team }
 
     before do
       allow(subject_class).to receive(:purchase_entry_fee)
@@ -565,10 +563,10 @@ RSpec.describe TournamentRegistration do
     context 'with a full team' do
       let(:bowlers) do
         [
-          create(:bowler, tournament: tournament, position: 1, doubles_partner_num: 4),
-          create(:bowler, tournament: tournament, position: 2, doubles_partner_num: 3),
-          create(:bowler, tournament: tournament, position: 3, doubles_partner_num: 2),
-          create(:bowler, tournament: tournament, position: 4, doubles_partner_num: 1),
+          create(:bowler, tournament: tournament, position: 1, doubles_partner_index: 3),
+          create(:bowler, tournament: tournament, position: 2, doubles_partner_index: 2),
+          create(:bowler, tournament: tournament, position: 3, doubles_partner_index: 1),
+          create(:bowler, tournament: tournament, position: 4, doubles_partner_index: 0),
         ]
       end
 
@@ -595,8 +593,8 @@ RSpec.describe TournamentRegistration do
         let(:bowlers) do
           [
             create(:bowler, person: create(:person), tournament: tournament, position: 1),
-            create(:bowler, person: create(:person), tournament: tournament, position: 2, doubles_partner_num: 3),
-            create(:bowler, person: create(:person), tournament: tournament, position: 3, doubles_partner_num: 2),
+            create(:bowler, person: create(:person), tournament: tournament, position: 2, doubles_partner_index: 2),
+            create(:bowler, person: create(:person), tournament: tournament, position: 3, doubles_partner_index: 1),
           ]
         end
 
@@ -613,8 +611,9 @@ RSpec.describe TournamentRegistration do
 
           # expect the partner relationship to be reciprocal on both of them
           second_partner_id = updated_bowlers[second.id].doubles_partner_id
-          third_partner_id = updated_bowlers[third.id].doubles_partner_id
           expect(second_partner_id).to eq(third.id)
+
+          third_partner_id = updated_bowlers[third.id].doubles_partner_id
           expect(third_partner_id).to eq(second.id)
         end
       end
@@ -622,9 +621,9 @@ RSpec.describe TournamentRegistration do
       context 'when the odd bowler out has specified a number that does not yet exist' do
         let(:bowlers) do
           [
-            create(:bowler, person: create(:person), tournament: tournament, position: 1, doubles_partner_num: 4),
-            create(:bowler, person: create(:person), tournament: tournament, position: 2, doubles_partner_num: 3),
-            create(:bowler, person: create(:person), tournament: tournament, position: 3, doubles_partner_num: 2),
+            create(:bowler, person: create(:person), tournament: tournament, position: 1, doubles_partner_index: 3),
+            create(:bowler, person: create(:person), tournament: tournament, position: 2, doubles_partner_index: 2),
+            create(:bowler, person: create(:person), tournament: tournament, position: 3, doubles_partner_index: 1),
           ]
         end
 
@@ -668,7 +667,7 @@ RSpec.describe TournamentRegistration do
       context 'when specifying a number that does not yet exist' do
         let(:bowlers) do
           [
-            create(:bowler, person: create(:person), tournament: tournament, position: 1, doubles_partner_num: 4),
+            create(:bowler, person: create(:person), tournament: tournament, position: 1, doubles_partner_index: 4),
           ]
         end
 
@@ -694,8 +693,8 @@ RSpec.describe TournamentRegistration do
       let(:new_bowler) { create(:bowler, person: create(:person), tournament: tournament, position: 3) }
       let(:bowlers) do
         [
-          create(:bowler, person: create(:person), tournament: tournament, position: 1, doubles_partner_num: 2, team: team),
-          create(:bowler, person: create(:person), tournament: tournament, position: 2, doubles_partner_num: 1, team: team),
+          create(:bowler, person: create(:person), tournament: tournament, position: 1, doubles_partner_index: 1, team: team),
+          create(:bowler, person: create(:person), tournament: tournament, position: 2, doubles_partner_index: 0, team: team),
         ]
       end
 
@@ -713,9 +712,9 @@ RSpec.describe TournamentRegistration do
     context 'when a partner is available' do
       let(:bowlers) do
         [
-          create(:bowler, person: create(:person), tournament: tournament, position: 1, doubles_partner_num: 2, team: team),
-          create(:bowler, person: create(:person), tournament: tournament, position: 2, doubles_partner_num: 1, team: team),
-          create(:bowler, person: create(:person), tournament: tournament, position: 3, doubles_partner_num: 4, team: team),
+          create(:bowler, person: create(:person), tournament: tournament, position: 1, doubles_partner_index: 1, team: team),
+          create(:bowler, person: create(:person), tournament: tournament, position: 2, doubles_partner_index: 0, team: team),
+          create(:bowler, person: create(:person), tournament: tournament, position: 3, team: team),
         ]
       end
       let(:new_bowler) { create(:bowler, person: create(:person), tournament: tournament, position: 4, doubles_partner: bowlers[2], team: team) }

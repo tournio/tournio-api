@@ -184,13 +184,13 @@ module TournamentRegistration
 
   def self.link_doubles_partners(bowlers)
     bowlers.each do |bowler|
-      partner_num = bowler.doubles_partner_num.to_i
-      next unless partner_num.present? && partner_num.positive?
+      next unless bowler.doubles_partner_index.present?
 
-      target_index = bowlers.index { |b| b.position == partner_num }
-      next if target_index.nil?
+      partner_index = bowler.doubles_partner_index.to_i
+      partner = bowlers[partner_index]
+      next if partner.nil?
 
-      bowler.doubles_partner = bowlers[target_index]
+      bowler.doubles_partner = partner
       bowler.save
     end
   end

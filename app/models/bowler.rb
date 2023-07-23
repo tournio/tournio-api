@@ -38,7 +38,7 @@ class Bowler < ApplicationRecord
   has_many :purchases, dependent: :destroy
   has_many :stripe_checkout_sessions
 
-  attr_accessor :doubles_partner_num
+  attr_accessor :doubles_partner_index
 
   validates :position,
             numericality: {
@@ -59,6 +59,7 @@ class Bowler < ApplicationRecord
            :nickname,
            :phone,
            :postal_code,
+           :preferred_name,
            :state,
            :igbo_id,
            :usbc_id, to: :person

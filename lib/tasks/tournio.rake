@@ -1,4 +1,4 @@
-namespace :igbo do
+namespace :tournio do
   desc "Called by a scheduler, to send daily registration summaries to secretaries of active tournaments"
   task send_registration_summaries: :environment do
     puts "Environment: #{Rails.env}"
@@ -22,7 +22,7 @@ namespace :igbo do
   task send_payment_summaries: :environment do
     puts "Environment: #{Rails.env}"
     puts "Preparing to send payment summaries"
-    Tournament.includes(:contacts).active.each do |tournament|
+    Tournament.includes(:contacts).upcoming.each do |tournament|
       puts "-- Tournament: #{tournament.name}"
       tournament.contacts.payment_notifiable.daily_summary.each do |contact|
         puts "---- Sending to #{contact.role}"
