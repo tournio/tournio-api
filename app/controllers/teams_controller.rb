@@ -40,6 +40,7 @@ class TeamsController < ApplicationController
 
   def create
     unless tournament.present?
+      Rails.logger.warn "========= Tried to create a team with a bad tournament id: #{params[:tournament_identifier]}"
       render json: nil, status: 404
       return
     end
@@ -48,11 +49,13 @@ class TeamsController < ApplicationController
     team = team_from_params(form_data)
 
     unless team.valid?
+      Rails.logger.warn "======== Invalid team created. Errors: #{team.errors.full_messages}"
       render json: team.errors, status: :unprocessable_entity
       return
     end
 
     TournamentRegistration.register_team(team)
+    Rails.logger.info "========== Team saved. Name/identifier: #{team.reload.name} / #{team.reload.identifier}"
 
     render json: TeamBlueprint.render(team.reload, view: :detail), status: :created
   end
