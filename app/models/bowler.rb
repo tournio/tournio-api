@@ -40,12 +40,12 @@ class Bowler < ApplicationRecord
 
   attr_accessor :doubles_partner_index
 
-  validates :position,
-            numericality: {
-              only_integer: true,
-              greater_than: 0,
-            },
-            if: -> { team.present? }
+  # validates :position,
+  #           numericality: {
+  #             only_integer: true,
+  #             greater_than: 0,
+  #           },
+  #           if: -> { team.present? }
 
   delegate :address1,
            :address2,
