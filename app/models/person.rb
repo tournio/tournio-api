@@ -30,6 +30,8 @@
 #
 
 class Person < ApplicationRecord
+  alias_attribute :preferred_name, :nickname
+
   has_one :bowler
 
   validates :first_name,

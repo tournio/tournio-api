@@ -19,12 +19,11 @@ module ApiHelpers
       'bowlers_attributes' => [
         {
           'position' => 1,
-          'doubles_partner_num' => 2,
+          'doubles_partner_index' => 2,
           'person_attributes' => {
             'first_name' => 'Gannon',
             'last_name' => 'Wong',
             'usbc_id' => '8673-83363',
-            'igbo_id' => 'HU-8173',
             'birth_month' => '7',
             'birth_day' => '3',
             'nickname' => '',
@@ -47,12 +46,11 @@ module ApiHelpers
         },
         {
           'position' => 2,
-          'doubles_partner_num' => 1,
+          'doubles_partner_index' => 3,
           'person_attributes' => {
             'first_name' => 'Giacomo',
             'last_name' => 'Hale',
             'usbc_id' => '6621-43399',
-            'igbo_id' => 'YW-5457',
             'birth_month' => '6',
             'birth_day' => '16',
             'nickname' => 'Gio',
@@ -79,12 +77,11 @@ module ApiHelpers
         },
         {
           'position' => 3,
-          'doubles_partner_num' => 4,
+          'doubles_partner_index' => 0,
           'person_attributes' => {
             'first_name' => 'Nelle',
             'last_name' => 'Reeves',
             'usbc_id' => '5678-97198',
-            'igbo_id' => 'QU-7298',
             'birth_month' => '11',
             'birth_day' => '20',
             'nickname' => 'Whoa Nelly',
@@ -107,12 +104,11 @@ module ApiHelpers
         },
         {
           'position' => 4,
-          'doubles_partner_num' => 3,
+          'doubles_partner_index' => 1,
           'person_attributes' => {
             'first_name' => 'Gloria',
             'last_name' => 'Chang',
             'usbc_id' => '4221-66816',
-            'igbo_id' => 'AP-9392',
             'birth_month' => '10',
             'birth_day' => '16',
             'nickname' => '',
@@ -142,13 +138,12 @@ module ApiHelpers
       'name' => 'Blood To Spare',
       'bowlers_attributes' => [
         {
-          'position' => 1,
-          'doubles_partner_num' => 2,
+          'position' => 3,
+          'doubles_partner_index' => 3,
           'person_attributes' => {
             'first_name' => 'Gannon',
             'last_name' => 'Wong',
             'usbc_id' => '8673-83363',
-            'igbo_id' => 'HU-8173',
             'birth_month' => '7',
             'birth_day' => '3',
             'nickname' => '',
@@ -169,13 +164,12 @@ module ApiHelpers
           ],
         },
         {
-          'position' => 2,
-          'doubles_partner_num' => 1,
+          'position' => 1,
+          'doubles_partner_index' => 2,
           'person_attributes' => {
             'first_name' => 'Giacomo',
             'last_name' => 'Hale',
             'usbc_id' => '6621-43399',
-            'igbo_id' => 'YW-5457',
             'birth_month' => '6',
             'birth_day' => '16',
             'nickname' => 'Gio',
@@ -200,13 +194,12 @@ module ApiHelpers
           ],
         },
         {
-          'position' => 3,
-          'doubles_partner_num' => 4,
+          'position' => 4,
+          'doubles_partner_index' => 1,
           'person_attributes' => {
             'first_name' => 'Nelle',
             'last_name' => 'Reeves',
             'usbc_id' => '5678-97198',
-            'igbo_id' => 'QU-7298',
             'birth_month' => '11',
             'birth_day' => '20',
             'nickname' => 'Whoa Nelly',
@@ -227,13 +220,12 @@ module ApiHelpers
           ],
         },
         {
-          'position' => 4,
-          'doubles_partner_num' => 3,
+          'position' => 2,
+          'doubles_partner_index' => 0,
           'person_attributes' => {
             'first_name' => 'Gloria',
             'last_name' => 'Chang',
             'usbc_id' => '4221-66816',
-            'igbo_id' => 'AP-9392',
             'birth_month' => '10',
             'birth_day' => '16',
             'nickname' => '',
@@ -257,12 +249,11 @@ module ApiHelpers
       'bowlers_attributes' => [
         {
           'position' => 1,
-          'doubles_partner_num' => 2,
+          'doubles_partner_index' => 1,
           'person_attributes' => {
             'first_name' => 'Gannon',
             'last_name' => 'Wong',
             'usbc_id' => '8673-83363',
-            'igbo_id' => 'HU-8173',
             'birth_month' => '7',
             'birth_day' => '3',
             'nickname' => '',
@@ -285,12 +276,11 @@ module ApiHelpers
         },
         {
           'position' => 2,
-          'doubles_partner_num' => 1,
+          'doubles_partner_index' => 0,
           'person_attributes' => {
             'first_name' => 'Giacomo',
             'last_name' => 'Hale',
             'usbc_id' => '6621-43399',
-            'igbo_id' => 'YW-5457',
             'birth_month' => '6',
             'birth_day' => '16',
             'nickname' => 'Gio',
@@ -317,12 +307,11 @@ module ApiHelpers
         },
         {
           'position' => 3,
-          'doubles_partner_num' => nil,
+          'doubles_partner_index' => nil,
           'person_attributes' => {
             'first_name' => 'Nelle',
             'last_name' => 'Reeves',
             'usbc_id' => '5678-97198',
-            'igbo_id' => 'QU-7298',
             'birth_month' => '11',
             'birth_day' => '20',
             'nickname' => 'Whoa Nelly',
@@ -356,12 +345,11 @@ module ApiHelpers
       'bowlers_attributes' => [
         {
           'position' => 1,
-          'doubles_partner_num' => 2,
+          'doubles_partner_index' => 1,
           'person_attributes' => {
             'first_name' => 'Gannon',
             'last_name' => '',
             'usbc_id' => '8673-83363',
-            'igbo_id' => 'HU-8173',
             'birth_month' => '7',
             'birth_day' => '3',
             'nickname' => '',
@@ -384,12 +372,11 @@ module ApiHelpers
         },
         {
           'position' => 2,
-          'doubles_partner_num' => 1,
+          'doubles_partner_index' => 0,
           'person_attributes' => {
             'first_name' => 'Giacomo',
             'last_name' => 'Hale',
             'usbc_id' => '6621-43399',
-            'igbo_id' => 'YW-5457',
             'birth_month' => '6',
             'birth_day' => '16',
             'nickname' => 'Gio',
@@ -424,7 +411,6 @@ module ApiHelpers
         'first_name' => 'Giacomo',
         'last_name' => 'Hale',
         'usbc_id' => '6621-43399',
-        # 'igbo_id' => 'YW-5457',
         'birth_month' => '6',
         'birth_day' => '16',
         'nickname' => 'Gio',
@@ -456,7 +442,6 @@ module ApiHelpers
         'first_name' => 'Giacomo',
         'last_name' => 'Hale',
         'usbc_id' => '6621-43399',
-        'igbo_id' => 'YW-5457',
         'birth_month' => '6',
         'birth_day' => '16',
         'nickname' => 'Gio',
@@ -490,7 +475,6 @@ module ApiHelpers
           'first_name' => 'Natalie',
           'last_name' => 'Wood',
           'usbc_id' => '6621-43399',
-          # 'igbo_id' => 'YW-5457',
           'birth_month' => '6',
           'birth_day' => '16',
           'nickname' => 'Nat',
@@ -519,7 +503,6 @@ module ApiHelpers
           'first_name' => 'Bowen',
           'last_name' => 'Yang',
           'usbc_id' => '656-3245',
-          # 'igbo_id' => 'YW-5457',
           'birth_month' => '7',
           'birth_day' => '4',
           'phone' => '814-555-0000',

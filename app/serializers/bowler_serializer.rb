@@ -31,7 +31,26 @@ class BowlerSerializer
 
   root_key :bowler
 
-  attributes :identifier
+  attributes :identifier,
+    :position,
+    :address1,
+    :address2,
+    :birth_day,
+    :birth_month,
+    :city,
+    :country,
+    :email,
+    :first_name,
+    :last_name,
+    :phone,
+    :postal_code,
+    :preferred_name,
+    :state,
+
+    # associations that don't require special treatment
+    :shift,
+    :team
+
   attribute :registered_on do |b|
     b.created_at.strftime('%F')
   end
@@ -50,9 +69,4 @@ class BowlerSerializer
 
   one :doubles_partner, resource: BowlerSerializer
 
-  # Alba doesn't support associations of the has_one :through variety. At least, not yet.
-  # one :shift, resource: ShiftSerializer
-  attribute :shift do |b|
-    ShiftSerializer.new(b.shift).to_h
-  end
 end

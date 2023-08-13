@@ -26,9 +26,8 @@ FactoryBot.define do
     name { 'A purchasable item' }
     value { 50 }
 
-    # association :tournament, strategy: :create
-    tournament
-    association :stripe_product, strategy: :build
+    # association :stripe_product, strategy: :build
+    # association :stripe_coupon, strategy: :build
 
     trait :entry_fee do
       category { :ledger }
@@ -143,8 +142,9 @@ FactoryBot.define do
       name { 'Event Bundle' }
       value { -20 }
       after(:create) do |pi, _|
-        e1 = create :purchasable_item, :bowling_event, tournament: pi.tournament
-        e2 = create :purchasable_item, :bowling_event, tournament: pi.tournament
+        create :stripe_coupon, purchasable_item: pi
+        e1 = create :purchasable_item, :bowling_event, :with_stripe_product, tournament: pi.tournament
+        e2 = create :purchasable_item, :bowling_event, :with_stripe_product, tournament: pi.tournament
         pi.configuration['events'] = [e1.identifier, e2.identifier]
         pi.save
       end
@@ -170,9 +170,9 @@ FactoryBot.define do
     end
 
     trait :with_stripe_product do
-      # after(:create) do |pi, _|
-      #   create :stripe_product, purchasable_item: pi
-      # end
+      after(:create) do |pi, _|
+        create :stripe_product, purchasable_item: pi
+      end
     end
 
     trait :with_stripe_coupon do

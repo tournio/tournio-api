@@ -35,6 +35,10 @@ class TournamentPolicy < DirectorPolicy
     sufficient_access?
   end
 
+  def financial_csv_download?
+    sufficient_access?
+  end
+
   def update_testing_environment?
     sufficient_access?
   end

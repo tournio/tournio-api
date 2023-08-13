@@ -9,7 +9,6 @@ class TeamsController < ApplicationController
       first_name
       last_name
       usbc_id
-      igbo_id
       birth_month
       birth_day
       nickname
@@ -24,7 +23,7 @@ class TeamsController < ApplicationController
     ].freeze
   BOWLER_ATTRS = [
     :position,
-    :doubles_partner_num,
+    :doubles_partner_index,
     :shift_identifier,
     person_attributes: PERSON_ATTRS,
     additional_question_responses: ADDITIONAL_QUESTION_RESPONSES_ATTRS,
@@ -41,6 +40,7 @@ class TeamsController < ApplicationController
 
   def create
     unless tournament.present?
+      Rails.logger.warn "========= Tried to create a team with a bad tournament id: #{params[:tournament_identifier]}"
       render json: nil, status: 404
       return
     end
@@ -49,11 +49,13 @@ class TeamsController < ApplicationController
     team = team_from_params(form_data)
 
     unless team.valid?
+      Rails.logger.warn "======== Invalid team created. Errors: #{team.errors.full_messages}"
       render json: team.errors, status: :unprocessable_entity
       return
     end
 
     TournamentRegistration.register_team(team)
+    Rails.logger.info "========== Team saved. Name/identifier: #{team.reload.name} / #{team.reload.identifier}"
 
     render json: TeamBlueprint.render(team.reload, view: :detail), status: :created
   end
@@ -111,7 +113,6 @@ class TeamsController < ApplicationController
 
   def clean_up_form_data(permitted_params)
     cleaned_up = permitted_params.dup
-    # cleaned_up['bowlers_attributes'].transform_keys!(&:to_i)
     cleaned_up['bowlers_attributes'].map! { |bowler_attrs| clean_up_bowler_data(bowler_attrs) }
 
     cleaned_up

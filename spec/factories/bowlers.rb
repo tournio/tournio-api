@@ -27,8 +27,21 @@
 
 FactoryBot.define do
   factory :bowler do
-    position { 1 }
+    person
+    tournament
 
-    association :person, strategy: :create
+    trait :with_team do
+      position { 1 }
+
+      team { build :team, tournament: tournament }
+    end
+
+    trait :with_shift do
+      tournament { create :tournament, :one_shift }
+
+      after(:create) do |bowler, _|
+        create :bowler_shift, bowler: bowler, shift: bowler.tournament.shifts.first
+      end
+    end
   end
 end

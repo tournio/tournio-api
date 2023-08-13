@@ -28,9 +28,7 @@ class TeamBlueprint < Blueprinter::Base
   view :detail do
     include_view :list
 
-    association :bowlers, blueprint: BowlerBlueprint do |team, _|
-      team.bowlers.order(position: :asc)
-    end
+    association :bowlers, blueprint: BowlerBlueprint
   end
 
   view :director_list do

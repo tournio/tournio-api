@@ -29,7 +29,6 @@ class RegistrationConfirmationNotifierJob < TemplateMailerJob
       secretary_email: secretary_contact,
       bowler_full_name: TournamentRegistration.bowler_full_name(bowler),
       usbc_id: bowler.usbc_id,
-      # igbo_id: bowler.igbo_id,
       birth_month: bowler.birth_month,
       birth_day: bowler.birth_day,
       address1: bowler.address1,

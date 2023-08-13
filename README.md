@@ -6,7 +6,7 @@ This was built using a fresh instance of a Rails API-only application.
 
 ## Ruby version
 
-3.1.2.
+3.2.2.
 
 I endeavor to be on the latest versions of the language and framework. As such, you can expect to see frequent updates for Ruby, Rails, and gem version updates.
 
@@ -19,6 +19,7 @@ The main libraries used in this system are:
 - Sidekiq (background job processing)
 - Pundit (authorization)
 - Blueprinter (object serialization)
+  - Slowly replacing this with Alba, since the Blueprinter project is now abandoned.
 - SendGrid (emails)
 - RSpec-Rails (test suite)
 

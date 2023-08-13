@@ -19,7 +19,7 @@ describe Director::LedgerEntriesController, type: :request do
     let(:tournament) { create :tournament }
     let(:bowler) { create :bowler, tournament: tournament }
     let(:bowler_identifier) { bowler.identifier }
-    let(:entry_fee_pi) { create :purchasable_item, :entry_fee }
+    let(:entry_fee_pi) { create :purchasable_item, :entry_fee, tournament: tournament }
 
     let(:params) do
       {

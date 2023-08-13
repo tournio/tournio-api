@@ -321,4 +321,43 @@ module DirectorUtilities
       result[key] = response
     end
   end
+
+  ################################################
+  # This CSV method is separate from the above one
+  # ##############################################
+
+  # What do we want the end result headers to be?
+  # ...
+  # usbc_id, name, item name, division, size, price, payment identifier
+
+  def self.financial_csv(tournament_id:)
+    require 'csv'
+
+    purchases = Purchase.includes(:purchasable_item, :external_payment, bowler: [:person])
+                        .where(purchasable_item: { tournament_id: tournament_id })
+                        .where.not(external_payment_id: nil)
+                        .order('people.last_name ASC')
+
+    csv_data = purchases.map do |purchase|
+      {
+        'Bowler': TournamentRegistration.person_list_name(purchase.bowler.person),
+        'USBC ID': purchase.bowler.usbc_id,
+        'Item Name': purchase.name,
+        'Division': purchase.purchasable_item.division? ? purchase.configuration['division'] : '',
+        'Size': purchase.purchasable_item.apparel? ? ApparelDetails.humanize_size(purchase.configuration['size']) : '',
+        'Amount': "$#{purchase.amount}",
+        'Payment Identifier': purchase.external_payment&.identifier,
+      }
+    end
+
+    return '' unless csv_data.any?
+
+    headers = csv_data.first.keys
+    data = csv_data.map(&:values)
+
+    CSV.generate do |csv|
+      csv << headers
+      data.each { |p| csv << p }
+    end
+  end
 end
