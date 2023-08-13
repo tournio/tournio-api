@@ -24,6 +24,7 @@ RSpec.describe Stripe::CheckoutSessionCompleted, type: :job do
     # API responses. (If there's ever a discrepancy, that's our problem to fix.)
 
     let(:event_handler) { described_class.new }
+    let(:tournament) { create :tournament, :active }
     let(:bowler) { create :bowler, tournament: tournament }
     let(:mock_checkout_session) { object_for_items([]) }
 
@@ -34,248 +35,207 @@ RSpec.describe Stripe::CheckoutSessionCompleted, type: :job do
       allow(event_handler).to receive(:retrieve_stripe_object).and_return(mock_checkout_session)
     end
 
-    context 'a standard tournament' do
-      let(:tournament) { create :tournament, :active, :one_shift }
+    context 'a regular checkout session' do
+      before do
+        create :stripe_checkout_session,
+          bowler: bowler,
+          identifier: mock_checkout_session[:id]
+      end
 
-      context 'a regular checkout session' do
+      it_behaves_like 'a Stripe event handler'
+      it_behaves_like 'a completed checkout session'
+
+      it 'marks the checkout session as completed' do
+        subject
+        sesh = bowler.stripe_checkout_sessions.last
+        expect(sesh.completed?).to be_truthy
+      end
+
+      it 'correctly populates the identifier on the Stripe LedgerEntry' do
+        subject
+        pi_identifier = mock_checkout_session[:payment_intent]
+        expect(LedgerEntry.stripe.last.identifier).to eq(pi_identifier)
+      end
+
+      it 'correctly gives the Stripe LedgerEntry a zero debit' do
+        subject
+        expect(LedgerEntry.stripe.last.debit).to eq(0.0)
+      end
+
+      it 'correctly gives the Stripe LedgerEntry credit equal to the total amount' do
+        subject
+        expect(LedgerEntry.stripe.last.credit).to eq(mock_checkout_session[:amount_total] / 100)
+      end
+
+      context 'with an entry fee' do
+        let(:entry_fee_amount) { 117 }
+        let(:entry_fee_item) do
+          create(:purchasable_item,
+            :entry_fee,
+            :with_stripe_product,
+            value: entry_fee_amount,
+            tournament: tournament
+          )
+        end
+        let(:mock_checkout_session) do
+          object_for_items([
+            {
+              item: entry_fee_item,
+              quantity: 1,
+            },
+          ])
+        end
+
         before do
-          create :stripe_checkout_session,
-            bowler: bowler,
-            identifier: mock_checkout_session[:id]
+          TournamentRegistration.purchase_entry_fee bowler
         end
 
-        it 'marks the checkout session as completed' do
+        it 'associates the ExternalPayment to the entry-fee Purchase' do
           subject
-          sesh = bowler.stripe_checkout_sessions.last
-          expect(sesh.completed?).to be_truthy
+          expect(bowler.purchases.entry_fee.first.external_payment_id).to eq(ExternalPayment.last.id)
         end
 
-        it 'creates a LedgerEntry with Stripe as the source' do
-          expect { subject }.to change(LedgerEntry.stripe, :count).by(1)
-        end
-
-        it 'correctly populates the identifier on the Stripe LedgerEntry' do
+        it 'marks the entry-fee purchase as paid' do
           subject
-          pi_identifier = mock_checkout_session[:payment_intent]
-          expect(LedgerEntry.stripe.last.identifier).to eq(pi_identifier)
+          expect(bowler.purchases.entry_fee.first.paid_at).not_to be_nil
         end
 
-        it 'correctly gives the Stripe LedgerEntry a zero debit' do
+        it 'winds up with a zero balance' do
           subject
-          expect(LedgerEntry.stripe.last.debit).to eq(0.0)
+          expect(TournamentRegistration.amount_due(bowler)).to be_zero
         end
 
-        it 'correctly gives the Stripe LedgerEntry credit equal to the total amount' do
-          subject
-          expect(LedgerEntry.stripe.last.credit).to eq(mock_checkout_session[:amount_total] / 100)
-        end
-
-        context 'with an entry fee' do
-          let(:entry_fee_amount) { 117 }
-          let(:entry_fee_item) do
+        context 'and some optional items' do
+          let(:item_1) do
             create(:purchasable_item,
-              :entry_fee,
+              :scratch_competition,
               :with_stripe_product,
-              value: entry_fee_amount,
               tournament: tournament
             )
           end
+
+          let(:item_2) do
+            create(:purchasable_item,
+              :optional_event,
+              :with_stripe_product,
+              value: 21,
+              tournament: tournament
+            )
+          end
+
           let(:mock_checkout_session) do
             object_for_items([
               {
                 item: entry_fee_item,
                 quantity: 1,
               },
+              {
+                item: item_1,
+                quantity: 1,
+              },
+              {
+                item: item_2,
+                quantity: 1,
+              },
             ])
           end
 
-          before do
-            create(:purchase, bowler: bowler, purchasable_item: entry_fee_item, amount: entry_fee_amount)
-          end
-
-          it_behaves_like 'a Stripe event handler'
-          it_behaves_like 'a completed checkout session'
-
-          it 'associates the ExternalPayment to the entry-fee Purchase' do
+          it 'winds up with a zero balance' do
             subject
-            expect(bowler.purchases.entry_fee.first.external_payment_id).to eq(ExternalPayment.last.id)
+            expect(TournamentRegistration.amount_due(bowler)).to be_zero
           end
 
-          it 'marks the entry-fee purchase as paid' do
+          it 'creates a Purchase for each optional item' do
+            expect { subject }.to change { bowler.purchases.count }.by(2)
+          end
+
+          it 'creates a ledger entry for each Purchase' do
+            expect { subject }.to change { bowler.ledger_entries.purchase.count }.by(2)
+          end
+        end
+
+        context 'and some multi-use items' do
+          let!(:item_1) do
+            create(:purchasable_item,
+              :banquet_entry,
+              :with_stripe_product,
+              tournament: tournament
+            )
+          end
+
+          let!(:item_2) do
+            create(:purchasable_item,
+              :raffle_bundle,
+              :with_stripe_product,
+              value: 65,
+              tournament: tournament
+            )
+          end
+
+          let(:mock_checkout_session) do
+            object_for_items([
+              {
+                item: entry_fee_item,
+                quantity: 1,
+              },
+              {
+                item: item_1,
+                quantity: 2,
+              },
+              {
+                item: item_2,
+                quantity: 3,
+              },
+            ])
+          end
+
+          it 'winds up with a zero balance' do
             subject
-            expect(bowler.purchases.entry_fee.first.paid_at).not_to be_nil
+            expect(TournamentRegistration.amount_due(bowler)).to be_zero
           end
 
-          context 'and some optional items' do
-            let(:item_1) do
-              create(:purchasable_item,
-                :scratch_competition,
-                :with_stripe_product,
-                tournament: tournament
-              )
-            end
-
-            let(:item_2) do
-              create(:purchasable_item,
-                :optional_event,
-                :with_stripe_product,
-                value: 21,
-                tournament: tournament
-              )
-            end
-
-            let(:mock_checkout_session) do
-              object_for_items([
-                {
-                  item: entry_fee_item,
-                  quantity: 1,
-                },
-                {
-                  item: item_1,
-                  quantity: 1,
-                },
-                {
-                  item: item_2,
-                  quantity: 1,
-                },
-              ])
-            end
-
-            it_behaves_like 'a Stripe event handler'
-            it_behaves_like 'a completed checkout session'
-
-            it 'creates a Purchase for each optional item' do
-              expect { subject }.to change { bowler.purchases.count }.by(2)
-            end
-
-            it 'creates a ledger entry for each Purchase' do
-              expect { subject }.to change { bowler.ledger_entries.purchase.count }.by(2)
-            end
+          it 'creates a Purchase for each optional item' do
+            expect { subject }.to change { bowler.purchases.count }.by(5)
           end
 
-          context 'and some multi-use items' do
-            let!(:item_1) do
-              create(:purchasable_item,
-                :banquet_entry,
-                :with_stripe_product,
-                tournament: tournament
-              )
-            end
+          it 'creates a ledger entry for each Purchase' do
+            expect { subject }.to change { bowler.ledger_entries.purchase.count }.by(5)
+          end
+        end
 
-            let!(:item_2) do
-              create(:purchasable_item,
-                :raffle_bundle,
-                :with_stripe_product,
-                value: 65,
-                tournament: tournament
-              )
-            end
-
-            let(:mock_checkout_session) do
-              object_for_items([
-                {
-                  item: entry_fee_item,
-                  quantity: 1,
-                },
-                {
-                  item: item_1,
-                  quantity: 2,
-                },
-                {
-                  item: item_2,
-                  quantity: 3,
-                },
-              ])
-            end
-
-            it_behaves_like 'a Stripe event handler'
-            it_behaves_like 'a completed checkout session'
-
-            it 'creates a Purchase for each optional item' do
-              expect { subject }.to change { bowler.purchases.count }.by(5)
-            end
-
-            it 'creates a ledger entry for each Purchase' do
-              expect { subject }.to change { bowler.ledger_entries.purchase.count }.by(5)
-            end
+        context 'and a late-registration fee' do
+          let(:late_fee_item) do
+            create(:purchasable_item,
+              :late_fee,
+              :with_stripe_product,
+              value: 19,
+              tournament: tournament
+            )
           end
 
-          context 'and a late-registration fee' do
-            let(:late_fee_item) do
-              create(:purchasable_item,
-                :late_fee,
-                :with_stripe_product,
-                value: 19,
-                tournament: tournament
-              )
-            end
-
-            let(:mock_checkout_session) do
-              object_for_items([
-                {
-                  item: entry_fee_item,
-                  quantity: 1,
-                },
-                {
-                  item: late_fee_item,
-                  quantity: 1,
-                },
-              ])
-            end
-
-            context 'because the bowler registered late' do
-              # So the late-fee Purchase already exists when they make their payment
-
-              before do
-                create(:purchase, bowler: bowler, purchasable_item: late_fee_item, amount: late_fee_item.value)
-              end
-
-              it_behaves_like 'a Stripe event handler'
-              it_behaves_like 'a completed checkout session'
-
-              it 'creates no new Purchases' do
-                expect { subject }.not_to change { bowler.purchases.count }
-              end
-            end
-
-            context 'because the bowler waited too long to pay' do
-              # So there is not a pre-existing late-fee Purchase
-
-              it_behaves_like 'a Stripe event handler'
-              it_behaves_like 'a completed checkout session'
-
-              it 'creates a Purchase for the late fee item' do
-                expect { subject }.to change { bowler.purchases.count }.by(1)
-              end
-
-              it 'creates a ledger entry for the Purchase' do
-                expect { subject }.to change { bowler.ledger_entries.purchase.count }.by(1)
-              end
-            end
+          let(:mock_checkout_session) do
+            object_for_items([
+              {
+                item: entry_fee_item,
+                quantity: 1,
+              },
+              {
+                item: late_fee_item,
+                quantity: 1,
+              },
+            ])
           end
 
-          context 'and an early-registration fee' do
-            let(:discount_item) do
-              create(:purchasable_item,
-                :early_discount,
-                :with_stripe_coupon,
-                value: 14,
-                tournament: tournament
-              )
-            end
+          it 'winds up with a zero balance' do
+            subject
+            expect(TournamentRegistration.amount_due(bowler)).to be_zero
+          end
 
-            let(:mock_checkout_session) do
-              object_for_items([
-                {
-                  item: entry_fee_item,
-                  quantity: 1,
-                  discounts: [ discount_item ],
-                },
-              ])
-            end
+          context 'because the bowler registered late' do
+            # So the late-fee Purchase already exists when they make their payment
 
             before do
-              create(:purchase, bowler: bowler, purchasable_item: discount_item, amount: discount_item.value)
+              create(:purchase, bowler: bowler, purchasable_item: late_fee_item, amount: late_fee_item.value)
             end
 
             it_behaves_like 'a Stripe event handler'
@@ -284,32 +244,169 @@ RSpec.describe Stripe::CheckoutSessionCompleted, type: :job do
             it 'creates no new Purchases' do
               expect { subject }.not_to change { bowler.purchases.count }
             end
+          end
 
-            it 'updates the paid_at attribute of the discount Purchase' do
-              subject
-              expect(bowler.purchases.early_discount.where(paid_at: nil)).to be_empty
+          context 'because the bowler waited too long to pay' do
+            # So there is not a pre-existing late-fee Purchase
+
+            it_behaves_like 'a Stripe event handler'
+            it_behaves_like 'a completed checkout session'
+
+            it 'creates a Purchase for the late fee item' do
+              expect { subject }.to change { bowler.purchases.count }.by(1)
             end
+
+            it 'creates a ledger entry for the Purchase' do
+              expect { subject }.to change { bowler.ledger_entries.purchase.count }.by(1)
+            end
+          end
+        end
+
+        context 'and an early-registration discount' do
+          let(:discount_item) do
+            create(:purchasable_item,
+              :early_discount,
+              :with_stripe_coupon,
+              value: 14,
+              tournament: tournament
+            )
+          end
+
+          let(:mock_checkout_session) do
+            object_for_items([
+              {
+                item: entry_fee_item,
+                quantity: 1,
+                discounts: [discount_item],
+              },
+            ])
+          end
+
+          # before do
+          #   create(:purchase, bowler: bowler, purchasable_item: discount_item, amount: discount_item.value)
+          # end
+          #
+          it 'winds up with a zero balance' do
+            subject
+            expect(TournamentRegistration.amount_due(bowler)).to be_zero
+          end
+
+          it 'creates a new Purchase object' do
+            expect { subject }.to change { bowler.purchases.count }
+          end
+
+          it 'updates the paid_at attribute of the discount Purchase' do
+            subject
+            expect(bowler.purchases.early_discount.where(paid_at: nil).count).to be_zero
           end
         end
       end
 
-      context 'a checkout session we did not create' do
-        it 'raises no error' do
-          expect { subject }.not_to raise_error
+      context 'with events' do
+        # order of operations is a pain in the rear!
+        let(:event_item_1) { create :purchasable_item, :bowling_event, :with_stripe_product, tournament: tournament }
+        let(:event_item_2) { create :purchasable_item, :bowling_event, :with_stripe_product, tournament: tournament }
+
+        let(:mock_checkout_session) do
+          # Both items have the same Discount, because that's how Stripe gives it to us.
+          object_for_items([
+            {
+              item: event_item_1,
+              quantity: 1,
+            },
+            {
+              # event item 2
+              item: event_item_2,
+              quantity: 1,
+            },
+          ])
         end
 
-        it 'does not create an ExternalPayment' do
-          expect { subject }.not_to change(ExternalPayment, :count)
+        before do
+          create :stripe_checkout_session,
+            bowler: bowler,
+            identifier: mock_checkout_session[:id]
         end
 
-        it 'does not create any Purchases' do
-          expect { subject }.not_to change(Purchase, :count)
+        it 'creates two event purchases' do
+          expect{ subject }.to change(bowler.purchases.event, :count).by(2)
+        end
+
+        it 'associates the ExternalPayment to all new Purchases' do
+          subject
+          expect(bowler.purchases.pluck(:external_payment_id).uniq.count).to eq(1)
+        end
+
+        it 'tallies up owed correctly' do
+          subject
+          owed = TournamentRegistration.amount_due bowler
+          expect(owed).to be_zero
+        end
+
+        context 'with an applicable bundle discount' do
+          let(:discount_item) do
+            create :purchasable_item,
+              :with_stripe_coupon,
+              tournament: tournament,
+              category: :ledger,
+              determination: :bundle_discount,
+              name: 'Combo Pack',
+              value: 20
+          end
+
+          let(:mock_checkout_session) do
+            # Both items have the same Discount, because that's how Stripe gives it to us.
+            object_for_items([
+              {
+                item: event_item_1,
+                quantity: 1,
+                discounts: [discount_item],
+              },
+              {
+                # event item 2
+                item: event_item_2,
+                quantity: 1,
+                discounts: [discount_item],
+              },
+            ])
+          end
+
+          it 'amount_billed reflects the discount' do
+            subject
+            billed = TournamentRegistration.amount_billed bowler
+            expected = event_item_1.value + event_item_2.value - discount_item.value
+            expect(billed).to eq(expected)
+          end
+
+          it 'creates one bundle discount purchase' do
+            expect{ subject }.to change(bowler.purchases.ledger, :count).by(1)
+          end
+
+          it 'identifies the discount item' do
+            subject
+            items = bowler.ledger_entries.where(identifier: discount_item.name)
+            expect(items.count).to be_positive
+          end
         end
       end
+    end
 
-      context 'error conditions' do
-
+    context 'a checkout session we did not create' do
+      it 'raises no error' do
+        expect { subject }.not_to raise_error
       end
+
+      it 'does not create an ExternalPayment' do
+        expect { subject }.not_to change(ExternalPayment, :count)
+      end
+
+      it 'does not create any Purchases' do
+        expect { subject }.not_to change(Purchase, :count)
+      end
+    end
+
+    context 'error conditions' do
+
     end
 
   end

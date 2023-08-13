@@ -1158,7 +1158,7 @@ describe Director::PurchasableItemsController, type: :request do
 
     let(:tournament) { create :tournament }
     let(:tournament_identifier) { tournament.identifier }
-    let(:purchasable_item) { create :purchasable_item, :entry_fee, tournament: tournament }
+    let(:purchasable_item) { create :purchasable_item, :entry_fee, :with_stripe_product, tournament: tournament }
     let(:purchasable_item_id) { purchasable_item.identifier }
 
     include_examples 'an authorized action'
