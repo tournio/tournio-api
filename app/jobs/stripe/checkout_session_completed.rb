@@ -60,9 +60,7 @@ module Stripe
             external_payment_id: external_payment.id
           )
 
-          # Is there a coupon associated?
-          # Right now, all discounts on our side are created as unpaid purchases,
-          # so it is not possible for one to be associated with a new purchase.
+          # Is there a coupon associated, e.g., an early-registration discount?
           if li[:discounts].present?
             li[:discounts].each { |d| handle_discount(d) }
           end
@@ -83,6 +81,11 @@ module Stripe
               identifier: pi.name
             )
           end
+
+          # any discounts to apply, e.g., bundle discount for just-purchased events?
+          if li[:discounts].present?
+            li[:discounts].each { |d| handle_discount(d) }
+          end
         end
       end
 
@@ -92,21 +95,30 @@ module Stripe
         source: :stripe,
         identifier: cs[:payment_intent]
       )
-
       TournamentRegistration.send_receipt_email(bowler, external_payment.id)
       TournamentRegistration.try_confirming_bowler_shift(bowler)
       scp.completed!
     end
 
+    # At present, any discount may be applied only once per bowler.
     def handle_discount(discount)
       coupon_id = discount[:discount][:coupon][:id]
       sc = StripeCoupon.includes(:purchasable_item).find_by!(coupon_id: coupon_id)
       pi = sc.purchasable_item
-      purchase = bowler.purchases.unpaid.where(purchasable_item: pi).first
-      purchase.update(
-        paid_at: paid_at,
-        external_payment_id: external_payment.id
-      )
+      discounts_already_applied = bowler.purchases.where(purchasable_item: pi)
+      unless discounts_already_applied.any?
+        bowler.purchases << Purchase.new(
+          purchasable_item: pi,
+          amount: pi.value,
+          paid_at: paid_at,
+          external_payment_id: external_payment.id
+        )
+        bowler.ledger_entries << LedgerEntry.new(
+          credit: pi.value,
+          source: :purchase,
+          identifier: pi.name
+        )
+      end
     end
 
     def retrieve_stripe_object

@@ -453,7 +453,7 @@ RSpec.describe TournamentRegistration do
 
     let(:tournament) { create :tournament, :active }
     let(:amount) { 16 }
-    let(:purchasable_item) { create :purchasable_item, :early_discount_expiration, value: amount }
+    let(:purchasable_item) { create :purchasable_item, :early_discount_expiration, value: amount, tournament: tournament }
 
     it 'does not create a ledger entry' do
       expect { subject }.to change(LedgerEntry, :count).by(1)
@@ -982,8 +982,8 @@ RSpec.describe TournamentRegistration do
     end
 
     context 'two items of the same kind' do
-      let(:item1) { create :purchasable_item, :optional_event, configuration: { order: 4} }
-      let(:item2) { create :purchasable_item, :optional_event, configuration: { order: 2} }
+      let(:item1) { create :purchasable_item, :optional_event, tournament: tournament, configuration: { order: 4} }
+      let(:item2) { create :purchasable_item, :optional_event, tournament: tournament, configuration: { order: 2} }
 
       it 'uses display order for items of the same kind' do
         expect(described_class.purchasable_item_sort(item1)).to be > described_class.purchasable_item_sort(item2)
