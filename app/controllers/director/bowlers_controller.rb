@@ -179,7 +179,7 @@ module Director
 
     def try_partnering
       bowler_data = bowler_params
-      return unless bowler_data[:doubles_partner].present?
+      return unless bowler_data[:doubles_partner] && bowler_data[:doubles_partner][:identifier].present?
 
       new_partner = tournament.bowlers.find_by(identifier: bowler_data[:doubles_partner][:identifier])
       unless new_partner.present?
