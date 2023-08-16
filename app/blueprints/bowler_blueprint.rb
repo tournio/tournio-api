@@ -14,6 +14,9 @@ class BowlerBlueprint < Blueprinter::Base
   field :doubles_partner_name do |b, _|
     b.doubles_partner.present? ? TournamentRegistration.person_list_name(b.doubles_partner.person) : 'n/a'
   end
+  field :amount_paid do |b, _|
+    paid = TournamentRegistration.amount_paid(b).to_i
+  end
 
   association :tournament, blueprint: TournamentBlueprint
 
