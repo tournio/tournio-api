@@ -517,44 +517,6 @@ RSpec.describe TournamentRegistration do
     end
   end
 
-  describe '#amount_billed' do
-    subject { subject_class.amount_billed(bowler) }
-
-    let(:tournament) { create :tournament, :active }
-    let(:bowler) { create :bowler, tournament: tournament }
-
-    before do
-      create :ledger_entry, debit: 30, bowler: bowler
-      create :ledger_entry, debit: 30, bowler: bowler
-      create :ledger_entry, debit: 30, bowler: bowler
-      create :ledger_entry, credit: 40, source: :manual, bowler: bowler
-    end
-
-    it 'correctly sums debits' do
-      expect(subject).to eq(90)
-    end
-
-    context 'when there is an early registration discount' do
-      before do
-        create :ledger_entry, :early_registration, credit: 10, bowler: bowler
-      end
-
-      it 'accounts for the discount' do
-        expect(subject).to eq(80)
-      end
-    end
-
-    context 'when a purchase has been voided' do
-      before do
-        create :ledger_entry, :void_purchase, credit: 30, bowler: bowler
-      end
-
-      it 'excludes the voided amount from billed total' do
-        expect(subject).to eq(60)
-      end
-    end
-  end
-
   describe '#link_doubles_partners' do
     subject { subject_class.link_doubles_partners(bowlers) }
 

@@ -3,6 +3,8 @@ module StripeApiHelpers
     def object_for_items(items_and_quantities)
       amount_total = 0
       line_items_data = []
+      applied_discounts = {}
+
       items_and_quantities.each do |iq|
         sp = iq[:item].stripe_product
         data = {
@@ -25,7 +27,10 @@ module StripeApiHelpers
                 },
               },
             }
-            amount_total -= d.value * 100
+            unless applied_discounts[d.stripe_coupon.coupon_id].present?
+              amount_total -= d.value * 100
+              applied_discounts[d.stripe_coupon.coupon_id] = true
+            end
           end
           data[:discounts] = discounts
         end

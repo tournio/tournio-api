@@ -38,9 +38,9 @@ class BowlerBlueprint < Blueprinter::Base
       TournamentRegistration.team_display_name(b.team)
     end
 
-    field :amount_billed do |b, _|
-      billed = TournamentRegistration.amount_billed(b).to_i
-      ActionController::Base.helpers.number_to_currency(billed, precision: 0)
+    field :amount_paid do |b, _|
+      paid = TournamentRegistration.amount_paid(b).to_i
+      ActionController::Base.helpers.number_to_currency(paid, precision: 0)
     end
 
     field :has_free_entry do |b, _|
@@ -74,10 +74,6 @@ class BowlerBlueprint < Blueprinter::Base
 
   view :director_list do
     field :email
-
-    field :amount_billed do |b, _|
-      TournamentRegistration.amount_billed(b)
-    end
 
     field :has_free_entry do |b, _|
       b.free_entry&.unique_code.present?
@@ -132,9 +128,6 @@ class BowlerBlueprint < Blueprinter::Base
     association :doubles_partner, blueprint: BowlerBlueprint
     field :created_at, name: :date_registered, datetime_format: "%F"
 
-    field :amount_billed do |b, _|
-      TournamentRegistration.amount_billed(b)
-    end
     field :amount_paid do |b, _|
       TournamentRegistration.amount_paid(b)
     end

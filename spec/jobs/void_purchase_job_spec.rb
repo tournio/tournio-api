@@ -37,6 +37,28 @@ RSpec.describe VoidPurchaseJob, type: :job do
       expect(le.void?).to be_truthy
     end
 
+    it 'indicates "voided" in the identifier' do
+      subject
+      le = LedgerEntry.last
+      expect(le.identifier).to start_with('[voided]')
+    end
+
+    it 'marks the ledger entry as a debit' do
+      subject
+      le = LedgerEntry.last
+      expect(le.debit).to eq(pi.value)
+    end
+
+    context 'when the purchase is not a discount' do
+      let(:pi) { create :purchasable_item, :banquet_entry, tournament: tournament }
+
+      it 'marks the ledger entry as a credit' do
+        subject
+        le = LedgerEntry.last
+        expect(le.credit).to eq(pi.value)
+      end
+    end
+
     context 'when the purchase is paid' do
       let(:paid_at) { 2.weeks.ago }
 
