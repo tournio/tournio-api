@@ -62,6 +62,7 @@ FactoryBot.define do
       end
     end
 
+    # DEPRECATED in favor of voiding them
     trait :early_discount_expiration do
       category { :ledger }
       determination { :discount_expiration }
