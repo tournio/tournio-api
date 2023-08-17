@@ -1,5 +1,5 @@
 class ConfigItemBlueprint < Blueprinter::Base
-  fields :id, :key
+  fields :id, :key, :label
 
   field :value do |c, _|
     if %w(email_in_dev display_capacity skip_stripe publicly_listed accept_payments).include?(c.key)
@@ -15,10 +15,6 @@ class ConfigItemBlueprint < Blueprinter::Base
     else
       c.value.truncate(20)
     end
-  end
-
-  field :label do |c, _|
-    c.key.humanize(keep_id_suffix: true)
   end
 
   def self.boolean_value(value)
