@@ -45,7 +45,7 @@ namespace :tournio do
 
   desc "Called by a scheduler, to void early-registration discounts for unpaid bowlers"
   task void_expired_early_discounts: :environment do
-    puts "Voiding expired early-registration discounts"
+    puts "Voiding expired early-registration discounts for tournaments that want it"
     ExpireUnpaidEarlyDiscountsJob.perform_async
   end
 end

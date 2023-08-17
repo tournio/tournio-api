@@ -14,6 +14,16 @@
 #  person_id          :bigint
 #  team_id            :bigint
 #  tournament_id      :bigint
+#
+# Indexes
+#
+#  index_bowlers_on_created_at          (created_at)
+#  index_bowlers_on_doubles_partner_id  (doubles_partner_id)
+#  index_bowlers_on_identifier          (identifier)
+#  index_bowlers_on_person_id           (person_id)
+#  index_bowlers_on_team_id             (team_id)
+#  index_bowlers_on_tournament_id       (tournament_id)
+#
 
 # belongs_to :doubles_partner, class_name: 'Bowler', optional: true
 # belongs_to :person, dependent: :destroy

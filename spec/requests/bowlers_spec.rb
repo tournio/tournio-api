@@ -409,7 +409,7 @@ describe BowlersController, type: :request do
       subject
       bowlerDeets = json['bowler']
       expect(bowlerDeets).to have_key('amount_due')
-      expect(bowlerDeets).to have_key('amount_billed')
+      expect(bowlerDeets).to have_key('amount_paid')
       expect(bowlerDeets).to have_key('unpaid_purchases')
       expect(bowlerDeets).to have_key('paid_purchases')
     end
