@@ -129,6 +129,9 @@ ActiveRecord::Schema[7.0].define(version: 2023_08_17_152216) do
     t.index ["tournament_id"], name: "index_contacts_on_tournament_id"
   end
 
+  create_table "data_migrations", primary_key: "version", id: :string, force: :cascade do |t|
+  end
+
   create_table "data_points", force: :cascade do |t|
     t.integer "key", null: false
     t.string "value", null: false
