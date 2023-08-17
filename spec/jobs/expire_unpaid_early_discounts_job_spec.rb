@@ -22,10 +22,26 @@ RSpec.describe ExpireUnpaidEarlyDiscountsJob, type: :job do
     let(:job_object) { described_class.new }
     subject { job_object.do_the_work(wall_clock_time) }
 
+    before do
+      tournament.config_items.find_by_key('automatic_discount_voids').update(value: 'true')
+    end
+
     it 'enqueues a SchedulePurchaseVoidsJob' do
       allow(SchedulePurchaseVoidsJob).to receive(:perform_async)
       subject
       expect(SchedulePurchaseVoidsJob).to have_received(:perform_async).once
+    end
+
+    context 'when the tournament config says not to' do
+      before do
+        tournament.config_items.find_by_key('automatic_discount_voids').update(value: 'false')
+      end
+
+      it 'does not enqueue a SchedulePurchaseVoidsJob' do
+        allow(SchedulePurchaseVoidsJob).to receive(:perform_async)
+        expect(SchedulePurchaseVoidsJob).not_to receive(:perform_async)
+        subject
+      end
     end
 
     context 'when valid_until is more than 24 hours before' do
@@ -62,32 +78,5 @@ RSpec.describe ExpireUnpaidEarlyDiscountsJob, type: :job do
         expect(SchedulePurchaseVoidsJob).not_to have_received(:perform_async)
       end
     end
-
-    # before do
-    #   10.times do |i|
-    #     b = create :bowler, tournament: tournament
-    #     create :purchase, purchasable_item: discount_item, bowler: b, amount: discount_item.value
-    #   end
-    #   5.times do |i|
-    #     b = create :bowler, tournament: tournament
-    #     create :purchase,
-    #       purchasable_item: discount_item,
-    #       bowler: b,
-    #       amount: discount_item.value,
-    #       paid_at: wall_clock_time.advance(days: -6)
-    #   end
-    # end
-
-    # it 'reduces the number of unpaid discounts by 10' do
-    #   expect { subject }.to change(Purchase, :unpaid).by(-10)
-    # end
-    #
-    # it 'voids the 10 unpaid purchases' do
-    #   expect { subject }.to change(Purchase, :void).by(10)
-    # end
-    #
-    # it 'leaves the 5 paid purchases intact' do
-    #   expect { subject }.not_to change(Purchase, :paid)
-    # end
   end
 end
