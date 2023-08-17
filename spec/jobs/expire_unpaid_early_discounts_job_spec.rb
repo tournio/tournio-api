@@ -49,8 +49,8 @@ RSpec.describe ExpireUnpaidEarlyDiscountsJob, type: :job do
 
       it 'does not enqueue a SchedulePurchaseVoidsJob' do
         allow(SchedulePurchaseVoidsJob).to receive(:perform_async)
+        expect(SchedulePurchaseVoidsJob).not_to receive(:perform_async)
         subject
-        expect(SchedulePurchaseVoidsJob).not_to have_received(:perform_async)
       end
     end
 
@@ -59,8 +59,8 @@ RSpec.describe ExpireUnpaidEarlyDiscountsJob, type: :job do
 
       it 'does not enqueue a SchedulePurchaseVoidsJob' do
         allow(SchedulePurchaseVoidsJob).to receive(:perform_async)
+        expect(SchedulePurchaseVoidsJob).not_to receive(:perform_async)
         subject
-        expect(SchedulePurchaseVoidsJob).not_to have_received(:perform_async)
       end
     end
 
@@ -74,8 +74,8 @@ RSpec.describe ExpireUnpaidEarlyDiscountsJob, type: :job do
 
       it 'does not enqueue a SchedulePurchaseVoidsJob' do
         allow(SchedulePurchaseVoidsJob).to receive(:perform_async)
+        expect(SchedulePurchaseVoidsJob).not_to receive(:perform_async)
         subject
-        expect(SchedulePurchaseVoidsJob).not_to have_received(:perform_async)
       end
     end
   end
