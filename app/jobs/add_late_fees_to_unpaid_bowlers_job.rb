@@ -8,18 +8,18 @@ class AddLateFeesToUnpaidBowlersJob
   end
 
   def do_the_work(time_of_day = Time.zone.now)
-    Tournament.active.each do |t|
+    Tournament.upcoming(time_of_day).each do |t|
       # Only do this if the tournament's config item is set.
-      next unless t.config['automatic_discount_voids']
+      next unless t.config['automatic_late_fees']
 
-      t.purchasable_items.early_discount.map do |discount_item|
-        next unless discount_item.configuration['valid_until'].present?
+      t.purchasable_items.late_fee.map do |late_fee_item|
+        next unless late_fee_item.configuration['applies_at'].present?
 
-        expires_at = Time.zone.parse(discount_item.configuration['valid_until'])
+        applies_at = Time.zone.parse(late_fee_item.configuration['applies_at'])
         one_day_ago = time_of_day.advance(days: -1)
 
-        if expires_at.between?(one_day_ago, time_of_day)
-          SchedulePurchaseVoidsJob.perform_async(discount_item.id, 'Bowler failed to pay registration fee before the early-registration discount passed')
+        if applies_at.between?(one_day_ago, time_of_day)
+          ScheduleAutomaticLateFeesJob.perform_async(t.id)
         end
       end
     end
