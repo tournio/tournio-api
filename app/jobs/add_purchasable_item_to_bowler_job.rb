@@ -7,6 +7,7 @@ class AddPurchasableItemToBowlerJob
   include Sidekiq::Job
 
   def perform(bowler_id, purchasable_item_id)
+    ap "Doing my thing..."
     bowler = Bowler.includes(
       tournament: [:purchasable_items],
       purchases: [:purchasable_item]

@@ -125,7 +125,7 @@ class Tournament < ApplicationRecord
     self.config_items << ConfigItem.new(key: 'publicly_listed', value: 'true') # applies to tournaments in the "active" state
     self.config_items << ConfigItem.new(key: 'accept_payments', value: 'true')
     self.config_items << ConfigItem.new(key: 'automatic_discount_voids', value: 'false')
-    self.config_items << ConfigItem.new(key: 'automatic_late_fee', value: 'false')
+    self.config_items << ConfigItem.new(key: 'automatic_late_fees', value: 'false')
     if Rails.env.development?
       self.config_items += [
         ConfigItem.new(key: 'email_in_dev', value: 'false'),
