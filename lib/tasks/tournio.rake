@@ -48,4 +48,10 @@ namespace :tournio do
     puts "Voiding expired early-registration discounts for tournaments that want it"
     ExpireUnpaidEarlyDiscountsJob.perform_async
   end
+
+  desc "Called by a scheduler, to add late fees to bowlers who have registered but not yet paid"
+  task add_late_fees_to_unpaid_bowlers: :environment do
+    puts "Adding late fees for unpaid bowlers for tournaments that want it"
+    AddLateFeesToUnpaidBowlersJob.perform_async
+  end
 end
