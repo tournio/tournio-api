@@ -173,15 +173,6 @@ describe TeamsController, type: :request do
       subject
       expect(json.count).to eq(10)
     end
-
-    context 'Requesting incomplete teams only' do
-      let(:uri) { "/tournaments/#{tournament.identifier}/teams?incomplete=true" }
-
-      it 'includes incomplete teams only' do
-        subject
-        expect(json.count).to eq(7)
-      end
-    end
   end
 
   describe '#show' do

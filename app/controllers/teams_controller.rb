@@ -65,7 +65,7 @@ class TeamsController < ApplicationController
       render json: nil, status: 404
       return
     end
-    teams = params[:incomplete] ? tournament.available_to_join : tournament.teams.order('LOWER(name)')
+    teams = tournament.teams.order('LOWER(name)')
     render json: TeamBlueprint.render(teams, view: :list)
   end
 

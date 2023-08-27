@@ -84,24 +84,11 @@ class BowlersController < ApplicationController
 
     registration_type = 'solo'
 
-    # now, are they joining a team, or registering solo?
-    if team.present?
-      # joining
-      if team.bowlers.count == tournament.team_size
-        render json: { message: 'This team is full.' }, status: :bad_request
-        return
-      end
-      registration_type = 'join_team'
-      if team.position_occupied? bowlers.first.position
-        bowlers.first.position = team.first_available_position
-      end
-    else
-      # registering solo, doubles, or partner
-      if bowlers.count == 2
-        registration_type = 'new_pair'
-      elsif bowlers.first.doubles_partner_id.present?
-        registration_type = 'partner'
-      end
+    # registering solo, doubles, or partner
+    if bowlers.count == 2
+      registration_type = 'new_pair'
+    elsif bowlers.first.doubles_partner_id.present?
+      registration_type = 'partner'
     end
 
     bowlers.each do |b|
