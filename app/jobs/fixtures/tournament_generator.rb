@@ -31,7 +31,6 @@ module Fixtures
 
       create_teams
       create_solo_bowlers
-      create_joining_bowlers
 
       add_purchases_to_bowlers
       create_payments
@@ -166,7 +165,6 @@ module Fixtures
       person = FactoryBot.create :person,
         first_name: person_first_names[first_name_index],
         last_name: person_surnames[surname_index],
-        nickname: registration_type == 'join_team' ? "Joiner" : nil,
         email: email_address,
         usbc_id: usbc_id
       bowler = FactoryBot.create :bowler,
@@ -210,31 +208,6 @@ module Fixtures
       solo_bowler_quantity.times do |i|
         registration_time = Time.zone.at(starting_time + (interval * Random.rand(1.0)).to_i)
         create_bowler(registered_at: registration_time, registration_type: 'solo')
-      end
-    end
-
-    def create_joining_bowlers
-      remaining_capacity = tournament.shifts.first.capacity - tournament.bowlers.count
-      return unless remaining_capacity.positive?
-
-      joining_bowler_quantity = Random.rand(remaining_capacity)
-      joining_bowler_quantity.times do |i|
-        unless tournament.available_to_join.empty?
-          team = tournament.available_to_join.sample
-          registration_time = Time.zone.at(starting_time + (interval * Random.rand(1.0)).to_i)
-          bowler = create_bowler(
-            team: team,
-            position: team.bowlers.count + 1,
-            registered_at: registration_time,
-            registration_type: 'join_team'
-          )
-          if team.bowlers.reload.count % 2 == 0
-            # double up with the team's unpartnered bowler
-            partner = team.bowlers.find_by(doubles_partner_id: nil)
-            bowler.update(doubles_partner_id: partner.id)
-            partner.update(doubles_partner_id: bowler.id)
-          end
-        end
       end
     end
 

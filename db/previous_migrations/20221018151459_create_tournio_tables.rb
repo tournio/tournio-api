@@ -280,7 +280,7 @@ class CreateTournioTables < ActiveRecord::Migration[7.0]
       t.string "identifier", null: false
       t.string "name"
       t.string "description"
-      t.jsonb "details", default: {"events"=>[], "registration_types"=>["new_team", "solo", "join_team"]}
+      t.jsonb "details", default: {"events"=>[], "registration_types"=>["new_team", "solo"]}
       t.integer "display_order", default: 1, null: false
       t.integer "capacity", default: 128, null: false
       t.integer "requested", default: 0, null: false

@@ -778,7 +778,7 @@ describe Director::TournamentsController, type: :request do
         {
           tournament: {
             details: {
-              enabled_registration_options: %w(solo join_team),
+              enabled_registration_options: %w(solo),
             }
           }
         }
@@ -791,7 +791,7 @@ describe Director::TournamentsController, type: :request do
 
       it 'reflects the desired change' do
         subject
-        expect(tournament.reload.details['enabled_registration_options']).to match_array(%w(solo join_team))
+        expect(tournament.reload.details['enabled_registration_options']).to match_array(%w(solo))
       end
 
       context 'when tournament is active' do
@@ -804,7 +804,7 @@ describe Director::TournamentsController, type: :request do
 
         it 'reflects the desired change' do
           subject
-          expect(tournament.reload.details['enabled_registration_options']).to match_array(%w(solo join_team))
+          expect(tournament.reload.details['enabled_registration_options']).to match_array(%w(solo))
         end
       end
     end

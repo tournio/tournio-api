@@ -399,7 +399,7 @@ ActiveRecord::Schema[7.0].define(version: 2023_08_17_152216) do
     t.date "end_date"
     t.string "timezone", default: "America/New_York"
     t.datetime "entry_deadline"
-    t.jsonb "details", default: {"enabled_registration_options"=>["new_team", "solo", "join_team"]}
+    t.jsonb "details", default: {"enabled_registration_options"=>["new_team", "solo"]}
     t.index ["aasm_state"], name: "index_tournaments_on_aasm_state"
     t.index ["identifier"], name: "index_tournaments_on_identifier"
   end

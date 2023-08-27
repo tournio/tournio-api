@@ -13,7 +13,7 @@ module Director
       end
       authorize tournament, :show?
       teams = if (params[:partial])
-                policy_scope(tournament.available_to_join)
+                policy_scope(tournament.partial)
               else
                 policy_scope(tournament.teams).order('created_at asc')
               end
