@@ -3,6 +3,8 @@
 class TeamBlueprint < Blueprinter::Base
   identifier :identifier
 
+  field :initial_size
+
   association :tournament, blueprint: TournamentBlueprint
   # association :shift, blueprint: ShiftBlueprint do |team, _|
   #   team.bowlers.first&.shift

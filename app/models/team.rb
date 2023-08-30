@@ -6,6 +6,7 @@
 #
 #  id            :bigint           not null, primary key
 #  identifier    :string           not null
+#  initial_size  :integer          default(4)
 #  name          :string
 #  options       :jsonb
 #  created_at    :datetime         not null
