@@ -76,8 +76,8 @@ module Fixtures
         location: location[:location],
         timezone: location[:timezone]
 
-      FactoryBot.create :config_item, tournament: tournament, key: 'team_size', value: 4
-      FactoryBot.create :config_item, tournament: tournament, key: 'website', value: 'http://www.tourn.io'
+      FactoryBot.create :config_item, tournament: tournament, key: 'team_size', value: 4, label: 'Team Size'
+      FactoryBot.create :config_item, tournament: tournament, key: 'website', value: 'http://www.tourn.io', label: 'Website'
       FactoryBot.create :stripe_account, tournament: tournament, onboarding_completed_at: 2.months.ago
 
       image_path = Rails.root.join('spec', 'support', 'images').children.sample
