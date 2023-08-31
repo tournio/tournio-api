@@ -30,6 +30,8 @@ class TeamsController < ApplicationController
   ].freeze
   TEAM_ATTRS = [
     :name,
+    :initial_size,
+    :shift_identifier,
     bowlers_attributes: BOWLER_ATTRS,
     options: {},
   ].freeze
@@ -57,7 +59,8 @@ class TeamsController < ApplicationController
     TournamentRegistration.register_team(team)
     Rails.logger.info "========== Team saved. Name/identifier: #{team.reload.name} / #{team.reload.identifier}"
 
-    render json: TeamBlueprint.render(team.reload, view: :detail), status: :created
+    team.bowlers.includes(:person, :ledger_entries).order(:position)
+    render json: TeamBlueprint.render(team, view: :detail), status: :created
   end
 
   def index
@@ -115,6 +118,10 @@ class TeamsController < ApplicationController
     cleaned_up = permitted_params.dup
     cleaned_up['bowlers_attributes'].map! { |bowler_attrs| clean_up_bowler_data(bowler_attrs) }
 
+    shift = Shift.find_by(identifier: permitted_params['shift_identifier'])
+    cleaned_up['shift_id'] = shift.id unless shift.nil?
+    cleaned_up.delete('shift_identifier')
+
     cleaned_up
   end
 
@@ -142,6 +149,7 @@ class TeamsController < ApplicationController
     permitted_params.delete('additional_question_responses')
 
     # If there's a shift identifier, insert the corresponding id to take advantage of AR nested attributes
+    # TODO: Remove this entirely once we have placeholder teams working fully
     if permitted_params['shift_identifier'].present?
       shift = Shift.find_by(identifier: permitted_params['shift_identifier'])
       permitted_params['bowler_shift_attributes'] = { shift_id: shift.id } unless shift.nil?
@@ -164,3 +172,4 @@ class TeamsController < ApplicationController
     @extended_form_fields ||= ExtendedFormField.all.index_by(&:name)
   end
 end
+

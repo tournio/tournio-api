@@ -13,6 +13,41 @@ module ApiHelpers
       as: :json
   end
 
+  def single_bowler_team_test_data
+    {
+      'name' => 'Voltron',
+      'shift_identifier' => 'this-is-also-a-shift',
+      'initial_size' => '3',
+      'bowlers_attributes' => [
+        {
+          'position' => '3',
+          'person_attributes' => {
+            'first_name' => 'Gannon',
+            'last_name' => 'Wong',
+            'usbc_id' => '8673-83363',
+            'birth_month' => '7',
+            'birth_day' => '3',
+            'nickname' => '',
+            'phone' => '792-110-6036',
+            'email' => 'cogy@gmail.com',
+            'address1' => '20 Nature Ct',
+            'address2' => 'Unit 9082',
+            'city' => 'Boston',
+            'state' => 'Ohio',
+            'country' => 'US',
+            'postal_code' => '54918',
+          },
+          'additional_question_responses' => [
+            {
+              'name' => 'standings_link',
+              'response' => 'http://www.leaguesecretary.com',
+            },
+          ],
+        }
+      ],
+    }
+  end
+
   def full_team_test_data
     {
       'name' => 'Blood To Spare',

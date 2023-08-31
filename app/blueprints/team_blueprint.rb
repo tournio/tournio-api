@@ -19,7 +19,9 @@ class TeamBlueprint < Blueprinter::Base
       t.bowlers.count
     end
     field :shift do |t, _|
-      if t.bowlers.empty?
+      if t.shift.present?
+        ShiftBlueprint.render_as_hash(t.shift)
+      elsif t.bowlers.empty?
         nil
       else
         ShiftBlueprint.render_as_hash(t.bowlers.first&.shift)

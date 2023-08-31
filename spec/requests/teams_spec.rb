@@ -130,6 +130,38 @@ describe TeamsController, type: :request do
       end
     end
 
+    context 'supporting placeholders' do
+      # expectation is for a single bowler to come through, but we might be able to support more.
+      before do
+        create :shift, tournament: tournament, identifier: single_bowler_team_test_data['shift_identifier']
+      end
+
+      let(:new_team_params) do
+        {
+          team: single_bowler_team_test_data,
+        }
+      end
+
+      it 'succeeds' do
+        subject
+        expect(response).to have_http_status(:created)
+      end
+
+      it 'includes the new team in the response' do
+        subject
+        expect(json).to have_key('name')
+        expect(json).to have_key('identifier')
+        expect(json).to have_key('bowlers')
+        expect(json['name']).to eq(single_bowler_team_test_data['name'])
+        expect(json['initial_size']).to eq(single_bowler_team_test_data['initial_size'].to_i)
+      end
+
+      it 'associates the team to the specified shift' do
+        subject
+        expect(Team.last.shift.identifier).to eq(single_bowler_team_test_data['shift_identifier'])
+      end
+    end
+
     context 'with invalid data' do
       let(:new_team_params) do
         {

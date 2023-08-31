@@ -28,6 +28,7 @@ class Team < ApplicationRecord
   belongs_to :shift, optional: true
   has_many :bowlers, -> { order(position: :asc) }, dependent: :destroy
   accepts_nested_attributes_for :bowlers
+  # accepts_nested_attributes_for :shift, update_only: true
 
   before_create :generate_identifier
 
