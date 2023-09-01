@@ -95,7 +95,7 @@ class BowlerBlueprint < Blueprinter::Base
     end
 
     field :paid do |b, _|
-      b.bowler_shift.confirmed?
+      TournamentRegistration.amount_due(b) == 0
     end
   end
 

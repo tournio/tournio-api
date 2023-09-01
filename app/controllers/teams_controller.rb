@@ -78,6 +78,7 @@ class TeamsController < ApplicationController
       render json: nil, status: 404
       return
     end
+    # TODO Does this do what I think it does?
     team.bowlers.includes(:person, :ledger_entries).order(:position)
     render json: TeamBlueprint.render(team, view: :detail)
   end
@@ -137,6 +138,7 @@ class TeamsController < ApplicationController
     %w[birth_month birth_day].each do |attr|
       permitted_params['person_attributes'][attr] = permitted_params['person_attributes'][attr].to_i
     end
+    permitted_params['position'] = permitted_params['position'].to_i if permitted_params['position'].present?
 
     # Remove additional question responses that are empty
     permitted_params['additional_question_responses'].filter! { |r| r['response'].present? }

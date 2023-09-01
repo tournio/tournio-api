@@ -49,6 +49,7 @@ describe BowlersController, type: :request do
   describe '#create' do
     subject { post uri, params: bowler_params, as: :json }
 
+    let(:uri) { "/tournaments/#{tournament.identifier}/bowlers" }
     let(:tournament) { create :tournament, :active, :with_entry_fee, :one_shift }
     let(:shift) { tournament.shifts.first }
 
@@ -62,8 +63,130 @@ describe BowlersController, type: :request do
       create(:additional_question, extended_form_field: standings, tournament: tournament)
     end
 
+    context 'adding a bowler to a team' do
+      let!(:team) { create :team, :standard_three_bowlers, tournament: tournament }
+      let(:bowler_params) do
+        {
+          team_identifier: team.identifier,
+          bowlers: [
+            create_bowler_test_data.merge({
+              position: 4,
+            })
+          ],
+        }
+      end
+
+      it 'does not create a new team for the bowler' do
+        expect{ subject }.not_to change(Team, :count)
+      end
+
+      it 'succeeds' do
+        subject
+        expect(response).to have_http_status(:created)
+      end
+
+      it 'creates a new bowler' do
+        expect{ subject }.to change(Bowler, :count).by(1)
+      end
+
+      it 'includes the new bowler in the response' do
+        subject
+        bowler = Bowler.last
+        expect(json[0]['identifier']).to eq(bowler.identifier)
+      end
+
+      it 'includes the team identifier in the response' do
+        subject
+        bowler = Bowler.last
+        expect(json[0]['team_identifier']).to eq(team.identifier)
+      end
+
+      it 'creates an entry-fee purchase for the bowler' do
+        subject
+        bowler = Bowler.last
+        expect(bowler.purchases.entry_fee).not_to be_empty
+      end
+
+      it 'creates a data point' do
+        expect { subject }.to change(DataPoint, :count).by(1)
+      end
+
+      context 'sneaking some trailing whitespace in on the email address' do
+        before do
+          bowler_params[:bowlers][0]['person_attributes']['email'] += ' '
+        end
+
+        it 'succeeds' do
+          subject
+          expect(response).to have_http_status(:created)
+        end
+
+        it 'trims the trailing whitespace from the incoming email address' do
+          subject
+          bowler = Bowler.last
+          expect(bowler.email).to eq(bowler_params[:bowlers][0]['person_attributes']['email'].strip)
+        end
+      end
+
+      context 'a tournament with event selection' do
+        let(:tournament) { create :tournament, :active, :with_a_bowling_event }
+        let(:bowler_params) do
+          {
+            bowlers: [
+              create_bowler_test_data,
+            ],
+          }
+        end
+
+        it 'succeeds' do
+          subject
+          expect(response).to have_http_status(:created)
+        end
+
+        it 'does not create any entry-fee purchases' do
+          expect { subject }.not_to change(Purchase, :count)
+        end
+
+        context 'partnering up with an already-registered bowler' do
+          let!(:target) { create :bowler, tournament: tournament, position: nil }
+          let(:bowler_params) do
+            {
+              bowlers: [create_bowler_test_data.merge({
+                doubles_partner_identifier: target.identifier,
+              })],
+            }
+          end
+
+          it 'succeeds' do
+            subject
+            expect(response).to have_http_status(:created)
+          end
+
+          it 'creates a bowler' do
+            expect { subject }.to change(Bowler, :count).by(1)
+          end
+
+          it 'partners up the bowler with the target' do
+            subject
+            bowler = Bowler.last
+            expect(bowler.doubles_partner_id).to eq(target.id)
+          end
+
+          it 'reciprocates the partnership' do
+            subject
+            bowler = Bowler.last
+            expect(target.reload.doubles_partner_id).to eq(bowler.id)
+          end
+
+          it 'creates a partner data point' do
+            subject
+            expect(DataPoint.last.value).to eq('partner')
+          end
+        end
+      end
+    end
+
     context 'registering as an individual' do
-      let(:uri) { "/tournaments/#{tournament.identifier}/bowlers" }
       let(:bowler_params) do
         {
           bowlers: [
@@ -203,7 +326,6 @@ describe BowlersController, type: :request do
 
     context 'registering as a doubles pair' do
       let(:tournament) { create :tournament, :active, :with_a_bowling_event, :one_shift }
-      let(:uri) { "/tournaments/#{tournament.identifier}/bowlers" }
       let(:bowler_params) do
         {
           bowlers: create_doubles_test_data,

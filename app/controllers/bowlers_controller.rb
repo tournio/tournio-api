@@ -14,7 +14,6 @@ class BowlersController < ApplicationController
       first_name
       last_name
       usbc_id
-      igbo_id
       birth_month
       birth_day
       nickname
@@ -89,6 +88,11 @@ class BowlersController < ApplicationController
       registration_type = 'new_pair'
     elsif bowlers.first.doubles_partner_id.present?
       registration_type = 'partner'
+    elsif team.present?
+      registration_type = 'standard'
+      bowlers.each do |b|
+        b.team = team
+      end
     end
 
     bowlers.each do |b|
@@ -102,7 +106,7 @@ class BowlersController < ApplicationController
       bowlers.map(&:save)
     end
 
-    render json: BowlerBlueprint.render(bowlers), status: :created
+    render json: BowlerBlueprint.render(bowlers, view: :detail), status: :created
   end
 
   def show
@@ -190,7 +194,13 @@ class BowlersController < ApplicationController
     :total_to_charge
 
   def permit_params
-    @parameters = params.permit(:identifier, :team_identifier, :tournament_identifier, :unpartnered, bowlers: BOWLER_ATTRS)
+    @parameters = params.permit(
+      :identifier, # this is the tournament identifier for #bowlers.create
+      :team_identifier,
+      :tournament_identifier,
+      :unpartnered,
+      bowlers: BOWLER_ATTRS
+    )
   end
 
   def load_bowler
@@ -231,6 +241,7 @@ class BowlersController < ApplicationController
       %w[birth_month birth_day].each do |attr|
         p['person_attributes'][attr] = p['person_attributes'][attr].to_i
       end
+      p['position'] = p['position'].to_i if p['position'].present?
 
       # Remove additional question responses that are empty
       p['additional_question_responses'].filter! { |r| r['response'].present? }
