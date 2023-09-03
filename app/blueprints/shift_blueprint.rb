@@ -5,10 +5,10 @@ class ShiftBlueprint < Blueprinter::Base
   fields :name, :description, :capacity, :display_order
 
   field :unpaid_count do |s, _|
-    s.requested
+    0
   end
 
   field :paid_count do |s, _|
-    s.confirmed
+    0
   end
 end

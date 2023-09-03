@@ -57,9 +57,9 @@ class TeamsController < ApplicationController
     end
 
     TournamentRegistration.register_team(team)
-    Rails.logger.info "========== Team saved. Name/identifier: #{team.reload.name} / #{team.reload.identifier}"
 
     team.bowlers.includes(:person, :ledger_entries).order(:position)
+    # render json: TeamDetailedSerializer.new(team, within: {bowlers: {doubles_partner: :doubles_partner}}).serialize, status: :created
     render json: TeamBlueprint.render(team, view: :detail), status: :created
   end
 
@@ -79,7 +79,9 @@ class TeamsController < ApplicationController
       return
     end
     # TODO Does this do what I think it does?
-    team.bowlers.includes(:person, :ledger_entries).order(:position)
+    # team.bowlers.includes(:person, :ledger_entries).order(:position)
+
+    # render json: TeamDetailedSerializer.new(team, within: {bowlers: {doubles_partner: :doubles_partner}}).serialize
     render json: TeamBlueprint.render(team, view: :detail)
   end
 
@@ -95,7 +97,7 @@ class TeamsController < ApplicationController
 
   def load_team
     identifier = params.require(:identifier)
-    @team = Team.includes(:bowlers).find_by_identifier(identifier)
+    @team = Team.includes(bowlers: [:person, :ledger_entries]).find_by_identifier(identifier)
   end
 
   #######################

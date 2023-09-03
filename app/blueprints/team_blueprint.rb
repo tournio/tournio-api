@@ -6,9 +6,15 @@ class TeamBlueprint < Blueprinter::Base
   field :initial_size
 
   association :tournament, blueprint: TournamentBlueprint
-  # association :shift, blueprint: ShiftBlueprint do |team, _|
-  #   team.bowlers.first&.shift
-  # end
+  association :shift, blueprint: ShiftBlueprint do |team, _|
+    if team.shift.present?
+      ShiftBlueprint.render_as_hash(team.shift)
+    elsif team.bowlers.empty?
+      nil
+    else
+      ShiftBlueprint.render_as_hash(team.bowlers.first&.shift)
+    end
+  end
 
   view :list do
     field :name do |t, _|
@@ -17,15 +23,6 @@ class TeamBlueprint < Blueprinter::Base
     field :created_at, name: :date_registered, datetime_format: '%F'
     field :size do |t, _|
       t.bowlers.count
-    end
-    field :shift do |t, _|
-      if t.shift.present?
-        ShiftBlueprint.render_as_hash(t.shift)
-      elsif t.bowlers.empty?
-        nil
-      else
-        ShiftBlueprint.render_as_hash(t.bowlers.first&.shift)
-      end
     end
   end
 

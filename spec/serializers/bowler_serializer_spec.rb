@@ -98,7 +98,7 @@ RSpec.describe BowlerSerializer do
   end
 
   describe 'associations' do
-    let(:expected_keys) { %w(shift team) }
+    let(:expected_keys) { %w(team) }
 
     it 'has the expected keys' do
       expect(json_hash[:bowler].keys).to include(*expected_keys)

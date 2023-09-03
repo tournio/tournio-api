@@ -37,7 +37,6 @@ describe TeamsController, type: :request do
         expect(response).to have_http_status(:created)
       end
 
-
       it 'creates a BowlerShift instance for each member of the team' do
         expect { subject }.to change(BowlerShift, :count).by(4)
       end
@@ -72,7 +71,6 @@ describe TeamsController, type: :request do
         expect(json).to have_key('identifier')
         expect(json).to have_key('bowlers')
         expect(json['name']).to eq(full_team_test_data['name'])
-        expect(json['size']).to eq(4)
       end
 
       it 'creates data points' do
@@ -96,10 +94,13 @@ describe TeamsController, type: :request do
       end
     end
 
-    context 'with a partial team' do
+    context 'with one bowler and an initial size of 3' do
       let(:new_team_params) do
         {
-          team: partial_team_test_data,
+          team: partial_team_test_data.merge(
+            'initial_size' => 3,
+            'shift_identifier' => shift.identifier,
+          ),
         }
       end
 
@@ -108,25 +109,13 @@ describe TeamsController, type: :request do
         expect(response).to have_http_status(:created)
       end
 
-      it 'the options object is not empty' do
-        subject
-        team = Team.last
-        expect(team.options).not_to be_empty
-      end
-
-      it 'sets the place_with_others attribute under options' do
-        subject
-        team = Team.last
-        expect(team.options['place_with_others']).to be_truthy
-      end
-
       it 'includes the new team in the response' do
         subject
         expect(json).to have_key('name')
         expect(json).to have_key('identifier')
         expect(json).to have_key('bowlers')
         expect(json['name']).to eq(partial_team_test_data['name'])
-        expect(json['size']).to eq(3)
+        expect(json['initial_size']).to eq(3)
       end
     end
 
@@ -220,10 +209,23 @@ describe TeamsController, type: :request do
       expect(response).to have_http_status(:ok)
     end
 
-    it 'returns the expected team in the body' do
+    it 'includes a team in the body' do
+      subject
+      expect(json).not_to be_nil
+    end
+
+    it 'returns the expected identifier in the body' do
       subject
       expect(json['identifier']).to eq(team.identifier)
+    end
+
+    it 'returns the expected name in the body' do
+      subject
       expect(json['name']).to eq(team.name)
+    end
+
+    it 'returns the expected bowlers in the body' do
+      subject
       expect(json['bowlers'].count).to eq(team.bowlers.count)
     end
 

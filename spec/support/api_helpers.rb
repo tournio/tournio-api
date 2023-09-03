@@ -283,33 +283,6 @@ module ApiHelpers
       'name' => 'Strike Out',
       'bowlers_attributes' => [
         {
-          'position' => 1,
-          'doubles_partner_index' => 1,
-          'person_attributes' => {
-            'first_name' => 'Gannon',
-            'last_name' => 'Wong',
-            'usbc_id' => '8673-83363',
-            'birth_month' => '7',
-            'birth_day' => '3',
-            'nickname' => '',
-            'phone' => '792-110-6036',
-            'email' => 'cogy@gmail.com',
-            'address1' => '20 Nature Ct',
-            'address2' => 'Unit 9082',
-            'city' => 'Boston',
-            'state' => 'Ohio',
-            'country' => 'US',
-            'postal_code' => '54918',
-          },
-          'additional_question_responses' => [
-            {
-              'name' => 'standings_link',
-              'response' => 'http://www.leaguesecretary.com',
-            },
-          ],
-          'shift_identifier' => 'this-is-a-shift',
-        },
-        {
           'position' => 2,
           'doubles_partner_index' => 0,
           'person_attributes' => {
@@ -340,37 +313,7 @@ module ApiHelpers
           ],
           'shift_identifier' => 'this-is-a-shift',
         },
-        {
-          'position' => 3,
-          'doubles_partner_index' => nil,
-          'person_attributes' => {
-            'first_name' => 'Nelle',
-            'last_name' => 'Reeves',
-            'usbc_id' => '5678-97198',
-            'birth_month' => '11',
-            'birth_day' => '20',
-            'nickname' => 'Whoa Nelly',
-            'phone' => '881-954-9563',
-            'email' => 'depozisut@gmail.com',
-            'address1' => '2 California Dr',
-            'address2' => '#5',
-            'city' => 'Houston',
-            'state' => 'Nebraska',
-            'country' => 'US',
-            'postal_code' => '33818',
-          },
-          'additional_question_responses' => [
-            {
-              'name' => 'comment',
-              'response' => 'fe fi fo fum',
-            },
-          ],
-          'shift_identifier' => 'this-is-a-shift',
-        },
       ],
-      'options' => {
-        'place_with_others' => true,
-      }
     }
   end
 
