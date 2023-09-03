@@ -86,8 +86,6 @@ class BowlersController < ApplicationController
     # registering solo, doubles, or partner
     if bowlers.count == 2
       registration_type = 'new_pair'
-    elsif bowlers.first.doubles_partner_id.present?
-      registration_type = 'partner'
     elsif team.present?
       registration_type = 'standard'
       bowlers.each do |b|

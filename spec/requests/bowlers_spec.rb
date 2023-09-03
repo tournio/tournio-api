@@ -111,6 +111,13 @@ describe BowlersController, type: :request do
         expect { subject }.to change(DataPoint, :count).by(1)
       end
 
+      it 'creates the right kinds of data point' do
+        subject
+        dp = DataPoint.last
+        expect(dp.key).to eq('registration_type')
+        expect(dp.value).to eq('standard')
+      end
+
       context 'sneaking some trailing whitespace in on the email address' do
         before do
           bowler_params[:bowlers][0]['person_attributes']['email'] += ' '

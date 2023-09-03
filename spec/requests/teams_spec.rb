@@ -117,6 +117,14 @@ describe TeamsController, type: :request do
         expect(json['name']).to eq(partial_team_test_data['name'])
         expect(json['initial_size']).to eq(3)
       end
+
+      it 'creates the right kinds of data point' do
+        subject
+        dp = DataPoint.last
+        expect(dp.key).to eq('registration_type')
+        expect(dp.value).to eq('new_team')
+      end
+
     end
 
     context 'supporting placeholders' do
