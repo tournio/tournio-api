@@ -118,6 +118,41 @@ describe BowlersController, type: :request do
         expect(dp.value).to eq('standard')
       end
 
+      it 'does not assign a doubles partner by default' do
+        subject
+        expect(json[0]['doubles_partner']).to be_nil
+      end
+
+      context 'when a doubles partner identifier is specified' do
+        let(:partner) { team.bowlers.last }
+        let(:bowler_params) do
+          {
+            team_identifier: team.identifier,
+            bowlers: [
+              create_bowler_test_data.merge({
+                position: 4,
+                doubles_partner_identifier: partner.identifier
+              })
+            ],
+          }
+        end
+
+        it 'assigns the partner correctly' do
+          subject
+          expect(json[0]['doubles_partner']['identifier']).to eq(partner.identifier)
+        end
+
+        it 'partners up the other two, since they were all that was left' do
+          subject
+          expect(team.bowlers[0].doubles_partner_id).to eq(team.bowlers[1].id)
+        end
+
+        it 'partners up the other two, from the other direction' do
+          subject
+          expect(team.bowlers[1].doubles_partner_id).to eq(team.bowlers[0].id)
+        end
+      end
+
       context 'sneaking some trailing whitespace in on the email address' do
         before do
           bowler_params[:bowlers][0]['person_attributes']['email'] += ' '
@@ -154,42 +189,44 @@ describe BowlersController, type: :request do
           expect { subject }.not_to change(Purchase, :count)
         end
 
-        context 'partnering up with an already-registered bowler' do
-          let!(:target) { create :bowler, tournament: tournament, position: nil }
-          let(:bowler_params) do
-            {
-              bowlers: [create_bowler_test_data.merge({
-                doubles_partner_identifier: target.identifier,
-              })],
-            }
-          end
-
-          it 'succeeds' do
-            subject
-            expect(response).to have_http_status(:created)
-          end
-
-          it 'creates a bowler' do
-            expect { subject }.to change(Bowler, :count).by(1)
-          end
-
-          it 'partners up the bowler with the target' do
-            subject
-            bowler = Bowler.last
-            expect(bowler.doubles_partner_id).to eq(target.id)
-          end
-
-          it 'reciprocates the partnership' do
-            subject
-            bowler = Bowler.last
-            expect(target.reload.doubles_partner_id).to eq(bowler.id)
-          end
-
-          it 'creates a partner data point' do
-            subject
-            expect(DataPoint.last.value).to eq('partner')
-          end
-        end
+        # We aren't supporting this registration route anymore
+        #
+        # context 'partnering up with an already-registered bowler' do
+        #   let!(:target) { create :bowler, tournament: tournament, position: nil }
+        #   let(:bowler_params) do
+        #     {
+        #       bowlers: [create_bowler_test_data.merge({
+        #         doubles_partner_identifier: target.identifier,
+        #       })],
+        #     }
+        #   end
+        #
+        #   it 'succeeds' do
+        #     subject
+        #     expect(response).to have_http_status(:created)
+        #   end
+        #
+        #   it 'creates a bowler' do
+        #     expect { subject }.to change(Bowler, :count).by(1)
+        #   end
+        #
+        #   it 'partners up the bowler with the target' do
+        #     subject
+        #     bowler = Bowler.last
+        #     expect(bowler.doubles_partner_id).to eq(target.id)
+        #   end
+        #
+        #   it 'reciprocates the partnership' do
+        #     subject
+        #     bowler = Bowler.last
+        #     expect(target.reload.doubles_partner_id).to eq(bowler.id)
+        #   end
+        #
+        #   it 'creates a partner data point' do
+        #     subject
+        #     expect(DataPoint.last.value).to eq('partner')
+        #   end
+        # end
       end
     end
 

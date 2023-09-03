@@ -98,10 +98,20 @@ class BowlersController < ApplicationController
       TournamentRegistration.register_bowler(b, registration_type)
     end
 
+    # When creating a doubles pair only
     if bowlers.count == 2
       bowlers[0].doubles_partner = bowlers[1]
       bowlers[1].doubles_partner = bowlers[0]
       bowlers.map(&:save)
+    elsif team.present? && team.bowlers.count == tournament.team_size
+      # automatically pair up the last two bowlers
+      # TODO: only if there's a team event (which we don't handle separately yet)
+      unpartnered = team.bowlers.without_doubles_partner
+      if unpartnered.count == 2
+        unpartnered[0].doubles_partner = unpartnered[1]
+        unpartnered[1].doubles_partner = unpartnered[0]
+        unpartnered.map(&:save)
+      end
     end
 
     render json: BowlerBlueprint.render(bowlers, view: :detail), status: :created
@@ -257,12 +267,6 @@ class BowlersController < ApplicationController
         p['doubles_partner_id'] = partner.id unless partner.nil?
         p.delete('doubles_partner_identifier')
       end
-
-      if p['shift_identifier'].present?
-        shift = Shift.find_by(identifier: p['shift_identifier'])
-        p['bowler_shift_attributes'] = { shift_id: shift.id } unless shift.nil?
-        p.delete('shift_identifier')
-      end
     end
 
     permitted_params
@@ -271,12 +275,7 @@ class BowlersController < ApplicationController
   # These are used only when adding a bowler to an existing team
 
   def bowler_from_params(info)
-    bowler = Bowler.new(info.merge(team: team, tournament: tournament))
-    if team.present?
-      partner = team.bowlers.without_doubles_partner.first
-      bowler.doubles_partner = partner if partner.present?
-    end
-    bowler
+    Bowler.new(info.merge(team: team, tournament: tournament))
   end
 
   def additional_question_responses(params)
