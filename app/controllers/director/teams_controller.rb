@@ -45,8 +45,12 @@ module Director
 
       authorize tournament, :update?
 
-      new_team_params = { tournament: tournament }.merge(team_params)
-      team = Team.new(new_team_params)
+      # new_team_params = { tournament: tournament }.merge(team_params)
+      new_team_params = team_params
+      shift = Shift.find_by_identifier(new_team_params[:shift_identifier])
+      new_team_params.delete :shift_identifier
+
+      team = Team.new({ tournament: tournament }.merge(new_team_params.merge(shift_id: shift.id)))
       unless team.valid?
         render json: nil, status: :bad_request
         return
@@ -72,17 +76,18 @@ module Director
 
       if new_values['shift_identifier'].present?
         # This isn't a normal RESTful request.
-        handle_shift_change new_values['shift_identifier']
+        new_values['shift_id'] = new_shift_id new_values['shift_identifier']
+        new_values.delete 'shift_identifier'
       else
         unless positions_valid?(new_values)
           render json: { errors: ['Positions must be unique across the team'] }, status: :bad_request
           return
         end
+      end
 
-        unless team.update(new_values)
-          render json: { errors: team.errors.full_messages }, status: :bad_request
-          return
-        end
+      unless team.update(new_values)
+        render json: { errors: team.errors.full_messages }, status: :bad_request
+        return
       end
 
       render json: TeamBlueprint.render(team.reload, view: :director_detail), status: :ok
@@ -128,6 +133,7 @@ module Director
     def team_params
       params.require(:team).permit(
         :name,
+        :shift_identifier,
         options: {},
       ).to_h.symbolize_keys
     end
@@ -145,16 +151,9 @@ module Director
       positions.count == positions.uniq.count
     end
 
-    def handle_shift_change(new_shift_identifier)
+    def new_shift_id(new_shift_identifier)
       new_shift = Shift.find_by!(identifier: new_shift_identifier)
-      if new_shift.confirmed + team.bowlers.count > new_shift.capacity
-        raise InsufficientCapacityError
-      end
-      team.bowlers.each do |bowler|
-        bowler.bowler_shift.destroy
-        bowler.bowler_shift = BowlerShift.new(shift: new_shift)
-        TournamentRegistration.try_confirming_bowler_shift(bowler)
-      end
+      new_shift.id
     end
   end
 end

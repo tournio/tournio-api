@@ -104,11 +104,13 @@ describe Director::TeamsController, type: :request do
 
     let(:tournament_identifier) { tournament.identifier }
     let(:tournament) { create :tournament, :active, :one_shift }
+    let(:shift) { tournament.shifts.first }
 
     let(:params) do
       {
         team: {
           name: 'High Rollers',
+          shift_identifier: shift.identifier,
         }
       }
     end
@@ -125,6 +127,28 @@ describe Director::TeamsController, type: :request do
       expect(json).to have_key('name')
       expect(json).to have_key('identifier')
       expect(json['name']).to eq('High Rollers');
+    end
+
+    it 'links the team with the indicated shift' do
+      subject
+      expect(json).to have_key('shift')
+      expect(json['shift']['identifier']).to eq(shift.identifier)
+    end
+
+    context 'when the tournament has multiple shifts' do
+      let(:tournament) { create :tournament, :active, :two_shifts }
+      let(:shift) { tournament.shifts.last }
+
+      it 'succeeds with a 201 Created' do
+        subject
+        expect(response).to have_http_status(:created)
+      end
+
+      it 'links the team with the indicated shift' do
+        subject
+        expect(json).to have_key('shift')
+        expect(json['shift']['identifier']).to eq(shift.identifier)
+      end
     end
 
     context 'as an unpermitted user' do
@@ -271,23 +295,15 @@ describe Director::TeamsController, type: :request do
         }
       end
 
-      it 're-determines confirmation for each bowler' do
-        allow(TournamentRegistration).to receive(:try_confirming_bowler_shift)
-        expect(TournamentRegistration).to receive(:try_confirming_bowler_shift).exactly(team.bowlers.count).times
-        subject
-      end
-
       it 'succeeds with a 200 OK' do
         subject
         expect(response).to have_http_status(:ok)
       end
 
-      # TODO update director actions for shifts being associated with teams rather than bowlers
-      # (then do capacity...)
-      # it 'includes the updated team in the response' do
-      #   subject
-      #   expect(json['shift']['name']).to eq(new_shift.name)
-      # end
+      it 'includes the updated team in the response' do
+        subject
+        expect(json['shift']['name']).to eq(new_shift.name)
+      end
 
       context 'error scenarios' do
         context 'an unrecognized shift identifier' do
@@ -305,15 +321,16 @@ describe Director::TeamsController, type: :request do
           end
         end
 
-        context 'the destination shift is full' do
-          # try moving to a shift that's full of confirmed bowlers.
-          let(:new_shift) { create :shift, :full, tournament: tournament }
-
-          it 'yields a 409 Conflict' do
-            subject
-            expect(response).to have_http_status(:conflict)
-          end
-        end
+        # TODO We aren't worrying about capacity. But we do want to be able to mark a shift as full / unavailable
+        # context 'the destination shift is full' do
+        #   # try moving to a shift that's full of confirmed bowlers.
+        #   let(:new_shift) { create :shift, :full, tournament: tournament }
+        #
+        #   it 'yields a 409 Conflict' do
+        #     subject
+        #     expect(response).to have_http_status(:conflict)
+        #   end
+        # end
       end
     end
 
