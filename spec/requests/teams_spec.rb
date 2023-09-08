@@ -37,7 +37,6 @@ describe TeamsController, type: :request do
         expect(response).to have_http_status(:created)
       end
 
-
       it 'creates a BowlerShift instance for each member of the team' do
         expect { subject }.to change(BowlerShift, :count).by(4)
       end
@@ -93,6 +92,27 @@ describe TeamsController, type: :request do
         dp = DataPoint.last(4)
         tournament_ids = dp.collect(&:tournament_id).uniq
         expect(tournament_ids).to match_array([tournament.id])
+      end
+
+      context 'somehow with no shift identifier' do
+        let(:new_team_params) do
+          {
+            team: full_team_test_data_missing_shift,
+          }
+        end
+
+        it 'succeeds' do
+          subject
+          expect(response).to have_http_status(:created)
+        end
+
+        it 'creates a BowlerShift instance for each member of the team' do
+          expect { subject }.to change(BowlerShift, :count).by(4)
+        end
+
+        it "bumps the requested count of the tournament's only shift" do
+          expect { subject }.to change { tournament.shifts.first.requested }.by(4)
+        end
       end
     end
 
