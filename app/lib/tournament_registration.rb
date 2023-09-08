@@ -76,9 +76,10 @@ module TournamentRegistration
   end
 
   def self.team_display_name(team)
-    return 'n/a' if team.nil?
-    return team.name unless team&.name&.blank?
+    return 'n/a' if team.nil? || team.name.nil?
+    return team.name unless team.name.blank?
 
+    return 'n/a' if team.bowlers.empty?
     team.bowlers.collect(&:last_name).join(' / ')
   end
 
