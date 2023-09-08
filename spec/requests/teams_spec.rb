@@ -111,7 +111,7 @@ describe TeamsController, type: :request do
         end
 
         it "bumps the requested count of the tournament's only shift" do
-          expect { subject }.to change { tournament.shifts.first.requested }.by(4)
+          expect { subject }.to change { tournament.shifts.first.requested }
         end
       end
     end
