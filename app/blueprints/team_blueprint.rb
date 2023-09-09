@@ -34,7 +34,7 @@ class TeamBlueprint < Blueprinter::Base
 
   view :director_list do
     field :name do |t, _|
-      t.name.length.positive? ? t.name : TournamentRegistration.team_display_name(t) || 'uhh...'
+      TournamentRegistration.team_display_name(t)
     end
     field :created_at, name: :date_registered, datetime_format: '%F'
     field :size do |t, _|

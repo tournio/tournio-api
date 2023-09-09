@@ -158,6 +158,10 @@ class TeamsController < ApplicationController
       shift = Shift.find_by(identifier: permitted_params['shift_identifier'])
       permitted_params['bowler_shift_attributes'] = { shift_id: shift.id } unless shift.nil?
       permitted_params.delete('shift_identifier')
+    else
+      # I've seen this happen, not sure how
+      shift = tournament.shifts.first
+      permitted_params['bowler_shift_attributes'] = { shift_id: shift.id }
     end
 
     permitted_params
