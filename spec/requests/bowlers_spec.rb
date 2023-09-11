@@ -188,45 +188,6 @@ describe BowlersController, type: :request do
         it 'does not create any entry-fee purchases' do
           expect { subject }.not_to change(Purchase, :count)
         end
-
-        # We aren't supporting this registration route anymore
-        #
-        # context 'partnering up with an already-registered bowler' do
-        #   let!(:target) { create :bowler, tournament: tournament, position: nil }
-        #   let(:bowler_params) do
-        #     {
-        #       bowlers: [create_bowler_test_data.merge({
-        #         doubles_partner_identifier: target.identifier,
-        #       })],
-        #     }
-        #   end
-        #
-        #   it 'succeeds' do
-        #     subject
-        #     expect(response).to have_http_status(:created)
-        #   end
-        #
-        #   it 'creates a bowler' do
-        #     expect { subject }.to change(Bowler, :count).by(1)
-        #   end
-        #
-        #   it 'partners up the bowler with the target' do
-        #     subject
-        #     bowler = Bowler.last
-        #     expect(bowler.doubles_partner_id).to eq(target.id)
-        #   end
-        #
-        #   it 'reciprocates the partnership' do
-        #     subject
-        #     bowler = Bowler.last
-        #     expect(target.reload.doubles_partner_id).to eq(bowler.id)
-        #   end
-        #
-        #   it 'creates a partner data point' do
-        #     subject
-        #     expect(DataPoint.last.value).to eq('partner')
-        #   end
-        # end
       end
     end
 
@@ -234,7 +195,7 @@ describe BowlersController, type: :request do
       let(:bowler_params) do
         {
           bowlers: [
-            create_bowler_test_data.merge({ shift_identifier: shift.identifier })
+            create_bowler_test_data
           ],
         }
       end
@@ -264,14 +225,6 @@ describe BowlersController, type: :request do
         expect(bowler.purchases.entry_fee).not_to be_empty
       end
 
-      it 'creates a BowlerShift join model instance' do
-        expect { subject }.to change(BowlerShift, :count).by(1)
-      end
-
-      it 'marks the BowlerShift as requested' do
-        subject
-        expect(BowlerShift.last.requested?).to be_truthy
-      end
 
       it 'creates a data point' do
         expect { subject }.to change(DataPoint, :count).by(1)
@@ -282,16 +235,6 @@ describe BowlersController, type: :request do
         expect(DataPoint.last.value).to eq('solo')
       end
 
-      context "a tournament with two shifts" do
-        let(:tournament) { create :tournament, :active, :with_entry_fee, :two_shifts }
-        let(:shift) { tournament.shifts.second }
-
-        it 'puts the bowler on the preferred shift' do
-          subject
-          bowler = Bowler.last
-          expect(bowler.shift.id).to eq(shift.id)
-        end
-      end
 
       context 'sneaking some trailing whitespace in on the email address' do
         before do
@@ -327,43 +270,6 @@ describe BowlersController, type: :request do
 
         it 'does not create any entry-fee purchases' do
           expect { subject }.not_to change(Purchase, :count)
-        end
-
-        context 'partnering up with an already-registered bowler' do
-          let!(:target) { create :bowler, tournament: tournament, position: nil }
-          let(:bowler_params) do
-            {
-              bowlers: [create_bowler_test_data.merge({
-                doubles_partner_identifier: target.identifier,
-              })],
-            }
-          end
-
-          it 'succeeds' do
-            subject
-            expect(response).to have_http_status(:created)
-          end
-
-          it 'creates a bowler' do
-            expect { subject }.to change(Bowler, :count).by(1)
-          end
-
-          it 'partners up the bowler with the target' do
-            subject
-            bowler = Bowler.last
-            expect(bowler.doubles_partner_id).to eq(target.id)
-          end
-
-          it 'reciprocates the partnership' do
-            subject
-            bowler = Bowler.last
-            expect(target.reload.doubles_partner_id).to eq(bowler.id)
-          end
-
-          it 'creates a partner data point' do
-            subject
-            expect(DataPoint.last.value).to eq('partner')
-          end
         end
       end
     end
