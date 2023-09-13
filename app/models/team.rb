@@ -25,12 +25,19 @@ class Team < ApplicationRecord
   include TeamBusiness
 
   belongs_to :tournament
-  belongs_to :shift, optional: true
+  belongs_to :shift
   has_many :bowlers, -> { order(position: :asc) }, dependent: :destroy
   accepts_nested_attributes_for :bowlers
-  # accepts_nested_attributes_for :shift, update_only: true
 
   before_create :generate_identifier
+
+  after_create do
+    shift.update(requested: shift.reload.requested + 1)
+  end
+
+  before_destroy do
+    shift.update(requested: shift.reload.requested - 1)
+  end
 
   delegate :timezone, to: :tournament
 

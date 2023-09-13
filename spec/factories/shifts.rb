@@ -34,8 +34,8 @@ FactoryBot.define do
     end
 
     trait :high_demand do
-      confirmed { 30 }
-      requested { 20 }
+      confirmed { 20 }
+      requested { 15 }
     end
 
     trait :full do

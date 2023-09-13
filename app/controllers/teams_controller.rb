@@ -24,7 +24,6 @@ class TeamsController < ApplicationController
   BOWLER_ATTRS = [
     :position,
     :doubles_partner_index,
-    :shift_identifier,
     person_attributes: PERSON_ATTRS,
     additional_question_responses: ADDITIONAL_QUESTION_RESPONSES_ATTRS,
   ].freeze
@@ -49,7 +48,6 @@ class TeamsController < ApplicationController
 
     form_data = clean_up_form_data(team_params)
     team = team_from_params(form_data)
-
     unless team.valid?
       Rails.logger.warn "======== Invalid team created. Errors: #{team.errors.full_messages}"
       render json: team.errors, status: :unprocessable_entity
@@ -114,6 +112,12 @@ class TeamsController < ApplicationController
     team.bowlers.map do |b|
       b.tournament = tournament
     end
+
+    # When there's only one shift, ignore the provided shift_identifier parameter.
+    if tournament.shifts.count == 1
+      team.shift_id = tournament.shifts.first.id
+    end
+
     team
   end
 
@@ -151,18 +155,6 @@ class TeamsController < ApplicationController
 
     # remove that key from the params...
     permitted_params.delete('additional_question_responses')
-
-    # If there's a shift identifier, insert the corresponding id to take advantage of AR nested attributes
-    # TODO: Remove this entirely once we have placeholder teams working fully
-    if permitted_params['shift_identifier'].present?
-      shift = Shift.find_by(identifier: permitted_params['shift_identifier'])
-      permitted_params['bowler_shift_attributes'] = { shift_id: shift.id } unless shift.nil?
-      permitted_params.delete('shift_identifier')
-    else
-      # I've seen this happen, not sure how
-      shift = tournament.shifts.first
-      permitted_params['bowler_shift_attributes'] = { shift_id: shift.id }
-    end
 
     permitted_params
   end
