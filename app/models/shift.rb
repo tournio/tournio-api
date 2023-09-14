@@ -25,7 +25,7 @@ class Shift < ApplicationRecord
   has_many :bowler_shifts, dependent: :destroy
   has_many :bowlers, through: :bowler_shifts
 
-  validates :capacity, comparison: { greater_than_or_equal_to: :confirmed }
+  validates :capacity, numericality: { greater_than: 0 }
 
   scope :available, -> { where('confirmed < capacity') }
 
@@ -36,7 +36,7 @@ class Shift < ApplicationRecord
   end
 
   def reset_counts
-    update(confirmed: 0, requested: 0)
+    update(requested: 0)
   end
 
   private

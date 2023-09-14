@@ -365,7 +365,7 @@ describe Director::TournamentsController, type: :request do
         tournament: {
           name: 'Fingers In Holes In Balls',
           abbreviation: 'FIHIB',
-          year: 2023,
+          year: 2024,
         }
       }
     end
@@ -398,7 +398,7 @@ describe Director::TournamentsController, type: :request do
 
     let(:uri) { "/director/tournaments/#{tournament.identifier}" }
 
-    let(:tournament) { create :tournament }
+    let!(:tournament) { create :tournament }
     let(:eff) { create :extended_form_field }
     let(:params) do
       {
@@ -715,7 +715,7 @@ describe Director::TournamentsController, type: :request do
     end
 
     context 'creating shifts' do
-      context 'just one' do
+      context 'just one more' do
         let(:params) do
           {
             tournament: {
@@ -723,7 +723,7 @@ describe Director::TournamentsController, type: :request do
                 {
                   name: '',
                   description: '',
-                  capacity: 100,
+                  capacity: 54,
                   display_order: 1,
                 },
               ],
@@ -741,7 +741,7 @@ describe Director::TournamentsController, type: :request do
 
       end
 
-      context 'two shifts' do
+      context 'two more shifts' do
         let(:params) do
           {
             tournament: {
@@ -763,7 +763,7 @@ describe Director::TournamentsController, type: :request do
           }
         end
 
-        it 'creates 2 shifts' do
+        it 'creates 2 more shifts' do
           expect { subject }.to change(Shift, :count).by(2)
         end
 

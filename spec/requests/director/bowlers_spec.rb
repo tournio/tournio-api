@@ -21,7 +21,7 @@ describe Director::BowlersController, type: :request do
 
     before do
       10.times do
-        create :bowler, :with_team, tournament: tournament, shift: tournament.shifts.first
+        create :bowler, :with_team, tournament: tournament
       end
       for i in 0..4 do
         src = tournament.bowlers[i*2]
@@ -102,7 +102,7 @@ describe Director::BowlersController, type: :request do
 
     let(:uri) { "/director/bowlers/#{bowler_identifier}" }
 
-    let(:bowler) { create :bowler, :with_team, :with_shift }
+    let(:bowler) { create :bowler, :with_team }
     let(:tournament) { bowler.tournament }
     let(:bowler_identifier) { bowler.identifier }
 
@@ -168,33 +168,6 @@ describe Director::BowlersController, type: :request do
       expect(response).to have_http_status(:no_content)
     end
 
-    context 'on a shift' do
-      let(:bowler) { create :bowler, :with_shift }
-      let(:shift) { bowler.shift }
-
-      it "drops the requested count of the shift" do
-        expect { subject }.to change { shift.reload.requested }.by(-1)
-      end
-
-      it "doesn't change the confirmed count of the shift" do
-        expect { subject }.not_to change { shift.reload.confirmed }
-      end
-
-      context 'when the bowler is confirmed in the shift' do
-        before do
-          bowler.bowler_shift.confirm!
-        end
-
-        it "drops the confirmed count of the shift" do
-          expect { subject }.to change { shift.reload.confirmed }.by(-1)
-        end
-
-        it "doesn't change the requested count of the shift" do
-          expect { subject }.not_to change { shift.reload.requested }
-        end
-      end
-    end
-
     context 'as an unpermitted user' do
       let(:requesting_user) { create(:user, :unpermitted) }
 
@@ -239,7 +212,7 @@ describe Director::BowlersController, type: :request do
 
     let(:uri) { "/director/bowlers/#{bowler_identifier}" }
 
-    let(:bowler) { create :bowler, :with_team, :with_shift }
+    let(:bowler) { create :bowler, :with_team }
     let(:tournament) { bowler.tournament }
     let(:team) { bowler.team }
     let(:bowler_identifier) { bowler.identifier }

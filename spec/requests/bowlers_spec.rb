@@ -64,7 +64,7 @@ describe BowlersController, type: :request do
     end
 
     context 'adding a bowler to a team' do
-      let!(:team) { create :team, :standard_three_bowlers, tournament: tournament }
+      let!(:team) { create :team, :standard_three_bowlers, tournament: tournament, shift: tournament.shifts.first }
       let(:bowler_params) do
         {
           team_identifier: team.identifier,
@@ -150,6 +150,32 @@ describe BowlersController, type: :request do
         it 'partners up the other two, from the other direction' do
           subject
           expect(team.bowlers[1].doubles_partner_id).to eq(team.bowlers[0].id)
+        end
+      end
+
+      context "when two of the existing bowlers are partnered" do
+        let!(:partner) { team.bowlers.last }
+
+        before do
+          team.bowlers.first.update(doubles_partner_id: team.bowlers.second.id)
+          team.bowlers.second.update(doubles_partner_id: team.bowlers.first.id)
+        end
+
+        it 'partners up this bowler with the other unpartnered one' do
+          subject
+          new_bowler = Bowler.last
+          expect(new_bowler.doubles_partner_id).to eq(partner.id)
+        end
+
+        it 'is reflected in the response' do
+          subject
+          expect(json[0]['doubles_partner']['identifier']).to eq(partner.identifier)
+        end
+
+        it 'is reciprocal' do
+          subject
+          new_bowler = Bowler.last
+          expect(partner.reload.doubles_partner_id).to eq(new_bowler.id)
         end
       end
 

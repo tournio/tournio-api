@@ -53,9 +53,9 @@ module Director
       skip_authorization
       render json: nil, status: :not_found
     rescue ActiveRecord::RecordInvalid
-      render json: { error: 'Cannot make capacity less than the number of confirmed bowlers' }, status: :conflict
+      render json: { error: 'Cannot make capacity less than 1' }, status: :conflict
     rescue ActionController::UnpermittedParameters
-      render json: { error: 'Cannot change confirmed or requested attributes' }, status: :conflict
+      render json: { error: 'Cannot change calculated attributes' }, status: :conflict
     end
 
     private

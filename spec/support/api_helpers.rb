@@ -81,53 +81,12 @@ module ApiHelpers
     }
   end
 
-  def partial_team_test_data
-    {
-      'name' => 'Strike Out',
-      'initial_size' => 4,
-      'bowlers_attributes' => [
-        {
-          'position' => 2,
-          'doubles_partner_index' => 0,
-          'person_attributes' => {
-            'first_name' => 'Giacomo',
-            'last_name' => 'Hale',
-            'usbc_id' => '6621-43399',
-            'birth_month' => '6',
-            'birth_day' => '16',
-            'nickname' => 'Gio',
-            'phone' => '814-499-4750',
-            'email' => 'lite@yahoo.com',
-            'address1' => '9 Artisan Rd',
-            'address2' => '',
-            'city' => 'Toronto',
-            'state' => 'Arkansas',
-            'country' => 'CA',
-            'postal_code' => '37236',
-          },
-          'additional_question_responses' => [
-            {
-              'name' => 'pronouns',
-              'response' => 'something else',
-            },
-            {
-              'name' => 'comment',
-              'response' => 'I like pizza!',
-            },
-          ],
-          'shift_identifier' => 'this-is-a-shift',
-        },
-      ],
-    }
-  end
-
   def invalid_team_test_data
     {
       'name' => 'Gutter Lovers',
       'bowlers_attributes' => [
         {
           'position' => 1,
-          'doubles_partner_index' => 1,
           'person_attributes' => {
             'first_name' => 'Gannon',
             'last_name' => '',

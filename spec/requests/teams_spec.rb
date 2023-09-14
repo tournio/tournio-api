@@ -48,17 +48,6 @@ describe TeamsController, type: :request do
       expect { subject }.not_to change { shift.reload.confirmed }
     end
 
-    # TODO: a test for this should go into requests/bowlers_spec.rb
-    # it 'correctly pairs up the doubles pairs' do
-    #   subject
-    #   team = Team.last
-    #   team.bowlers.each do |me|
-    #     you = Bowler.find(me.doubles_partner_id)
-    #
-    #     expect(you.doubles_partner_id).to eq(me.id)
-    #   end
-    # end
-    #
     it 'includes the new team in the response' do
       subject
       expect(json).to have_key('name')
@@ -113,7 +102,7 @@ describe TeamsController, type: :request do
       end
     end
 
-    context 'with one bowler and an initial size of 3' do
+    context 'with an initial size of 3' do
       let(:new_team_params) do
         {
           team: single_bowler_team_test_data.merge(
@@ -146,38 +135,6 @@ describe TeamsController, type: :request do
 
     end
 
-    context 'supporting placeholders' do
-      # expectation is for a single bowler to come through, but we might be able to support more later.
-      before do
-        create :shift, tournament: tournament, identifier: single_bowler_team_test_data['shift_identifier']
-      end
-
-      let(:new_team_params) do
-        {
-          team: single_bowler_team_test_data,
-        }
-      end
-
-      it 'succeeds' do
-        subject
-        expect(response).to have_http_status(:created)
-      end
-
-      it 'includes the new team in the response' do
-        subject
-        expect(json).to have_key('name')
-        expect(json).to have_key('identifier')
-        expect(json).to have_key('bowlers')
-        expect(json['name']).to eq(single_bowler_team_test_data['name'])
-        expect(json['initial_size']).to eq(single_bowler_team_test_data['initial_size'].to_i)
-      end
-
-      it 'associates the team to the specified shift' do
-        subject
-        expect(Team.last.shift.identifier).to eq(single_bowler_team_test_data['shift_identifier'])
-      end
-    end
-
     context 'with invalid data' do
       let(:new_team_params) do
         {
@@ -197,7 +154,7 @@ describe TeamsController, type: :request do
 
     let(:uri) { "/tournaments/#{tournament.identifier}/teams" }
     let(:tournament) { create :tournament, :active, :one_shift }
-    let(:shift) { tournament.shift }
+    let(:shift) { tournament.shifts.first }
     let(:expected_keys) { %w(identifier name size) }
 
     before do
@@ -229,7 +186,7 @@ describe TeamsController, type: :request do
 
     let(:uri) { "/teams/#{team.identifier}" }
     let(:tournament) { create :tournament, :active, :one_shift }
-    let!(:team) { create :team, :standard_full_team, shift: tournament.shift, tournament: tournament }
+    let!(:team) { create :team, :standard_full_team, shift: tournament.shifts.first, tournament: tournament }
     let(:expected_keys) { %w(identifier name initial_size bowlers) }
 
     it 'succeeds' do

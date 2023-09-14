@@ -83,7 +83,7 @@ class BowlersController < ApplicationController
 
     registration_type = 'solo'
 
-    # registering solo, doubles, or partner
+    # adding a bowler to a team (standard) or doing a doubles pair registration
     if bowlers.count == 2
       registration_type = 'new_pair'
     elsif team.present?
@@ -96,6 +96,7 @@ class BowlersController < ApplicationController
     bowlers.each do |b|
       b.save
       TournamentRegistration.register_bowler(b, registration_type)
+      b.reload
     end
 
     # When creating a doubles pair only

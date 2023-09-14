@@ -16,24 +16,25 @@ describe Director::TeamsController, type: :request do
 
     let(:uri) { "/director/tournaments/#{tournament_identifier}/teams" }
 
+    let!(:tournament) { create :tournament, :active, :one_shift }
     let(:tournament_identifier) { tournament.identifier }
-    let(:tournament) { create :tournament, :active, :one_shift }
+    let(:shift) { tournament.shifts.first }
 
     before do
       10.times do
-        create :team, :standard_full_team, tournament: tournament
+        create :team, :standard_full_team, tournament: tournament, shift: shift
       end
 
       2.times do
-        create :team, :standard_one_bowler, tournament: tournament
+        create :team, :standard_one_bowler, tournament: tournament, shift: shift
       end
 
       2.times do
-        create :team, :standard_two_bowlers, tournament: tournament
+        create :team, :standard_two_bowlers, tournament: tournament, shift: shift
       end
 
       1.times do
-        create :team, :standard_three_bowlers, tournament: tournament
+        create :team, :standard_three_bowlers, tournament: tournament, shift: shift
       end
     end
 
@@ -135,6 +136,10 @@ describe Director::TeamsController, type: :request do
       expect(json['shift']['identifier']).to eq(shift.identifier)
     end
 
+    it 'bumps the requested count of the shift' do
+      expect { subject }.to change { shift.reload.requested }.by(1)
+    end
+
     context 'when the tournament has multiple shifts' do
       let(:tournament) { create :tournament, :active, :two_shifts }
       let(:shift) { tournament.shifts.last }
@@ -148,6 +153,10 @@ describe Director::TeamsController, type: :request do
         subject
         expect(json).to have_key('shift')
         expect(json['shift']['identifier']).to eq(shift.identifier)
+      end
+
+      it 'bumps the requested count of the shift' do
+        expect { subject }.to change { shift.reload.requested }.by(1)
       end
     end
 
@@ -196,7 +205,7 @@ describe Director::TeamsController, type: :request do
     let(:uri) { "/director/teams/#{team_identifier}" }
 
     let(:tournament) { create :tournament, :one_shift }
-    let(:team) { create :team, tournament: tournament }
+    let(:team) { create :team, tournament: tournament, shift: tournament.shifts.first }
     let(:team_identifier) { team.identifier }
 
     include_examples 'an authorized action'
@@ -245,8 +254,8 @@ describe Director::TeamsController, type: :request do
 
     let(:uri) { "/director/teams/#{team_identifier}" }
 
-    let(:tournament) { create :tournament, :active, :one_shift }
-    let(:team) { create :team, :standard_full_team, tournament: tournament }
+    let(:tournament) { create :tournament, :active }
+    let(:team) { create :team, :standard_full_team, tournament: tournament, shift: tournament.shifts.first }
     let(:team_identifier) { team.identifier }
     let(:new_name) { 'High Rollers' }
     let(:attributes_array) do
@@ -283,9 +292,9 @@ describe Director::TeamsController, type: :request do
 
     context 'moving to a different shift' do
       let(:tournament) { create :tournament, :active, :two_shifts }
-      let(:team) { create :team, :standard_full_team, tournament: tournament }
       let(:old_shift) { tournament.shifts.first }
       let(:new_shift) { tournament.shifts.second }
+      let(:team) { create :team, :standard_full_team, tournament: tournament, shift: old_shift }
 
       let(:params) do
         {
@@ -411,7 +420,7 @@ describe Director::TeamsController, type: :request do
     let(:uri) { "/director/teams/#{team_identifier}" }
 
     let(:tournament) { create :tournament, :active }
-    let(:team) { create :team, :standard_full_team, tournament: tournament }
+    let(:team) { create :team, :standard_full_team, tournament: tournament, shift: tournament.shifts.first }
     let(:team_identifier) { team.identifier }
 
     include_examples 'an authorized action'

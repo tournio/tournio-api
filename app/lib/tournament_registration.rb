@@ -111,8 +111,6 @@ module TournamentRegistration
     team.save
 
     team.bowlers.each { |b| register_bowler(b) }
-
-    link_doubles_partners(team.bowlers)
   end
 
   def self.register_bowler(bowler, registration_type='new_team')
@@ -120,11 +118,22 @@ module TournamentRegistration
     add_early_discount_to_ledger(bowler)
     add_late_fees_to_ledger(bowler)
     complete_doubles_link(bowler) if bowler.doubles_partner_id.present?
+    try_assigning_automatic_partners(bowler.team) if bowler.team.present?
 
     DataPoint.create(key: :registration_type, value: registration_type, tournament_id: bowler.tournament_id)
 
     send_confirmation_email(bowler)
     notify_registration_contacts(bowler)
+  end
+
+  def self.try_assigning_automatic_partners(team)
+    unpartnered = team.bowlers.without_doubles_partner
+    remaining_spots = team.tournament.team_size - team.bowlers.count
+    return unless remaining_spots == 0 && unpartnered.count == 2
+
+    unpartnered[0].doubles_partner = unpartnered[1]
+    unpartnered[1].doubles_partner = unpartnered[0]
+    unpartnered.map(&:save)
   end
 
   def self.purchase_entry_fee(bowler)
@@ -175,19 +184,6 @@ module TournamentRegistration
     (bowler.ledger_entries.sum(&:debit) - bowler.ledger_entries.sum(&:credit)).to_i
   end
 
-  def self.link_doubles_partners(bowlers)
-    bowlers.each do |bowler|
-      next unless bowler.doubles_partner_index.present?
-
-      partner_index = bowler.doubles_partner_index.to_i
-      partner = bowlers[partner_index]
-      next if partner.nil?
-
-      bowler.doubles_partner = partner
-      bowler.save
-    end
-  end
-
   def self.complete_doubles_link(bowler)
     return if bowler.doubles_partner.nil?
 
@@ -206,9 +202,6 @@ module TournamentRegistration
     affected_purchases = bowler.purchases.entry_fee + bowler.purchases.late_fee
     affected_discounts = bowler.purchases.early_discount + bowler.purchases.bundle_discount
     total_credit = affected_purchases.sum(&:value) - affected_discounts.sum(&:value)
-
-    # affected_purchases = bowler.purchases.ledger
-    # total_credit = affected_purchases.sum(&:value)
 
     identifier = confirmed_by.present? ? "Free entry confirmed by #{confirmed_by}" : 'Free entry confirmed by no one'
     free_entry.update(confirmed: true)
