@@ -26,7 +26,6 @@ class BowlerBlueprint < Blueprinter::Base
     end
 
     association :doubles_partner, blueprint: BowlerBlueprint
-    association :shift, blueprint: ShiftBlueprint
   end
 
   view :detail do

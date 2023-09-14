@@ -17,7 +17,7 @@ describe Director::BowlersController, type: :request do
     let(:uri) { "/director/tournaments/#{tournament_identifier}/bowlers" }
 
     let(:tournament_identifier) { tournament.identifier }
-    let(:tournament) { create :tournament, :active, :one_shift }
+    let(:tournament) { create :tournament, :active }
 
     before do
       10.times do
@@ -48,7 +48,7 @@ describe Director::BowlersController, type: :request do
 
       before do
         7.times do
-          create :bowler, :with_team, tournament: tournament, shift: tournament.shifts.first
+          create :bowler, :with_team, tournament: tournament
         end
       end
 

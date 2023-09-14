@@ -520,6 +520,5 @@ class BowlersController < ApplicationController
       source: :stripe,
       identifier: 'pretend_stripe_payment',
     )
-    TournamentRegistration.try_confirming_bowler_shift(bowler)
   end
 end

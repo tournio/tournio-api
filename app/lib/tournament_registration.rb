@@ -272,17 +272,6 @@ module TournamentRegistration
   end
 
   def self.try_confirming_bowler_shift(bowler)
-    return unless bowler.shift.present?
-    return if bowler.bowler_shift.confirmed?
-    unpaid_fees = bowler.purchases.ledger.unpaid.any? || bowler.purchases.event.unpaid.any?
-    return if unpaid_fees
-    return if bowler.shift.confirmed >= bowler.shift.capacity
-
-    confirm_shift(bowler)
-  end
-
-  def self.confirm_shift(bowler)
-    bowler.bowler_shift.confirm!
   end
 
   # Private methods

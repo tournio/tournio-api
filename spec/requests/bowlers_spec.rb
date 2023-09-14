@@ -11,13 +11,13 @@ describe BowlersController, type: :request do
   describe '#index' do
     subject { get uri, as: :json }
 
-    let(:tournament) { create :tournament, :active, :one_shift, :with_a_bowling_event }
+    let(:tournament) { create :tournament, :active, :with_a_bowling_event }
     let(:tournament_identifier) { tournament.identifier }
     let(:uri) { "/tournaments/#{tournament_identifier}/bowlers" }
 
     before do
       10.times do |i|
-        create :bowler, tournament: tournament, position: nil, shift: tournament.shifts.first
+        create :bowler, tournament: tournament, position: nil
       end
     end
 
@@ -50,8 +50,7 @@ describe BowlersController, type: :request do
     subject { post uri, params: bowler_params, as: :json }
 
     let(:uri) { "/tournaments/#{tournament.identifier}/bowlers" }
-    let(:tournament) { create :tournament, :active, :with_entry_fee, :one_shift }
-    let(:shift) { tournament.shifts.first }
+    let(:tournament) { create :tournament, :active, :with_entry_fee }
 
     before do
       comment = create(:extended_form_field, :comment)
@@ -64,7 +63,7 @@ describe BowlersController, type: :request do
     end
 
     context 'adding a bowler to a team' do
-      let!(:team) { create :team, :standard_three_bowlers, tournament: tournament, shift: tournament.shifts.first }
+      let!(:team) { create :team, :standard_three_bowlers, tournament: tournament }
       let(:bowler_params) do
         {
           team_identifier: team.identifier,
@@ -301,7 +300,7 @@ describe BowlersController, type: :request do
     end
 
     context 'registering as a doubles pair' do
-      let(:tournament) { create :tournament, :active, :with_a_bowling_event, :one_shift }
+      let(:tournament) { create :tournament, :active, :with_a_bowling_event }
       let(:bowler_params) do
         {
           bowlers: create_doubles_test_data,

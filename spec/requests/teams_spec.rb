@@ -12,7 +12,7 @@ describe TeamsController, type: :request do
     subject { post uri, params: new_team_params, as: :json }
 
     let(:uri) { "/tournaments/#{tournament.identifier}/teams" }
-    let(:tournament) { create :tournament, :active, :with_entry_fee, :one_shift }
+    let(:tournament) { create :tournament, :active, :with_entry_fee }
     let!(:shift) { tournament.shifts.first }
 
     before do
@@ -34,10 +34,6 @@ describe TeamsController, type: :request do
     it 'succeeds' do
       subject
       expect(response).to have_http_status(:created)
-    end
-
-    it 'does not create any BowlerShift instances' do
-      expect { subject }.not_to change(BowlerShift, :count)
     end
 
     it 'bumps the requested count of the specified shift' do

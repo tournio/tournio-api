@@ -149,7 +149,6 @@ module DirectorUtilities
       email: bowler.email,
 
       usbc_number: bowler.usbc_id,
-      igbotsid: bowler.igbo_id,
       average: bowler.verified_data['verified_average'] || '',
       handicap: bowler.verified_data['handicap'],
     }
@@ -177,12 +176,14 @@ module DirectorUtilities
         team_id: team.id, # team.identifier,
         team_name: team.name,
         team_order: bowler.position,
+        preferred_shift: team.shift&.name,
       }
     else
       {
         team_id: 'n/a',
         team_name: 'n/a',
         team_order: 'n/a',
+        preferred_shift: 'n/a',
       }
     end
   end
@@ -221,7 +222,6 @@ module DirectorUtilities
     {
       entry_fee_paid: bowler.purchases.entry_fee.first&.paid_at.present? ? 'Y' : 'N',
       registered_at: bowler.created_at.in_time_zone(timezone).strftime('%Y %b %-d %l:%M%P %Z'),
-      preferred_shift: bowler.shift.name,
     }.merge(csv_additional_questions(bowler: bowler))
       .merge(csv_purchases(bowler: bowler))
   end

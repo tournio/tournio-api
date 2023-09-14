@@ -10,7 +10,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema[7.0].define(version: 2023_08_30_214418) do
+ActiveRecord::Schema[7.0].define(version: 2023_09_14_173514) do
   # These are extensions that must be enabled in order to support this database
   enable_extension "plpgsql"
 
@@ -89,17 +89,6 @@ ActiveRecord::Schema[7.0].define(version: 2023_08_30_214418) do
     t.index ["person_id"], name: "index_bowlers_on_person_id"
     t.index ["team_id"], name: "index_bowlers_on_team_id"
     t.index ["tournament_id"], name: "index_bowlers_on_tournament_id"
-  end
-
-  create_table "bowlers_shifts", force: :cascade do |t|
-    t.bigint "bowler_id", null: false
-    t.bigint "shift_id", null: false
-    t.string "aasm_state", null: false
-    t.datetime "confirmed_at"
-    t.datetime "created_at", null: false
-    t.datetime "updated_at", null: false
-    t.index ["bowler_id"], name: "index_bowlers_shifts_on_bowler_id"
-    t.index ["shift_id"], name: "index_bowlers_shifts_on_shift_id"
   end
 
   create_table "config_items", force: :cascade do |t|
@@ -313,10 +302,10 @@ ActiveRecord::Schema[7.0].define(version: 2023_08_30_214418) do
     t.integer "display_order", default: 1, null: false
     t.integer "capacity", default: 128, null: false
     t.integer "requested", default: 0, null: false
-    t.integer "confirmed", default: 0, null: false
     t.bigint "tournament_id", null: false
     t.datetime "created_at", null: false
     t.datetime "updated_at", null: false
+    t.boolean "is_full", default: false
     t.index ["identifier"], name: "index_shifts_on_identifier", unique: true
     t.index ["tournament_id"], name: "index_shifts_on_tournament_id"
   end
