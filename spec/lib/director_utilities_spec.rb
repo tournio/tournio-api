@@ -192,68 +192,9 @@ RSpec.describe DirectorUtilities do
       expect(moving_bowler.reload.position).to eq(4)
     end
 
-    it "puts the bowler on the destination team's shift" do
-      subject
-      expect(moving_bowler.reload.shift.id).to eq(destination_team_shift.id)
-    end
-
-    it 'updates the requested of the original shift' do
-      expect { subject }.to change(source_team_shift, :requested).by(-1)
-    end
-
-    it 'updates the requested of the destination shift' do
-      expect { subject }.to change(destination_team_shift, :requested).by(1)
-    end
-
-    it 'does not change the confirmed of the original shift' do
-      expect { subject }.not_to change(source_team_shift, :confirmed)
-    end
-
-    it 'does not change the confirmed of the destination shift' do
-      expect { subject }.not_to change(destination_team_shift, :confirmed)
-    end
-
-    context 'new team is on the same shift' do
-      before do
-        moving_bowler.shift = destination_team_shift
-      end
-
-      it 'makes no changes to the BowlerShift state' do
-        expect { subject }.not_to change(moving_bowler.bowler_shift, :aasm_state)
-      end
-
-      it 'makes no changes to the shift association' do
-        expect { subject }.not_to change(moving_bowler.shift, :id)
-      end
-
-      it 'makes no changes to the requested count of the shift in question' do
-        expect { subject }.not_to change(destination_team_shift, :requested)
-      end
-
-      it 'makes no changes to the confirmed count of the shift in question' do
-        expect { subject }.not_to change(destination_team_shift, :confirmed)
-      end
-
-      it 'makes no changes to the requested count of the other shift' do
-        expect { subject }.not_to change(source_team_shift, :requested)
-      end
-
-      it 'makes no changes to the confirmed count of the other shift' do
-        expect { subject }.not_to change(source_team_shift, :confirmed)
-      end
-    end
-
     context 'bowler is paid' do
       before do
         moving_bowler.bowler_shift.confirm!
-      end
-
-      it 'updates the confirmed of the original shift' do
-        expect { subject }.to change(source_team_shift, :confirmed).by(-1)
-      end
-
-      it 'updates the confirmed of the destination shift' do
-        expect { subject }.to change(destination_team_shift, :confirmed).by(1)
       end
 
       it 'does not change the requested of the original shift' do

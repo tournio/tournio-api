@@ -44,10 +44,6 @@ describe TeamsController, type: :request do
       expect { subject }.to change { shift.reload.requested }.by(1)
     end
 
-    it 'does not bump the confirmed count' do
-      expect { subject }.not_to change { shift.reload.confirmed }
-    end
-
     it 'includes the new team in the response' do
       subject
       expect(json).to have_key('name')

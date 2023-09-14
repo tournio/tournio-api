@@ -15,6 +15,8 @@
 #  index_bowlers_shifts_on_bowler_id  (bowler_id)
 #  index_bowlers_shifts_on_shift_id   (shift_id)
 #
+
+# TOOD kill it with fire
 FactoryBot.define do
   factory :bowler_shift do
 

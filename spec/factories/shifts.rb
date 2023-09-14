@@ -30,16 +30,16 @@ FactoryBot.define do
     end
 
     trait :half_filled do
-      confirmed { 20 }
+      requested { 20 }
     end
 
     trait :high_demand do
-      confirmed { 20 }
-      requested { 15 }
+      requested { 35 }
     end
 
+    # TODO update this if we make any model changes to indicate full
     trait :full do
-      confirmed { 40 }
+      requested { 40 }
     end
   end
 end

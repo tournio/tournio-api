@@ -34,19 +34,6 @@ module DirectorUtilities
     new_position = (to_team.bowlers.collect(&:position).max || 0) + 1
     bowler.update(position: new_position)
 
-    # if necessary, move the bowler to the destination team's shift
-    unless to_team.bowlers.empty?
-      dest_shift = to_team.bowlers.first.shift
-      src_shift = bowler.shift
-
-      unless dest_shift.id == src_shift.id
-        confirmed = bowler.bowler_shift.confirmed?
-        bowler.bowler_shift.destroy
-        bowler.bowler_shift = BowlerShift.new(shift: dest_shift)
-        bowler.bowler_shift.confirm! if confirmed
-      end
-    end
-
     # put them on the new team
     bowler.update(team: to_team)
   end
