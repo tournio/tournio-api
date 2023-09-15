@@ -37,9 +37,9 @@ FactoryBot.define do
       requested { 35 }
     end
 
-    # TODO update this if we make any model changes to indicate full
     trait :full do
       requested { 40 }
+      is_full { true }
     end
   end
 end

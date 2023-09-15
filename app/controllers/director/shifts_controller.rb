@@ -65,7 +65,7 @@ module Director
     def shift_params
       params.permit(:tournament_identifier,
         :identifier,
-        shift: %i(capacity description name display_order)
+        shift: %i(capacity description name display_order is_full)
       ).require(:shift)
     end
   end

@@ -130,13 +130,11 @@ describe Director::ShiftsController, type: :request do
     context 'trying to change a calculated attribute' do
       let(:shift_params) do
         {
-          capacity: 32,
           requested: 17,
         }
       end
 
       it 'raises if we try to change calculated attributes' do
-        initial_requested = shift.requested
         subject
         expect(response).to have_http_status(:conflict)
       end
@@ -152,6 +150,19 @@ describe Director::ShiftsController, type: :request do
       it 'rejects it with Conflict' do
         subject
         expect(response).to have_http_status(:conflict)
+      end
+    end
+
+    context 'marking it as full' do
+      let(:shift_params) do
+        {
+          is_full: true,
+        }
+      end
+
+      it 'succeeds with a 200 OK' do
+        subject
+        expect(response).to have_http_status(:ok)
       end
     end
 
