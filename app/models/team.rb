@@ -34,11 +34,11 @@ class Team < ApplicationRecord
   before_create :generate_identifier
 
   after_create do
-    shift.update(requested: shift.reload.requested + 1)
+    shift.update(requested: shift.reload.requested + 1) unless shift.blank?
   end
 
   before_destroy do
-    shift.update(requested: shift.reload.requested - 1)
+    shift.update(requested: shift.reload.requested - 1) unless shift.blank?
   end
 
   delegate :timezone, to: :tournament
