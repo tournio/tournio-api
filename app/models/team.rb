@@ -51,6 +51,8 @@ class Team < ApplicationRecord
   private
 
   def generate_identifier
-    self.identifier = SecureRandom.uuid
+    begin
+      self.identifier = SecureRandom.alphanumeric(6)
+    end while Team.exists?(identifier: self.identifier)
   end
 end
