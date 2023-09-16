@@ -127,6 +127,32 @@ describe TeamsController, type: :request do
 
     end
 
+    context 'when a shift is full' do
+      let(:tournament) { create :tournament, :active, :with_entry_fee, :two_shifts }
+
+      before do
+        tournament.shifts.second.update(is_full: true)
+      end
+
+      it 'succeeds' do
+        subject
+        expect(response).to have_http_status(:created)
+      end
+
+      context 'requesting the full shift' do
+        before do
+          tournament.shifts.first.update(is_full: true)
+          tournament.shifts.second.update(is_full: false)
+        end
+
+        it 'fails' do
+          subject
+          expect(response).to have_http_status(:unprocessable_entity)
+          ap json
+        end
+      end
+    end
+
     context 'with invalid data' do
       let(:new_team_params) do
         {

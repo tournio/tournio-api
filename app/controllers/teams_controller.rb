@@ -50,7 +50,13 @@ class TeamsController < ApplicationController
     team = team_from_params(form_data)
     unless team.valid?
       Rails.logger.warn "======== Invalid team created. Errors: #{team.errors.full_messages}"
-      render json: team.errors, status: :unprocessable_entity
+      render json: { bowler: 'Bowler is missing required information'}, status: :unprocessable_entity
+      return
+    end
+
+    if team.shift.is_full?
+      Rails.logger.warn "======== Requested shift is full. Errors: #{team.errors.full_messages}"
+      render json: { team: 'Requested shift is full' }, status: :unprocessable_entity
       return
     end
 

@@ -29,6 +29,8 @@ class Team < ApplicationRecord
   has_many :bowlers, -> { order(position: :asc) }, dependent: :destroy
   accepts_nested_attributes_for :bowlers
 
+  validates :name, presence: { message: 'Please provide a team name.'}
+
   before_create :generate_identifier
 
   after_create do
