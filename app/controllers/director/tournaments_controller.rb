@@ -90,7 +90,7 @@ module Director
         return
       end
       authorize tournament
-      unless tournament.testing?
+      unless tournament.testing? || tournament.demo?
         render json: nil, status: 403
         return
       end
