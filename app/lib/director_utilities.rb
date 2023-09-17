@@ -2,7 +2,7 @@
 
 module DirectorUtilities
   def self.clear_test_data(tournament:)
-    return unless tournament.testing?
+    return unless tournament.testing? || tournament.demo?
 
     tournament.teams.destroy_all
     tournament.reload.bowlers.destroy_all
