@@ -30,6 +30,8 @@ class PaymentReceiptNotifierJob < TemplateMailerJob
     order_total = purchases.sum(&:amount) - purchases.early_discount.sum(&:amount)*2 - purchases.bundle_discount.sum(&:amount)*2
     {
       tournament_name: tournament.name,
+      abbreviation: tournament.abbreviation,
+      year: tournament.year,
       bowler_preferred_name: bowler.nickname || bowler.first_name,
       bowler_full_name: TournamentRegistration.bowler_full_name(bowler),
       receipt_date: external_payment.created_at.strftime('%Y %b %-d %r'),
