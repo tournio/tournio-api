@@ -6,15 +6,18 @@
 #
 #  id            :bigint           not null, primary key
 #  identifier    :string           not null
+#  initial_size  :integer          default(4)
 #  name          :string
 #  options       :jsonb
 #  created_at    :datetime         not null
 #  updated_at    :datetime         not null
+#  shift_id      :bigint
 #  tournament_id :bigint
 #
 # Indexes
 #
 #  index_teams_on_identifier     (identifier) UNIQUE
+#  index_teams_on_shift_id       (shift_id)
 #  index_teams_on_tournament_id  (tournament_id)
 #
 
@@ -22,10 +25,21 @@ class Team < ApplicationRecord
   include TeamBusiness
 
   belongs_to :tournament
+  belongs_to :shift
   has_many :bowlers, -> { order(position: :asc) }, dependent: :destroy
   accepts_nested_attributes_for :bowlers
 
+  validates :name, presence: { message: 'Please provide a team name.'}
+
   before_create :generate_identifier
+
+  after_create do
+    shift.update(requested: shift.reload.requested + 1) unless shift.blank?
+  end
+
+  before_destroy do
+    shift.update(requested: shift.reload.requested - 1) unless shift.blank?
+  end
 
   delegate :timezone, to: :tournament
 
@@ -37,6 +51,8 @@ class Team < ApplicationRecord
   private
 
   def generate_identifier
-    self.identifier = SecureRandom.uuid
+    begin
+      self.identifier = SecureRandom.alphanumeric(6)
+    end while Team.exists?(identifier: self.identifier)
   end
 end

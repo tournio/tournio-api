@@ -26,7 +26,6 @@ class BowlerBlueprint < Blueprinter::Base
     end
 
     association :doubles_partner, blueprint: BowlerBlueprint
-    association :shift, blueprint: ShiftBlueprint
   end
 
   view :detail do
@@ -61,18 +60,6 @@ class BowlerBlueprint < Blueprinter::Base
     association :paid_purchases, blueprint: PurchaseBlueprint do |bowler, _|
       bowler.purchases.includes(:purchasable_item).paid.order(paid_at: :asc)
     end
-
-    field :shift_info do |b, _|
-      shift = b.shift
-      if shift.present?
-        {
-          full: shift.confirmed >= shift.capacity,
-          confirmed: b.bowler_shift.confirmed?,
-        }
-      else
-        {}
-      end
-    end
   end
 
   view :director_list do
@@ -95,7 +82,7 @@ class BowlerBlueprint < Blueprinter::Base
     end
 
     field :paid do |b, _|
-      b.bowler_shift.confirmed?
+      TournamentRegistration.amount_due(b) == 0
     end
   end
 
@@ -161,12 +148,6 @@ class BowlerBlueprint < Blueprinter::Base
     field :purchases do |b, _|
       sorted = b.purchases.to_a.sort_by! { |p| TournamentRegistration.purchasable_item_sort(p) }
       PurchaseBlueprint.render_as_hash(sorted)
-    end
-
-    association :shift, blueprint: ShiftBlueprint
-
-    field :paid do |b, _|
-      b.bowler_shift.confirmed?
     end
   end
 end

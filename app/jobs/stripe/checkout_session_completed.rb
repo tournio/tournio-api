@@ -96,7 +96,6 @@ module Stripe
         identifier: cs[:payment_intent]
       )
       TournamentRegistration.send_receipt_email(bowler, external_payment.id)
-      TournamentRegistration.try_confirming_bowler_shift(bowler)
       scp.completed!
     end
 

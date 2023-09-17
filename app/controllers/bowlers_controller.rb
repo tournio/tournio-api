@@ -14,7 +14,6 @@ class BowlersController < ApplicationController
       first_name
       last_name
       usbc_id
-      igbo_id
       birth_month
       birth_day
       nickname
@@ -84,25 +83,39 @@ class BowlersController < ApplicationController
 
     registration_type = 'solo'
 
-    # registering solo, doubles, or partner
+    # adding a bowler to a team (standard) or doing a doubles pair registration
     if bowlers.count == 2
       registration_type = 'new_pair'
-    elsif bowlers.first.doubles_partner_id.present?
-      registration_type = 'partner'
+    elsif team.present?
+      registration_type = 'standard'
+      bowlers.each do |b|
+        b.team = team
+      end
     end
 
     bowlers.each do |b|
       b.save
       TournamentRegistration.register_bowler(b, registration_type)
+      b.reload
     end
 
+    # When creating a doubles pair only
     if bowlers.count == 2
       bowlers[0].doubles_partner = bowlers[1]
       bowlers[1].doubles_partner = bowlers[0]
       bowlers.map(&:save)
+    elsif team.present? && team.bowlers.count == tournament.team_size
+      # automatically pair up the last two bowlers
+      # TODO: only if there's a team event (which we don't handle separately yet)
+      unpartnered = team.bowlers.without_doubles_partner
+      if unpartnered.count == 2
+        unpartnered[0].doubles_partner = unpartnered[1]
+        unpartnered[1].doubles_partner = unpartnered[0]
+        unpartnered.map(&:save)
+      end
     end
 
-    render json: BowlerBlueprint.render(bowlers), status: :created
+    render json: BowlerBlueprint.render(bowlers, view: :detail), status: :created
   end
 
   def show
@@ -190,7 +203,13 @@ class BowlersController < ApplicationController
     :total_to_charge
 
   def permit_params
-    @parameters = params.permit(:identifier, :team_identifier, :tournament_identifier, :unpartnered, bowlers: BOWLER_ATTRS)
+    @parameters = params.permit(
+      :identifier, # this is the tournament identifier for #bowlers.create
+      :team_identifier,
+      :tournament_identifier,
+      :unpartnered,
+      bowlers: BOWLER_ATTRS
+    )
   end
 
   def load_bowler
@@ -231,6 +250,7 @@ class BowlersController < ApplicationController
       %w[birth_month birth_day].each do |attr|
         p['person_attributes'][attr] = p['person_attributes'][attr].to_i
       end
+      p['position'] = p['position'].to_i if p['position'].present?
 
       # Remove additional question responses that are empty
       p['additional_question_responses'].filter! { |r| r['response'].present? }
@@ -248,12 +268,6 @@ class BowlersController < ApplicationController
         p['doubles_partner_id'] = partner.id unless partner.nil?
         p.delete('doubles_partner_identifier')
       end
-
-      if p['shift_identifier'].present?
-        shift = Shift.find_by(identifier: p['shift_identifier'])
-        p['bowler_shift_attributes'] = { shift_id: shift.id } unless shift.nil?
-        p.delete('shift_identifier')
-      end
     end
 
     permitted_params
@@ -262,12 +276,7 @@ class BowlersController < ApplicationController
   # These are used only when adding a bowler to an existing team
 
   def bowler_from_params(info)
-    bowler = Bowler.new(info.merge(team: team, tournament: tournament))
-    if team.present?
-      partner = team.bowlers.without_doubles_partner.first
-      bowler.doubles_partner = partner if partner.present?
-    end
-    bowler
+    Bowler.new(info.merge(team: team, tournament: tournament))
   end
 
   def additional_question_responses(params)
@@ -511,6 +520,5 @@ class BowlersController < ApplicationController
       source: :stripe,
       identifier: 'pretend_stripe_payment',
     )
-    TournamentRegistration.try_confirming_bowler_shift(bowler)
   end
 end

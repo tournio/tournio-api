@@ -173,7 +173,6 @@ module Fixtures
         position: position,
         person: person,
         created_at: registered_at
-      FactoryBot.create :bowler_shift, bowler: bowler, shift: tournament.shifts.first
 
       DataPoint.create(
         key: :registration_type,
@@ -290,8 +289,6 @@ module Fixtures
         # identifier: payment.identifier
         identifier: "pretend_payment_#{SecureRandom.uuid}"
       )
-
-      TournamentRegistration.try_confirming_bowler_shift(bowler)
     end
 
     def person_first_names

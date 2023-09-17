@@ -49,7 +49,7 @@ gem 'oj', '~> 3.15'            # Fast backend for Alba JSON serialization
 gem 'pundit'                     # Authorization
 gem 'sendgrid-ruby'              # For sending emails using SendGrid
 gem 'sidekiq'                    # The queueing system to use with ActiveJob
-gem 'slugify'                    # Sluggification support
+gem 'slugify'                    # Slugification support
 gem 'stripe'                     # Stripe integration
 
 group :development, :test do

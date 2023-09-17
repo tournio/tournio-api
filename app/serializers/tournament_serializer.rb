@@ -31,7 +31,7 @@ class TournamentSerializer
 
   root_key :tournament
 
-  attributes :identifier, :name, :year, :abbreviation, :start_date, :end_date, :location, :timezone,:team_size
+  attributes :identifier, :name, :year, :abbreviation, :start_date, :end_date, :location, :timezone, :team_size
 
   # Seems silly to use a block for this, but oh well. Implementation via DSL would wind up
   # doing the same thing, I suppose.

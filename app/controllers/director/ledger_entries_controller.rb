@@ -27,8 +27,6 @@ module Director
         )
       end
 
-      TournamentRegistration.try_confirming_bowler_shift(bowler)
-
       render json: LedgerEntryBlueprint.render(entry), status: :created
     rescue ActiveRecord::RecordNotFound
       skip_authorization

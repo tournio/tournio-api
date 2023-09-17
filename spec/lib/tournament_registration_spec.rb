@@ -127,12 +127,10 @@ RSpec.describe TournamentRegistration do
     # cleaned_up_form_data is defined in api_team_spec_helper.rb
     let(:form_data) { full_team_cleaned_up_form_data }
     let(:tournament) { create :tournament, :active }
-    let(:team_size) { 4 }
-    let(:team) { Team.new(form_data.merge(tournament: tournament)) }
+    let(:team) { Team.new(form_data.merge(tournament: tournament, shift_id: tournament.shifts.first.id)) }
 
     before do
       allow(subject_class).to receive(:register_bowler)
-      allow(subject_class).to receive(:link_doubles_partners)
     end
 
     before do
@@ -147,20 +145,15 @@ RSpec.describe TournamentRegistration do
     end
 
     it 'Creates a Bowler for each position on the team' do
-      expect { subject }.to change { Bowler.count }.by(team_size)
+      expect { subject }.to change { Bowler.count }.by(form_data['bowlers_attributes'].count)
     end
 
     it 'Creates a person for each Bowler on the team' do
-      expect { subject }.to change { Person.count }.by(team_size)
+      expect { subject }.to change { Person.count }.by(form_data['bowlers_attributes'].count)
     end
 
     it 'Calls register_bowler for each bowler on the team' do
-      expect(subject_class).to receive(:register_bowler).exactly(team_size).times
-      subject
-    end
-
-    it 'Calls link_doubles_partners' do
-      expect(subject_class).to receive(:link_doubles_partners).once
+      expect(subject_class).to receive(:register_bowler).exactly(form_data['bowlers_attributes'].count).times
       subject
     end
   end
@@ -174,21 +167,6 @@ RSpec.describe TournamentRegistration do
       allow(subject_class).to receive(:purchase_entry_fee)
       allow(subject_class).to receive(:add_late_fees_to_ledger)
     end
-
-    #
-    # This is behavior that will move into controllers once we support multiple shifts
-    #
-    it "creates no BowlerShift instance" do
-      expect { subject }.not_to change(BowlerShift, :count)
-    end
-
-    it "does not add the bowler to a shift" do
-      subject
-      expect(bowler.bowler_shift).to be_nil
-    end
-    #
-    # end of shift handling
-    #
 
     it "adds the bowler's ledger items" do
       expect(subject_class).to receive(:purchase_entry_fee).with(bowler).once
@@ -517,139 +495,11 @@ RSpec.describe TournamentRegistration do
     end
   end
 
-  describe '#link_doubles_partners' do
-    subject { subject_class.link_doubles_partners(bowlers) }
-
-    let(:tournament) { create :tournament, :active }
-
-    context 'with a full team' do
-      let(:bowlers) do
-        [
-          create(:bowler, tournament: tournament, position: 1, doubles_partner_index: 3),
-          create(:bowler, tournament: tournament, position: 2, doubles_partner_index: 2),
-          create(:bowler, tournament: tournament, position: 3, doubles_partner_index: 1),
-          create(:bowler, tournament: tournament, position: 4, doubles_partner_index: 0),
-        ]
-      end
-
-      it 'populates doubles_partner_id for all of them' do
-        subject
-        bowlers.map do |b|
-          expect(b.reload.doubles_partner_id).not_to be_nil
-        end
-      end
-
-      it 'correctly stores doubles partners' do
-        subject
-        updated_bowlers = Bowler.where(id: bowlers.map(&:id)).index_by(&:id)
-        updated_bowlers.each_value do |b|
-          partner_id = b.doubles_partner_id
-          # expect the partner relationship to be reciprocal
-          expect(updated_bowlers[partner_id].doubles_partner_id).to eq(b.id)
-        end
-      end
-    end
-
-    context 'with an odd number of bowlers' do
-      context 'with one bowler missing a doubles partner' do
-        let(:bowlers) do
-          [
-            create(:bowler, person: create(:person), tournament: tournament, position: 1),
-            create(:bowler, person: create(:person), tournament: tournament, position: 2, doubles_partner_index: 2),
-            create(:bowler, person: create(:person), tournament: tournament, position: 3, doubles_partner_index: 1),
-          ]
-        end
-
-        it 'correctly stores doubles partners' do
-          subject
-          updated_bowlers = Bowler.where(id: bowlers.map(&:id)).index_by(&:id)
-
-          first = bowlers[0]
-          first_partner_id = updated_bowlers[first.id].doubles_partner_id
-          expect(first_partner_id).to be_nil
-
-          second = bowlers[1]
-          third = bowlers[2]
-
-          # expect the partner relationship to be reciprocal on both of them
-          second_partner_id = updated_bowlers[second.id].doubles_partner_id
-          expect(second_partner_id).to eq(third.id)
-
-          third_partner_id = updated_bowlers[third.id].doubles_partner_id
-          expect(third_partner_id).to eq(second.id)
-        end
-      end
-
-      context 'when the odd bowler out has specified a number that does not yet exist' do
-        let(:bowlers) do
-          [
-            create(:bowler, person: create(:person), tournament: tournament, position: 1, doubles_partner_index: 3),
-            create(:bowler, person: create(:person), tournament: tournament, position: 2, doubles_partner_index: 2),
-            create(:bowler, person: create(:person), tournament: tournament, position: 3, doubles_partner_index: 1),
-          ]
-        end
-
-        it 'correctly stores doubles partners' do
-          subject
-          updated_bowlers = Bowler.where(id: bowlers.map(&:id)).index_by(&:id)
-
-          first = bowlers[0]
-          first_partner_id = updated_bowlers[first.id].doubles_partner_id
-          expect(first_partner_id).to be_nil
-
-          second = bowlers[1]
-          third = bowlers[2]
-
-          # expect the partner relationship to be reciprocal on both of them
-          second_partner_id = updated_bowlers[second.id].doubles_partner_id
-          third_partner_id = updated_bowlers[third.id].doubles_partner_id
-          expect(second_partner_id).to eq(third.id)
-          expect(third_partner_id).to eq(second.id)
-        end
-      end
-    end
-
-    context 'a single bowler' do
-      context 'without specifying a doubles partner' do
-        let(:bowlers) do
-          [
-            create(:bowler, person: create(:person), tournament: tournament, position: 3),
-          ]
-        end
-
-        it 'correctly stores an empty doubles partner' do
-          subject
-          updated_bowlers = Bowler.where(id: bowlers.map(&:id)).index_by(&:id)
-
-          first = bowlers[0]
-          expect(updated_bowlers[first.id].doubles_partner_id).to be_nil
-        end
-      end
-
-      context 'when specifying a number that does not yet exist' do
-        let(:bowlers) do
-          [
-            create(:bowler, person: create(:person), tournament: tournament, position: 1, doubles_partner_index: 4),
-          ]
-        end
-
-        it 'correctly stores an empty doubles partner' do
-          subject
-          updated_bowlers = Bowler.where(id: bowlers.map(&:id)).index_by(&:id)
-
-          first = bowlers[0]
-          first_partner_id = updated_bowlers[first.id].doubles_partner_id
-          expect(first_partner_id).to be_nil
-        end
-      end
-    end
-  end
-
   describe '#complete_doubles_link' do
     subject { subject_class.complete_doubles_link(new_bowler) }
 
     let(:tournament) { create :tournament, :active }
-    let(:team) { create :team, tournament: tournament }
+    let(:team) { create :team, tournament: tournament, shift: tournament.shifts.first }
 
     context 'when no partner is available' do
       let(:new_bowler) { create(:bowler, person: create(:person), tournament: tournament, position: 3) }
@@ -962,76 +812,85 @@ RSpec.describe TournamentRegistration do
     end
   end
 
-  describe '#try_confirming_bowler_shift' do
-    subject { subject_class.try_confirming_bowler_shift(bowler) }
+  describe '#try_assigning_automatic_partners' do
+    subject { subject_class.try_assigning_automatic_partners(team) }
 
-    let(:tournament) { create :tournament, :active, :with_entry_fee, :two_shifts }
-    let(:bowler) { create :bowler, tournament: tournament }
-    let(:entry_fee_item) { tournament.purchasable_items.entry_fee.first }
-    let(:shift) { tournament.shifts.first }
-    let!(:bowler_shift) { create :bowler_shift, shift: shift, bowler: bowler }
+    let(:tournament) { create :tournament, :active }
+    let(:team) { create :team, tournament: tournament, shift: tournament.shifts.first }
 
-    before { allow(subject_class).to receive(:confirm_shift) }
+    context 'when the team is not yet full' do
+      let(:new_bowler) { bowlers.last }
+      context 'and no partners are assigned yet' do
+        let(:bowlers) do
+          [
+            create(:bowler, person: create(:person), tournament: tournament, position: 3, team: team),
+            create(:bowler, person: create(:person), tournament: tournament, position: 4, team: team),
+          ]
+        end
 
-    context 'when the bowler has not paid' do
-      before do
-        create :purchase, bowler: bowler, purchasable_item: entry_fee_item, amount: entry_fee_item.value
-      end
-
-      it 'does not confirm the shift' do
-        expect(subject_class).not_to receive(:confirm_shift)
-        subject
-      end
-    end
-
-    context 'when the bowler has paid their entry fees' do
-      before do
-        create :purchase, :paid, bowler: bowler, purchasable_item: entry_fee_item, amount: entry_fee_item.value
-      end
-
-      it 'confirms the shift' do
-        expect(subject_class).to receive(:confirm_shift).once
-        subject
-      end
-
-      context "but the bowler's shift is already confirmed" do
-        let!(:bowler_shift) { create :bowler_shift, :confirmed, shift: shift, bowler: bowler }
-
-        it 'does not confirm the shift' do
-          expect(subject_class).not_to receive(:confirm_shift)
+        it 'does nothing' do
           subject
+          expect(new_bowler.reload.doubles_partner_id).to be_nil
         end
       end
 
-      context "but the shift is at capacity" do
-        before { shift.update(confirmed: shift.capacity) }
+      context 'and some partners are assigned' do
+        let(:bowlers) do
+          [
+            create(:bowler, person: create(:person), tournament: tournament, position: 1, team: team),
+            create(:bowler, person: create(:person), tournament: tournament, position: 2, team: team),
+            create(:bowler, person: create(:person), tournament: tournament, position: 3, team: team),
+          ]
+        end
 
-        it 'does not confirm the shift' do
-          expect(subject_class).not_to receive(:confirm_shift)
+        before do
+          bowlers[0].update(doubles_partner: bowlers[1])
+          bowlers[1].update(doubles_partner: bowlers[0])
+        end
+
+        it 'does nothing' do
           subject
+          expect(new_bowler.doubles_partner_id).to be_nil
         end
       end
     end
-  end
 
-  describe '#confirm_shift' do
-    subject { subject_class.confirm_shift(bowler) }
+    context 'when the team is full' do
+      let(:bowlers) do
+        [
+          create(:bowler, person: create(:person), tournament: tournament, position: 1, team: team),
+          create(:bowler, person: create(:person), tournament: tournament, position: 2, team: team),
+          create(:bowler, person: create(:person), tournament: tournament, position: 3, team: team),
+          create(:bowler, person: create(:person), tournament: tournament, position: 4, team: team),
+        ]
+      end
+      let(:new_bowler) { bowlers.last }
 
-    let(:tournament) { create :tournament, :active, :with_entry_fee, :two_shifts }
-    let(:shift) { tournament.shifts.first }
-    let(:bowler) { create :bowler, tournament: tournament }
-    let!(:bowler_shift) { create :bowler_shift, shift: shift, bowler: bowler }
+      context 'but the other bowlers are not yet partnered' do
+        it 'does nothing' do
+          subject
+          expect(new_bowler.doubles_partner_id).to be_nil
+        end
+      end
 
-    it 'changes the state' do
-      expect { subject }.to change { bowler_shift.confirmed? }.from(false).to(true)
-    end
+      context 'and a partner is available' do
+        let(:automatic_partner) { bowlers.third }
 
-    it "bumps the shift's confirmed count" do
-      expect { subject }.to change { shift.confirmed }.by(1)
-    end
+        before do
+          bowlers.first.update(doubles_partner: bowlers.first)
+          bowlers.second.update(doubles_partner: bowlers.second)
+        end
 
-    it "dropss the shift's requested count" do
-      expect { subject }.to change { shift.requested }.by(-1)
+        it 'links the doubles partners' do
+          subject
+          expect(new_bowler.reload.doubles_partner_id).to eq(automatic_partner.id)
+        end
+
+        it '... in both directions' do
+          subject
+          expect(automatic_partner.reload.doubles_partner_id).to eq(new_bowler.id)
+        end
+      end
     end
   end
 end

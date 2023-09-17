@@ -63,7 +63,7 @@ class Tournament < ApplicationRecord
   scope :available, -> { upcoming.where(aasm_state: %w[active closed]).where(config_items: { key: 'publicly_listed', value: ['true', 't'] }) }
 
   SUPPORTED_DETAILS = %w(registration_types)
-  SUPPORTED_REGISTRATION_OPTIONS = %w(new_team solo partner new_pair)
+  SUPPORTED_REGISTRATION_OPTIONS = %w(new_team solo partner new_pair standard)
 
   aasm do
     state :setup, initial: true

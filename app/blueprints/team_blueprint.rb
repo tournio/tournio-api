@@ -3,10 +3,18 @@
 class TeamBlueprint < Blueprinter::Base
   identifier :identifier
 
+  field :initial_size
+
   association :tournament, blueprint: TournamentBlueprint
-  # association :shift, blueprint: ShiftBlueprint do |team, _|
-  #   team.bowlers.first&.shift
-  # end
+  association :shift, blueprint: ShiftBlueprint do |team, _|
+    if team.shift.present?
+      ShiftBlueprint.render_as_hash(team.shift)
+    elsif team.bowlers.empty?
+      nil
+    else
+      ShiftBlueprint.render_as_hash(team.bowlers.first&.shift)
+    end
+  end
 
   view :list do
     field :name do |t, _|
@@ -15,13 +23,6 @@ class TeamBlueprint < Blueprinter::Base
     field :created_at, name: :date_registered, datetime_format: '%F'
     field :size do |t, _|
       t.bowlers.count
-    end
-    field :shift do |t, _|
-      if t.bowlers.empty?
-        nil
-      else
-        ShiftBlueprint.render_as_hash(t.bowlers.first&.shift)
-      end
     end
   end
 
@@ -44,22 +45,13 @@ class TeamBlueprint < Blueprinter::Base
     end
 
     field :shift do |t, _|
-      if t.bowlers.empty?
-        nil
-      else
-        ShiftBlueprint.render_as_hash(t.bowlers.first&.shift)
+      if t.shift.present?
+        ShiftBlueprint.render_as_hash(t.shift)
       end
     end
 
     field :who_has_paid do |t, _|
-      result = nil
-      unless t.bowlers.empty?
-        bowler_shifts = t.bowlers.collect(&:bowler_shift)
-        all_confirmed = bowler_shifts.all?(&:confirmed?)
-        some_confirmed = bowler_shifts.any?(&:confirmed?)
-        result = all_confirmed ? :all : (some_confirmed ? :some : :none)
-      end
-      result
+      nil
     end
   end
 
