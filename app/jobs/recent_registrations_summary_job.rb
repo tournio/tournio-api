@@ -50,6 +50,8 @@ class RecentRegistrationsSummaryJob < TemplateMailerJob
 
     {
       tournament_name: tournament.name,
+      abbreviation: tournament.abbreviation,
+      year: tournament.year,
       report_date: report_time.in_time_zone(timezone).strftime('%F'),
       bowler_count: bowlers.count,
       bowlers: bowlers.collect do |bowler|

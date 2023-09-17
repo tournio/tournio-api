@@ -29,6 +29,8 @@ class PaymentReminderJob < TemplateMailerJob
   def personalization_data
     data = {
       tournament_name: tournament.name,
+      abbreviation: tournament.abbreviation,
+      year: tournament.year,
       bowler_name: bowler.nickname || bowler.first_name,
       amount_due: TournamentRegistration.amount_due(bowler),
       payment_url: payment_page,

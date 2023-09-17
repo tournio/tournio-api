@@ -32,6 +32,8 @@ class NewRegistrationNotifierJob < TemplateMailerJob
 
     {
       tournament_name: tournament.name,
+      abbreviation: tournament.abbreviation,
+      year: tournament.year,
       bowler: {
         registered_at: bowler.created_at.in_time_zone(timezone).strftime('%b %-d %l:%M%P %Z'),
         full_name: TournamentRegistration.bowler_full_name(bowler),
