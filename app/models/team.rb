@@ -34,11 +34,11 @@ class Team < ApplicationRecord
   before_create :generate_identifier
 
   after_create do
-    shift.update(requested: shift.reload.requested + 1)
+    shift.update(requested: shift.reload.requested + 1) unless shift.blank?
   end
 
   before_destroy do
-    shift.update(requested: shift.reload.requested - 1)
+    shift.update(requested: shift.reload.requested - 1) unless shift.blank?
   end
 
   delegate :timezone, to: :tournament
@@ -51,6 +51,8 @@ class Team < ApplicationRecord
   private
 
   def generate_identifier
-    self.identifier = SecureRandom.uuid
+    begin
+      self.identifier = SecureRandom.alphanumeric(6)
+    end while Team.exists?(identifier: self.identifier)
   end
 end
