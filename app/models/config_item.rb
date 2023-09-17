@@ -20,4 +20,10 @@
 class ConfigItem < ApplicationRecord
   belongs_to :tournament
   default_scope { order(key: :asc) }
+
+  before_create do |ci|
+    if ci.key == 'website'
+      ci.label = 'Website'
+    end
+  end
 end
