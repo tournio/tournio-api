@@ -9,6 +9,9 @@ class ExpireUnpaidEarlyDiscountsJob
 
   def do_the_work(time_of_day = Time.zone.now)
     Tournament.active.each do |t|
+      # Only do this if the tournament's config item is set.
+      next unless t.config['automatic_discount_voids']
+
       t.purchasable_items.early_discount.map do |discount_item|
         next unless discount_item.configuration['valid_until'].present?
 

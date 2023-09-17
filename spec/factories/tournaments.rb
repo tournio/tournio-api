@@ -60,22 +60,24 @@ FactoryBot.define do
       entry_deadline { Date.today - 20.days }
     end
 
+    # Every tournament needs at least one shift now, if only to specify capacity
+    after(:create) do |t, _|
+      create :shift, tournament: t
+    end
+
     trait :one_shift do
-      after(:create) do |t, _|
-        create :shift, tournament: t, capacity: 160
-      end
+      # nothing more to do
     end
 
     trait :one_small_shift do
       after(:create) do |t, _|
-        create :shift, tournament: t, capacity: 16
+        t.shifts.first.update(capacity: 10)
       end
     end
 
     trait :two_shifts do
       after(:create) do |t, _|
-        create :shift, tournament: t, name: 'Shift 1', display_order: 1
-        create :shift, tournament: t, name: 'Shift 2', display_order: 2
+        create :shift, tournament: t, name: 'Second Shift', display_order: 2
       end
     end
 
@@ -145,12 +147,14 @@ FactoryBot.define do
 
     trait :with_a_bowling_event do
       after(:create) do |t, _|
+        t.shifts.first.update(capacity: 80)
         create(:purchasable_item, :bowling_event, tournament: t)
       end
     end
 
     trait :with_a_doubles_event do
       after(:create) do |t, _|
+        t.shifts.first.update(capacity: 80)
         create(:purchasable_item, :doubles_event, tournament: t)
       end
     end

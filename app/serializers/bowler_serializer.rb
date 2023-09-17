@@ -45,11 +45,9 @@ class BowlerSerializer
     :phone,
     :postal_code,
     :preferred_name,
-    :state,
+    :state
 
-    # associations that don't require special treatment
-    :shift,
-    :team
+  one :team, resource: TeamSerializer
 
   attribute :registered_on do |b|
     b.created_at.strftime('%F')
@@ -68,5 +66,4 @@ class BowlerSerializer
   end
 
   one :doubles_partner, resource: BowlerSerializer
-
 end

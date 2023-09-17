@@ -63,7 +63,7 @@ class Tournament < ApplicationRecord
   scope :available, -> { upcoming.where(aasm_state: %w[active closed]).where(config_items: { key: 'publicly_listed', value: ['true', 't'] }) }
 
   SUPPORTED_DETAILS = %w(registration_types)
-  SUPPORTED_REGISTRATION_OPTIONS = %w(new_team solo join_team partner new_pair)
+  SUPPORTED_REGISTRATION_OPTIONS = %w(new_team solo partner new_pair standard)
 
   aasm do
     state :setup, initial: true
@@ -121,13 +121,15 @@ class Tournament < ApplicationRecord
   end
 
   def create_default_config
-    self.config_items << ConfigItem.new(key: 'display_capacity', value: 'false')
-    self.config_items << ConfigItem.new(key: 'publicly_listed', value: 'true') # applies to tournaments in the "active" state
-    self.config_items << ConfigItem.new(key: 'accept_payments', value: 'true')
+    self.config_items << ConfigItem.new(key: 'display_capacity', value: 'false', label: 'Display Capacity')
+    self.config_items << ConfigItem.new(key: 'publicly_listed', value: 'true', label: 'Publicly Listed') # applies to tournaments in the "active" state
+    self.config_items << ConfigItem.new(key: 'accept_payments', value: 'true', label: 'Accept Payments')
+    self.config_items << ConfigItem.new(key: 'automatic_discount_voids', value: 'false', label: 'Automatically Void Early Discounts')
+    self.config_items << ConfigItem.new(key: 'automatic_late_fees', value: 'false', label: 'Automatically Charge Unpaid Bowlers the Late Fee')
     if Rails.env.development?
       self.config_items += [
-        ConfigItem.new(key: 'email_in_dev', value: 'false'),
-        ConfigItem.new(key: 'skip_stripe', value: 'true'),
+        ConfigItem.new(key: 'email_in_dev', value: 'false', label: '[dev] Send Emails'),
+        ConfigItem.new(key: 'skip_stripe', value: 'true', label: 'Skip Stripe'),
       ]
     end
   end

@@ -371,11 +371,19 @@ RSpec.describe Stripe::CheckoutSessionCompleted, type: :job do
             ])
           end
 
-          it 'amount_billed reflects the discount' do
+          it 'creates two event purchases' do
+            expect{ subject }.to change(bowler.purchases.event, :count).by(2)
+          end
+
+          it 'associates the ExternalPayment to all new Purchases' do
             subject
-            billed = TournamentRegistration.amount_billed bowler
-            expected = event_item_1.value + event_item_2.value - discount_item.value
-            expect(billed).to eq(expected)
+            expect(bowler.purchases.pluck(:external_payment_id).uniq.count).to eq(1)
+          end
+
+          it 'tallies up owed correctly' do
+            subject
+            owed = TournamentRegistration.amount_due bowler
+            expect(owed).to be_zero
           end
 
           it 'creates one bundle discount purchase' do

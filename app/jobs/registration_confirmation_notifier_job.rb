@@ -23,6 +23,7 @@ class RegistrationConfirmationNotifierJob < TemplateMailerJob
 
   def personalization_data
     data = {
+      tournament_abbreviation: tournament.abbreviation,
       tournament_name: tournament.name,
       tournament_year: tournament.year,
       preferred_name: bowler.nickname || bowler.first_name,
@@ -46,7 +47,8 @@ class RegistrationConfirmationNotifierJob < TemplateMailerJob
     if team_info.any?
       data.merge!({
         team_name: team_info[:name],
-        team_order: team_info[:position],
+        team_position: team_info[:position],
+        team_url: team_page,
       })
     end
     if bowler.doubles_partner.present?
@@ -82,6 +84,10 @@ class RegistrationConfirmationNotifierJob < TemplateMailerJob
 
   def payment_page
     "#{link_hostname}/bowlers/#{bowler.identifier}"
+  end
+
+  def team_page
+    "#{link_hostname}/teams/#{team_info.identifier}"
   end
 
   def team_info

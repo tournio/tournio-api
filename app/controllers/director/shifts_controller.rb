@@ -53,9 +53,9 @@ module Director
       skip_authorization
       render json: nil, status: :not_found
     rescue ActiveRecord::RecordInvalid
-      render json: { error: 'Cannot make capacity less than the number of confirmed bowlers' }, status: :conflict
+      render json: { error: 'Cannot make capacity less than 1' }, status: :conflict
     rescue ActionController::UnpermittedParameters
-      render json: { error: 'Cannot change confirmed or requested attributes' }, status: :conflict
+      render json: { error: 'Cannot change calculated attributes' }, status: :conflict
     end
 
     private
@@ -65,7 +65,7 @@ module Director
     def shift_params
       params.permit(:tournament_identifier,
         :identifier,
-        shift: %i(capacity description name display_order)
+        shift: %i(capacity description name display_order is_full)
       ).require(:shift)
     end
   end

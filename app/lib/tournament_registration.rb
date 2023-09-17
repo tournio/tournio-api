@@ -111,8 +111,6 @@ module TournamentRegistration
     team.save
 
     team.bowlers.each { |b| register_bowler(b) }
-
-    link_doubles_partners(team.bowlers)
   end
 
   def self.register_bowler(bowler, registration_type='new_team')
@@ -120,11 +118,22 @@ module TournamentRegistration
     add_early_discount_to_ledger(bowler)
     add_late_fees_to_ledger(bowler)
     complete_doubles_link(bowler) if bowler.doubles_partner_id.present?
+    try_assigning_automatic_partners(bowler.team) if bowler.team.present?
 
     DataPoint.create(key: :registration_type, value: registration_type, tournament_id: bowler.tournament_id)
 
     send_confirmation_email(bowler)
     notify_registration_contacts(bowler)
+  end
+
+  def self.try_assigning_automatic_partners(team)
+    unpartnered = team.bowlers.without_doubles_partner
+    remaining_spots = team.tournament.team_size - team.bowlers.count
+    return unless remaining_spots == 0 && unpartnered.count == 2
+
+    unpartnered[0].doubles_partner = unpartnered[1]
+    unpartnered[1].doubles_partner = unpartnered[0]
+    unpartnered.map(&:save)
   end
 
   def self.purchase_entry_fee(bowler)
@@ -167,33 +176,12 @@ module TournamentRegistration
     bowler.purchases << Purchase.new(purchasable_item: purchasable_item)
   end
 
-  def self.amount_billed(bowler)
-    total_charges = bowler.ledger_entries.sum(&:debit).to_i
-    total_credits = (bowler.ledger_entries.registration + bowler.ledger_entries.purchase).sum(&:credit).to_i
-    total_voids = bowler.ledger_entries.void.sum(&:credit).to_i - bowler.ledger_entries.void.sum(&:debit).to_i
-
-    total_charges - total_credits - total_voids
-  end
-
   def self.amount_paid(bowler)
     (bowler.ledger_entries.stripe + bowler.ledger_entries.manual).sum(&:credit).to_i
   end
 
   def self.amount_due(bowler)
     (bowler.ledger_entries.sum(&:debit) - bowler.ledger_entries.sum(&:credit)).to_i
-  end
-
-  def self.link_doubles_partners(bowlers)
-    bowlers.each do |bowler|
-      next unless bowler.doubles_partner_index.present?
-
-      partner_index = bowler.doubles_partner_index.to_i
-      partner = bowlers[partner_index]
-      next if partner.nil?
-
-      bowler.doubles_partner = partner
-      bowler.save
-    end
   end
 
   def self.complete_doubles_link(bowler)
@@ -214,9 +202,6 @@ module TournamentRegistration
     affected_purchases = bowler.purchases.entry_fee + bowler.purchases.late_fee
     affected_discounts = bowler.purchases.early_discount + bowler.purchases.bundle_discount
     total_credit = affected_purchases.sum(&:value) - affected_discounts.sum(&:value)
-
-    # affected_purchases = bowler.purchases.ledger
-    # total_credit = affected_purchases.sum(&:value)
 
     identifier = confirmed_by.present? ? "Free entry confirmed by #{confirmed_by}" : 'Free entry confirmed by no one'
     free_entry.update(confirmed: true)
@@ -287,17 +272,6 @@ module TournamentRegistration
   end
 
   def self.try_confirming_bowler_shift(bowler)
-    return unless bowler.shift.present?
-    return if bowler.bowler_shift.confirmed?
-    unpaid_fees = bowler.purchases.ledger.unpaid.any? || bowler.purchases.event.unpaid.any?
-    return if unpaid_fees
-    return if bowler.shift.confirmed >= bowler.shift.capacity
-
-    confirm_shift(bowler)
-  end
-
-  def self.confirm_shift(bowler)
-    bowler.bowler_shift.confirm!
   end
 
   # Private methods

@@ -169,8 +169,8 @@ RSpec.describe TournamentBusiness do
     end
   end
 
-  describe '#available_to_join' do
-    subject { dummy_obj.available_to_join }
+  describe '#partial' do
+    subject { dummy_obj.partial }
 
     context 'with no teams registered' do
       it { is_expected.to be_empty }

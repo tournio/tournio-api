@@ -4,10 +4,10 @@
 #
 #  id            :bigint           not null, primary key
 #  capacity      :integer          default(128), not null
-#  confirmed     :integer          default(0), not null
 #  description   :string
 #  display_order :integer          default(1), not null
 #  identifier    :string           not null
+#  is_full       :boolean          default(FALSE)
 #  name          :string
 #  requested     :integer          default(0), not null
 #  created_at    :datetime         not null
@@ -30,16 +30,16 @@ FactoryBot.define do
     end
 
     trait :half_filled do
-      confirmed { 20 }
-    end
-
-    trait :high_demand do
-      confirmed { 30 }
       requested { 20 }
     end
 
+    trait :high_demand do
+      requested { 35 }
+    end
+
     trait :full do
-      confirmed { 40 }
+      requested { 40 }
+      is_full { true }
     end
   end
 end

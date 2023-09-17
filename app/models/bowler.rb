@@ -31,21 +31,12 @@ class Bowler < ApplicationRecord
   belongs_to :team, optional: true
   belongs_to :tournament
   has_one :free_entry
-  has_one :bowler_shift, dependent: :destroy
-  has_one :shift, through: :bowler_shift
   has_many :additional_question_responses, dependent: :destroy
   has_many :ledger_entries, dependent: :destroy
   has_many :purchases, dependent: :destroy
   has_many :stripe_checkout_sessions
 
   attr_accessor :doubles_partner_index
-
-  # validates :position,
-  #           numericality: {
-  #             only_integer: true,
-  #             greater_than: 0,
-  #           },
-  #           if: -> { team.present? }
 
   delegate :address1,
            :address2,
@@ -61,12 +52,11 @@ class Bowler < ApplicationRecord
            :postal_code,
            :preferred_name,
            :state,
-           :igbo_id,
            :usbc_id, to: :person
 
   scope :without_doubles_partner, -> { where(doubles_partner_id: nil) }
 
-  accepts_nested_attributes_for :person, :free_entry, :additional_question_responses, :bowler_shift
+  accepts_nested_attributes_for :person, :free_entry, :additional_question_responses
 
   before_create :generate_identifier
   before_destroy :unlink_free_entry, :unlink_doubles_partner

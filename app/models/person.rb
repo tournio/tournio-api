@@ -45,5 +45,5 @@ class Person < ApplicationRecord
             :birth_day,
             :email,
             :phone,
-            presence: true
+            presence: { message: 'is required' }
 end

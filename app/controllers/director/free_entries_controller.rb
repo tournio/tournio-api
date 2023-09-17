@@ -88,7 +88,6 @@ module Director
 
       if params[:confirm].present?
         TournamentRegistration.confirm_free_entry(free_entry, current_user&.email)
-        TournamentRegistration.try_confirming_bowler_shift(bowler)
       end
 
       render json: FreeEntryBlueprint.render(free_entry, view: :director_list), status: :ok

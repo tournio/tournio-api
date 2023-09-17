@@ -70,11 +70,6 @@ describe Director::LedgerEntriesController, type: :request do
       expect { subject }.to change(bowler.ledger_entries, :count).by(1)
     end
 
-    it "tries to confirm the bowler's shift" do
-      expect(TournamentRegistration).to receive(:try_confirming_bowler_shift).with(bowler).once
-      subject
-    end
-
     context "a bowler with an early-registration discount" do
       let(:discount_pi) { create :purchasable_item, :early_discount, tournament: tournament }
       let(:new_entry_params) do

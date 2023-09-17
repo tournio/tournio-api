@@ -29,6 +29,8 @@ FactoryBot.define do
     # association :stripe_product, strategy: :build
     # association :stripe_coupon, strategy: :build
 
+    association :tournament, strategy: :create
+
     trait :entry_fee do
       category { :ledger }
       determination { :entry_fee }
@@ -62,6 +64,7 @@ FactoryBot.define do
       end
     end
 
+    # DEPRECATED in favor of voiding them
     trait :early_discount_expiration do
       category { :ledger }
       determination { :discount_expiration }

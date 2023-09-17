@@ -1,8 +1,8 @@
 class ConfigItemBlueprint < Blueprinter::Base
-  fields :id, :key
+  fields :id, :key, :label
 
   field :value do |c, _|
-    if %w(email_in_dev display_capacity skip_stripe publicly_listed accept_payments).include?(c.key)
+    if %w(email_in_dev display_capacity skip_stripe publicly_listed accept_payments automatic_discount_voids automatic_late_fees).include?(c.key)
       self.boolean_value(c.value)
     else
       c.value
@@ -10,15 +10,11 @@ class ConfigItemBlueprint < Blueprinter::Base
   end
 
   field :value_shortened do |c, _|
-    if %w(email_in_dev display_capacity skip_stripe publicly_listed accept_payments).include?(c.key)
+    if %w(email_in_dev display_capacity skip_stripe publicly_listed accept_payments automatic_discount_voids automatic_late_fees).include?(c.key)
       self.boolean_value(c.value)
     else
       c.value.truncate(20)
     end
-  end
-
-  field :label do |c, _|
-    c.key.humanize(keep_id_suffix: true)
   end
 
   def self.boolean_value(value)

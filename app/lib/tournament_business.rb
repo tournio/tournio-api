@@ -47,7 +47,7 @@ module TournamentBusiness
     DateTime.parse(timestamp)
   end
 
-  def available_to_join
+  def partial
     teams.where(id: Team.where(id: Team.left_outer_joins(:bowlers).distinct.where(tournament_id: id)
                                        .select('teams.id, COUNT(bowlers.team_id) AS bowlers_count')
                                        .group('teams.id')
@@ -57,7 +57,7 @@ module TournamentBusiness
   end
 
   def room_for_one_more?(team)
-    available_to_join.include?(team)
+    partial.include?(team)
   end
 
   def in_early_registration?(current_time = Time.zone.now)

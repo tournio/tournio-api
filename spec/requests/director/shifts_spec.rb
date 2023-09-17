@@ -130,26 +130,39 @@ describe Director::ShiftsController, type: :request do
     context 'trying to change a calculated attribute' do
       let(:shift_params) do
         {
-          capacity: 32,
-          confirmed: 10,
           requested: 17,
         }
       end
 
       it 'raises if we try to change calculated attributes' do
-        initial_confirmed = shift.confirmed
-        initial_requested = shift.requested
         subject
         expect(response).to have_http_status(:conflict)
       end
     end
 
-    context 'trying to make capacity < confirmed' do
-      let(:shift) { create :shift, :full, tournament: tournament }
+    context 'trying to make capacity < 1' do
+      let(:shift_params) do
+        {
+          capacity: 0,
+        }
+      end
 
       it 'rejects it with Conflict' do
         subject
         expect(response).to have_http_status(:conflict)
+      end
+    end
+
+    context 'marking it as full' do
+      let(:shift_params) do
+        {
+          is_full: true,
+        }
+      end
+
+      it 'succeeds with a 200 OK' do
+        subject
+        expect(response).to have_http_status(:ok)
       end
     end
 

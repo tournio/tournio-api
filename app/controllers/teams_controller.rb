@@ -24,12 +24,13 @@ class TeamsController < ApplicationController
   BOWLER_ATTRS = [
     :position,
     :doubles_partner_index,
-    :shift_identifier,
     person_attributes: PERSON_ATTRS,
     additional_question_responses: ADDITIONAL_QUESTION_RESPONSES_ATTRS,
   ].freeze
   TEAM_ATTRS = [
     :name,
+    :initial_size,
+    :shift_identifier,
     bowlers_attributes: BOWLER_ATTRS,
     options: {},
   ].freeze
@@ -47,16 +48,23 @@ class TeamsController < ApplicationController
 
     form_data = clean_up_form_data(team_params)
     team = team_from_params(form_data)
-
     unless team.valid?
       Rails.logger.warn "======== Invalid team created. Errors: #{team.errors.full_messages}"
-      render json: team.errors, status: :unprocessable_entity
+      render json: { bowler: 'Bowler is missing required information'}, status: :unprocessable_entity
+      return
+    end
+
+    if team.shift.is_full?
+      Rails.logger.warn "======== Requested shift is full. Errors: #{team.errors.full_messages}"
+      render json: { team: 'Requested shift is full' }, status: :unprocessable_entity
       return
     end
 
     TournamentRegistration.register_team(team)
 
-    render json: TeamBlueprint.render(team.reload, view: :detail), status: :created
+    team.bowlers.includes(:person, :ledger_entries).order(:position)
+    # render json: TeamDetailedSerializer.new(team, within: {bowlers: {doubles_partner: :doubles_partner}}).serialize, status: :created
+    render json: TeamBlueprint.render(team, view: :detail), status: :created
   end
 
   def index
@@ -64,7 +72,7 @@ class TeamsController < ApplicationController
       render json: nil, status: 404
       return
     end
-    teams = params[:incomplete] ? tournament.available_to_join : tournament.teams.order('LOWER(name)')
+    teams = tournament.teams.order('LOWER(name)')
     render json: TeamBlueprint.render(teams, view: :list)
   end
 
@@ -74,7 +82,10 @@ class TeamsController < ApplicationController
       render json: nil, status: 404
       return
     end
-    team.bowlers.includes(:person, :ledger_entries).order(:position)
+    # TODO Does this do what I think it does?
+    # team.bowlers.includes(:person, :ledger_entries).order(:position)
+
+    # render json: TeamDetailedSerializer.new(team, within: {bowlers: {doubles_partner: :doubles_partner}}).serialize
     render json: TeamBlueprint.render(team, view: :detail)
   end
 
@@ -90,7 +101,7 @@ class TeamsController < ApplicationController
 
   def load_team
     identifier = params.require(:identifier)
-    @team = Team.includes(:bowlers).find_by_identifier(identifier)
+    @team = Team.includes(bowlers: [:person, :ledger_entries]).find_by_identifier(identifier)
   end
 
   #######################
@@ -107,12 +118,22 @@ class TeamsController < ApplicationController
     team.bowlers.map do |b|
       b.tournament = tournament
     end
+
+    # When there's only one shift, ignore the provided shift_identifier parameter.
+    if tournament.shifts.count == 1
+      team.shift_id = tournament.shifts.first.id
+    end
+
     team
   end
 
   def clean_up_form_data(permitted_params)
     cleaned_up = permitted_params.dup
     cleaned_up['bowlers_attributes'].map! { |bowler_attrs| clean_up_bowler_data(bowler_attrs) }
+
+    shift = Shift.find_by(identifier: permitted_params['shift_identifier'])
+    cleaned_up['shift_id'] = shift.id unless shift.nil?
+    cleaned_up.delete('shift_identifier')
 
     cleaned_up
   end
@@ -129,6 +150,7 @@ class TeamsController < ApplicationController
     %w[birth_month birth_day].each do |attr|
       permitted_params['person_attributes'][attr] = permitted_params['person_attributes'][attr].to_i
     end
+    permitted_params['position'] = permitted_params['position'].to_i if permitted_params['position'].present?
 
     # Remove additional question responses that are empty
     permitted_params['additional_question_responses'].filter! { |r| r['response'].present? }
@@ -139,17 +161,6 @@ class TeamsController < ApplicationController
 
     # remove that key from the params...
     permitted_params.delete('additional_question_responses')
-
-    # If there's a shift identifier, insert the corresponding id to take advantage of AR nested attributes
-    if permitted_params['shift_identifier'].present?
-      shift = Shift.find_by(identifier: permitted_params['shift_identifier'])
-      permitted_params['bowler_shift_attributes'] = { shift_id: shift.id } unless shift.nil?
-      permitted_params.delete('shift_identifier')
-    else
-      # I've seen this happen, not sure how
-      shift = tournament.shifts.first
-      permitted_params['bowler_shift_attributes'] = { shift_id: shift.id }
-    end
 
     permitted_params
   end
@@ -167,3 +178,4 @@ class TeamsController < ApplicationController
     @extended_form_fields ||= ExtendedFormField.all.index_by(&:name)
   end
 end
+
