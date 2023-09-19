@@ -6,15 +6,7 @@ class TeamBlueprint < Blueprinter::Base
   field :initial_size
 
   association :tournament, blueprint: TournamentBlueprint
-  association :shift, blueprint: ShiftBlueprint do |team, _|
-    if team.shift.present?
-      ShiftBlueprint.render_as_hash(team.shift)
-    elsif team.bowlers.empty?
-      nil
-    else
-      ShiftBlueprint.render_as_hash(team.bowlers.first&.shift)
-    end
-  end
+  association :shift, blueprint: ShiftBlueprint
 
   view :list do
     field :name do |t, _|

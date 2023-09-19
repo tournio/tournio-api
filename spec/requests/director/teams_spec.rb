@@ -136,10 +136,6 @@ describe Director::TeamsController, type: :request do
       expect(json['shift']['identifier']).to eq(shift.identifier)
     end
 
-    it 'bumps the requested count of the shift' do
-      expect { subject }.to change { shift.reload.requested }.by(1)
-    end
-
     context 'when the tournament has multiple shifts' do
       let(:tournament) { create :tournament, :active, :two_shifts }
       let(:shift) { tournament.shifts.last }
@@ -153,10 +149,6 @@ describe Director::TeamsController, type: :request do
         subject
         expect(json).to have_key('shift')
         expect(json['shift']['identifier']).to eq(shift.identifier)
-      end
-
-      it 'bumps the requested count of the shift' do
-        expect { subject }.to change { shift.reload.requested }.by(1)
       end
     end
 

@@ -11,7 +11,6 @@
 #  identifier    :string           not null
 #  is_full       :boolean          default(FALSE)
 #  name          :string
-#  requested     :integer          default(0), not null
 #  created_at    :datetime         not null
 #  updated_at    :datetime         not null
 #  tournament_id :bigint           not null
