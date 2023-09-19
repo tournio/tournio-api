@@ -192,16 +192,6 @@ RSpec.describe DirectorUtilities do
       expect(moving_bowler.reload.position).to eq(4)
     end
 
-    context 'bowler is paid' do
-      it 'does not change the requested of the original shift' do
-        expect { subject }.not_to change(source_team_shift, :requested)
-      end
-
-      it 'does not change the requested of the destination shift' do
-        expect { subject }.not_to change(destination_team_shift, :requested)
-      end
-    end
-
     context 'when the destination team has only one bowler' do
       let(:dest_team_bowlers) { [b1] }
 

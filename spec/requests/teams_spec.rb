@@ -36,10 +36,6 @@ describe TeamsController, type: :request do
       expect(response).to have_http_status(:created)
     end
 
-    it 'bumps the requested count of the specified shift' do
-      expect { subject }.to change { shift.reload.requested }.by(1)
-    end
-
     it 'includes the new team in the response' do
       subject
       expect(json).to have_key('name')
@@ -80,12 +76,8 @@ describe TeamsController, type: :request do
         expect(response).to have_http_status(:created)
       end
 
-      it "bumps the requested count of the tournament's only shift" do
-        expect { subject }.to change { tournament.shifts.first.requested }
-      end
-
       context "but we need one, because there are multiple shifts" do
-        let!(:shift2) { create :shift, :half_filled, tournament: tournament }
+        let!(:shift2) { create :shift, tournament: tournament }
 
         it 'fails' do
           subject
