@@ -31,5 +31,10 @@ FactoryBot.define do
       key { 'website'}
       value { 'www.igbo.org' }
     end
+    trait :team_size do
+      key { 'team_size' }
+      value { 5 }
+      label { 'Team Size' }
+    end
   end
 end

@@ -18,13 +18,13 @@ describe Director::ConfigItemsController, type: :request do
 
     let(:tournament_identifier) { tournament.identifier }
     let(:tournament) { create :tournament }
-    let(:config_item) { create :config_item, :website, tournament: tournament }
+    let(:config_item) { create :config_item, :team_size, tournament: tournament }
     let(:config_item_id) { config_item.id }
 
     let(:params) do
       {
         config_item: {
-          value: 'www.tourn.io',
+          value: 7,
         }
       }
     end
@@ -72,6 +72,32 @@ describe Director::ConfigItemsController, type: :request do
             expect(response).to have_http_status(:ok)
           end
         end
+
+        context 'publicly listed' do
+          let(:config_item) { tournament.config_items.find_by(key: 'publicly_listed') }
+
+          it 'succeeds with a 200 OK' do
+            subject
+            expect(response).to have_http_status(:ok)
+          end
+        end
+
+        context 'website' do
+          let(:config_item) { create :config_item, :website, value: 'foo.bar', tournament: tournament }
+          let(:params) do
+            {
+              config_item: {
+                value: 'www.tourn.io',
+              }
+            }
+          end
+
+          it 'succeeds with a 200 OK' do
+            subject
+            expect(response).to have_http_status(:ok)
+          end
+        end
+
       end
     end
 
