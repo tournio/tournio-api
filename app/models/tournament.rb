@@ -126,6 +126,9 @@ class Tournament < ApplicationRecord
     self.config_items << ConfigItem.new(key: 'accept_payments', value: 'true', label: 'Accept Payments')
     self.config_items << ConfigItem.new(key: 'automatic_discount_voids', value: 'false', label: 'Automatically Void Early Discounts')
     self.config_items << ConfigItem.new(key: 'automatic_late_fees', value: 'false', label: 'Automatically Charge Unpaid Bowlers the Late Fee')
+
+    self.config_items << ConfigItem.new(key: 'stripe_receipts', value: 'false', label: 'Send Receipt Emails')
+
     if Rails.env.development?
       self.config_items += [
         ConfigItem.new(key: 'email_in_dev', value: 'false', label: '[dev] Send Emails'),
