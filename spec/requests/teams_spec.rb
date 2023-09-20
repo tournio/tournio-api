@@ -140,7 +140,6 @@ describe TeamsController, type: :request do
         it 'fails' do
           subject
           expect(response).to have_http_status(:unprocessable_entity)
-          ap json
         end
       end
     end
