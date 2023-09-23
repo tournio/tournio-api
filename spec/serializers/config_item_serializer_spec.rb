@@ -16,7 +16,6 @@
 #
 #  index_config_items_on_tournament_id_and_key  (tournament_id,key) UNIQUE
 #
-# belongs_to :tournament
 
 require 'rails_helper'
 

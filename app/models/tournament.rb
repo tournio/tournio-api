@@ -29,7 +29,8 @@ class Tournament < ApplicationRecord
   include AASM
   include TournamentBusiness
 
-  has_and_belongs_to_many :users
+  belongs_to :tournament_org
+
   has_many :additional_questions, dependent: :destroy
   has_many :bowlers, dependent: :destroy
   has_many :config_items, dependent: :destroy
@@ -46,9 +47,10 @@ class Tournament < ApplicationRecord
   has_one :testing_environment, dependent: :destroy
   has_one :registration_summary_send
   has_one :payment_summary_send
-  has_one :stripe_account, dependent: :destroy
 
   has_one_attached :logo_image
+
+  delegate %i(stripe_account users), to: :tournament_org
 
   accepts_nested_attributes_for :additional_questions, allow_destroy: true
   accepts_nested_attributes_for :config_items, allow_destroy: true
