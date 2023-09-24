@@ -4,25 +4,27 @@
 #
 # Table name: tournaments
 #
-#  id             :bigint           not null, primary key
-#  aasm_state     :string           not null
-#  abbreviation   :string
-#  details        :jsonb
-#  end_date       :date
-#  entry_deadline :datetime
-#  identifier     :string           not null
-#  location       :string
-#  name           :string           not null
-#  start_date     :date
-#  timezone       :string           default("America/New_York")
-#  year           :integer          not null
-#  created_at     :datetime         not null
-#  updated_at     :datetime         not null
+#  id                :bigint           not null, primary key
+#  aasm_state        :string           not null
+#  abbreviation      :string
+#  details           :jsonb
+#  end_date          :date
+#  entry_deadline    :datetime
+#  identifier        :string           not null
+#  location          :string
+#  name              :string           not null
+#  start_date        :date
+#  timezone          :string           default("America/New_York")
+#  year              :integer          not null
+#  created_at        :datetime         not null
+#  updated_at        :datetime         not null
+#  tournament_org_id :bigint
 #
 # Indexes
 #
-#  index_tournaments_on_aasm_state  (aasm_state)
-#  index_tournaments_on_identifier  (identifier)
+#  index_tournaments_on_aasm_state         (aasm_state)
+#  index_tournaments_on_identifier         (identifier)
+#  index_tournaments_on_tournament_org_id  (tournament_org_id)
 #
 
 FactoryBot.define do
@@ -35,7 +37,10 @@ FactoryBot.define do
     end_date { Date.today + 92.days }
     entry_deadline { Date.today + 80.days }
 
+    # to be removed
     association :stripe_account, strategy: :build
+
+    tournament_org
 
     trait :demo do
       aasm_state { :demo }
