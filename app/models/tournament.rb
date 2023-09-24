@@ -4,25 +4,27 @@
 #
 # Table name: tournaments
 #
-#  id             :bigint           not null, primary key
-#  aasm_state     :string           not null
-#  abbreviation   :string
-#  details        :jsonb
-#  end_date       :date
-#  entry_deadline :datetime
-#  identifier     :string           not null
-#  location       :string
-#  name           :string           not null
-#  start_date     :date
-#  timezone       :string           default("America/New_York")
-#  year           :integer          not null
-#  created_at     :datetime         not null
-#  updated_at     :datetime         not null
+#  id                :bigint           not null, primary key
+#  aasm_state        :string           not null
+#  abbreviation      :string
+#  details           :jsonb
+#  end_date          :date
+#  entry_deadline    :datetime
+#  identifier        :string           not null
+#  location          :string
+#  name              :string           not null
+#  start_date        :date
+#  timezone          :string           default("America/New_York")
+#  year              :integer          not null
+#  created_at        :datetime         not null
+#  updated_at        :datetime         not null
+#  tournament_org_id :bigint
 #
 # Indexes
 #
-#  index_tournaments_on_aasm_state  (aasm_state)
-#  index_tournaments_on_identifier  (identifier)
+#  index_tournaments_on_aasm_state         (aasm_state)
+#  index_tournaments_on_identifier         (identifier)
+#  index_tournaments_on_tournament_org_id  (tournament_org_id)
 #
 
 class Tournament < ApplicationRecord
@@ -47,10 +49,12 @@ class Tournament < ApplicationRecord
   has_one :testing_environment, dependent: :destroy
   has_one :registration_summary_send
   has_one :payment_summary_send
+  has_one :stripe_account
+  has_and_belongs_to_many :users
 
   has_one_attached :logo_image
 
-  delegate %i(stripe_account users), to: :tournament_org
+  # delegate :stripe_account, :users, to: :tournament_org
 
   accepts_nested_attributes_for :additional_questions, allow_destroy: true
   accepts_nested_attributes_for :config_items, allow_destroy: true
@@ -65,7 +69,7 @@ class Tournament < ApplicationRecord
   scope :available, -> { upcoming.where(aasm_state: %w[active closed]).where(config_items: { key: 'publicly_listed', value: ['true', 't'] }) }
 
   SUPPORTED_DETAILS = %w(registration_types)
-  SUPPORTED_REGISTRATION_OPTIONS = %w(new_team solo partner new_pair standard)
+  SUPPORTED_REGISTRATION_OPTIONS = %w(new_team solo new_pair standard)
 
   aasm do
     state :setup, initial: true
