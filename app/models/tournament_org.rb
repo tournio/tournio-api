@@ -65,4 +65,4 @@ end
 # Destructive changes to apply afterward:
 #  - drop tournaments_users
 #  - remove column: stripe_accounts.tournament_id
-#  -
+#  - remove :optional flag on belongs_to association for stripe_account and tournament

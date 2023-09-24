@@ -8,7 +8,7 @@
 #  onboarding_completed_at :datetime
 #  created_at              :datetime         not null
 #  updated_at              :datetime         not null
-#  tournament_id           :bigint           not null
+#  tournament_id           :integer
 #  tournament_org_id       :bigint
 #
 # Indexes
@@ -19,5 +19,6 @@
 FactoryBot.define do
   factory :stripe_account do
     identifier  { "stripe_account_#{SecureRandom.uuid}" }
+    tournament_org
   end
 end

@@ -31,7 +31,7 @@ class Tournament < ApplicationRecord
   include AASM
   include TournamentBusiness
 
-  belongs_to :tournament_org
+  belongs_to :tournament_org, optional: true
 
   has_many :additional_questions, dependent: :destroy
   has_many :bowlers, dependent: :destroy
