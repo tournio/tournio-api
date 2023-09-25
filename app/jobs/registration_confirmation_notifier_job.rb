@@ -87,7 +87,7 @@ class RegistrationConfirmationNotifierJob < TemplateMailerJob
   end
 
   def team_page
-    "#{link_hostname}/teams/#{team_info.identifier}"
+    "#{link_hostname}/teams/#{team_info[:identifier]}"
   end
 
   def team_info
@@ -95,6 +95,7 @@ class RegistrationConfirmationNotifierJob < TemplateMailerJob
                      {
                        name: TournamentRegistration.team_display_name(bowler.team),
                        position: bowler.position,
+                       identifier: bowler.team.identifier,
                      }
                    else
                      {}
