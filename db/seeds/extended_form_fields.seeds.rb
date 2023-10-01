@@ -268,3 +268,28 @@ ExtendedFormField.create(
   helper_text: '',
   helper_url: '',
 ) unless ExtendedFormField.find_by(name: 'friday_team_event').present?
+
+ExtendedFormField.create(
+  name: 'has_free_entry',
+  label: "I have a free entry",
+  html_element_type: 'checkbox',
+  html_element_config: { label: '', value: 'no' },
+  validation_rules: { required: false },
+  helper_text: '',
+  helper_url: '',
+) unless ExtendedFormField.find_by(name: 'has_free_entry').present?
+
+ExtendedFormField.create(
+  name: 'igbo_tad_average',
+  label: 'IGBO TAD Average',
+  html_element_type: 'input',
+  html_element_config: {
+    type: 'number',
+    value: '',
+  },
+  validation_rules: {
+    min: 0,
+    max: 300,
+  },
+  helper_text: 'See tournament rules for details',
+) unless ExtendedFormField.find_by(name: 'igbo_tad_average').present?

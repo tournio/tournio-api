@@ -1,6 +1,6 @@
 class TournamentConfig
-  def initialize(tournamenmt_config_items)
-    self.config_items = tournamenmt_config_items
+  def initialize(tournament_config_items)
+    self.config_items = tournament_config_items
   end
 
   def [](key)

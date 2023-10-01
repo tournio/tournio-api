@@ -14,7 +14,7 @@ module Stripe
       #  - event-linked late fees (maybe we don't need to?)
 
       cs = retrieve_stripe_object
-      scp = StripeCheckoutSession.find_by(identifier: cs[:id])
+      scp = StripeCheckoutSession.includes(bowler: :tournament).find_by(identifier: cs[:id])
 
       # Do we want to do anything when we're completed a checkout session that didn't originate with us?
       # Example: a fundraiser entry initiated from bigdclassic.com
@@ -95,7 +95,7 @@ module Stripe
         source: :stripe,
         identifier: cs[:payment_intent]
       )
-      TournamentRegistration.send_receipt_email(bowler, external_payment.id)
+      TournamentRegistration.send_receipt_email(bowler, external_payment.id) unless bowler.tournament.config[:stripe_receipts]
       scp.completed!
     end
 

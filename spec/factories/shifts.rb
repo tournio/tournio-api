@@ -9,7 +9,6 @@
 #  identifier    :string           not null
 #  is_full       :boolean          default(FALSE)
 #  name          :string
-#  requested     :integer          default(0), not null
 #  created_at    :datetime         not null
 #  updated_at    :datetime         not null
 #  tournament_id :bigint           not null
@@ -25,20 +24,7 @@ FactoryBot.define do
     description { 'One event on Friday, the other two on Saturday' }
     name { 'Main' }
 
-    trait :half_requested do
-      requested { 20 }
-    end
-
-    trait :half_filled do
-      requested { 20 }
-    end
-
-    trait :high_demand do
-      requested { 35 }
-    end
-
     trait :full do
-      requested { 40 }
       is_full { true }
     end
   end

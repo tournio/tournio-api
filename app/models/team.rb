@@ -33,14 +33,6 @@ class Team < ApplicationRecord
 
   before_create :generate_identifier
 
-  after_create do
-    shift.update(requested: shift.reload.requested + 1) unless shift.blank?
-  end
-
-  before_destroy do
-    shift.update(requested: shift.reload.requested - 1) unless shift.blank?
-  end
-
   delegate :timezone, to: :tournament
 
   # This allows us to use the team's identifier instead of numeric ID as its helper parameter

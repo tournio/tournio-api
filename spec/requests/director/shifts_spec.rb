@@ -127,19 +127,6 @@ describe Director::ShiftsController, type: :request do
       expect(json['display_order']).to eq(2)
     end
 
-    context 'trying to change a calculated attribute' do
-      let(:shift_params) do
-        {
-          requested: 17,
-        }
-      end
-
-      it 'raises if we try to change calculated attributes' do
-        subject
-        expect(response).to have_http_status(:conflict)
-      end
-    end
-
     context 'trying to make capacity < 1' do
       let(:shift_params) do
         {
