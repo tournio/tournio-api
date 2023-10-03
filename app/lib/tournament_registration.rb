@@ -259,6 +259,26 @@ module TournamentRegistration
     end
   end
 
+  def self.notify_payment_contacts(bowler, payment_identifier, amount, received_at)
+    tournament = bowler.tournament
+    if Rails.env.development? && !tournament.config[:email_in_dev]
+      Rails.logger.info "========= Not sending new-payment email, dev config says not to."
+      return
+    end
+    contacts = tournament.contacts.payment_notifiable.individually
+    contacts.each do |c|
+      recipient_email = Rails.env.production? ? c.email : MailerJob::FROM
+      NewPaymentNotifierJob.perform_in(
+        Rails.configuration.sidekiq_async_delay,
+        bowler.id,
+        payment_identifier,
+        amount,
+        received_at,
+        recipient_email
+      )
+    end
+  end
+
   def self.purchasable_item_sort(purchase_or_item)
     category = purchase_or_item.category
     determination = purchase_or_item.determination

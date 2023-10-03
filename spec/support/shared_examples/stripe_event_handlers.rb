@@ -12,4 +12,9 @@ RSpec.shared_examples 'a completed checkout session' do
   it 'creates a Stripe LedgerEntry for the bowler' do
     expect { subject }.to change { bowler.ledger_entries.stripe.count }.by(1)
   end
+
+  it 'notifies tournament contacts who want to be notified individually' do
+    expect(TournamentRegistration).to receive(:notify_payment_contacts).once
+    subject
+  end
 end

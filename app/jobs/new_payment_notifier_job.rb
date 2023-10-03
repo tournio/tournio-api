@@ -5,7 +5,7 @@ class NewPaymentNotifierJob < MailerJob
 
   attr_accessor :recipient, :bowler, :tournament, :payment_identifier, :amount, :received_at
 
-  def perform(bowler_id, payment_identifier, amount, received_at, recipient_email)
+  def perform(bowler_id, payment_identifier, amount, received_at_ts, recipient_email)
     self.recipient = recipient_email
     return unless recipient.present?
 
@@ -18,7 +18,7 @@ class NewPaymentNotifierJob < MailerJob
     self.tournament = bowler.tournament
 
     timezone = tournament.timezone
-    self.received_at = received_at.in_time_zone(timezone).strftime('%b %-d %l:%M%P %Z')
+    self.received_at = Time.at(received_at_ts).in_time_zone(timezone).strftime('%b %-d %l:%M%P %Z')
 
     send
   end
@@ -45,11 +45,10 @@ class NewPaymentNotifierJob < MailerJob
 
   def text_body
     <<~HEREDOC
-      Your tournament has received a new payment!
+      #{tournament.name} has received a new payment!
 
       Received at: #{received_at}
 
-      Tournament: #{tournament.name}
       Bowler: #{TournamentRegistration.person_list_name(bowler)}
       Amount: #{number_to_currency(amount, precision: 0)}
       Payment identifier: #{payment_identifier}
@@ -59,7 +58,7 @@ class NewPaymentNotifierJob < MailerJob
   def html_body
     <<~HEREDOC
       <h4>
-        Your tournament has received a new payment!
+        #{tournament.abbreviation} has received a new payment!
       </h4>
 
       <p>
@@ -67,8 +66,6 @@ class NewPaymentNotifierJob < MailerJob
       </p>
 
       <p>
-        Tournament: #{tournament.name}
-        <br />
         Bowler: #{TournamentRegistration.person_list_name(bowler)}
         <br />
         Amount: #{number_to_currency(amount, precision: 0)}

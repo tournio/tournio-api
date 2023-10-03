@@ -96,6 +96,14 @@ module Stripe
         identifier: cs[:payment_intent]
       )
       TournamentRegistration.send_receipt_email(bowler, external_payment.id) unless bowler.tournament.config[:stripe_receipts]
+
+      TournamentRegistration.notify_payment_contacts(
+        bowler,
+        external_payment.id,
+        cs[:amount_total] / 100,
+        event[:created]
+      )
+
       scp.completed!
     end
 
