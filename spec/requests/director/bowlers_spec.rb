@@ -491,6 +491,77 @@ describe Director::BowlersController, type: :request do
     end
   end
 
+  describe '#create' do
+    subject { post uri, headers: auth_headers, params: params, as: :json }
+
+    let(:uri) { "/director/tournaments/#{tournament.identifier}/bowlers" }
+
+    let(:tournament) { create :tournament, :with_additional_questions }
+    let(:team) { create :team, tournament: tournament }
+    let(:partner_params) { {} }
+    let(:additional_question_response_params) { {} }
+    let(:params) do
+      {
+        bowler: create_bowler_test_data.merge({
+          team: {
+            identifier: team.identifier,
+          },
+        })
+      }
+    end
+
+    include_examples 'an authorized action'
+
+    it 'succeeds with a 201 Created' do
+      subject
+      expect(response).to have_http_status(:created)
+    end
+
+    it 'includes the new bowler in the response' do
+      subject
+      expect(json).to have_key('last_name')
+      expect(json).to have_key('identifier')
+      expect(json['nickname']).to eq('Gio')
+    end
+
+    # bowler blueprint: director detail
+    it 'includes the team in the response' do
+      subject
+      expect(json['team']['identifier']).to eq(team.identifier)
+    end
+
+    # context 'including additional question responses' do
+    #
+    # end
+
+    context 'as an unpermitted user' do
+      let(:requesting_user) { create(:user, :unpermitted) }
+
+      it 'shall not pass' do
+        subject
+        expect(response).to have_http_status(:unauthorized)
+      end
+    end
+
+    context 'as a director' do
+      let(:requesting_user) { create(:user, :director) }
+
+      it 'shall not pass' do
+        subject
+        expect(response).to have_http_status(:unauthorized)
+      end
+
+      context 'associated with this tournament' do
+        let(:requesting_user) { create :user, :director, tournaments: [tournament] }
+
+        it 'shall pass' do
+          subject
+          expect(response).to have_http_status(:created)
+        end
+      end
+    end
+  end
+
   describe '#resend_email' do
     subject { post uri, headers: auth_headers, params: params, as: :json }
 
