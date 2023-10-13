@@ -530,9 +530,9 @@ describe Director::BowlersController, type: :request do
       expect(json['team']['identifier']).to eq(team.identifier)
     end
 
-    # context 'including additional question responses' do
-    #
-    # end
+    context 'including additional question responses' do
+
+    end
 
     context 'as an unpermitted user' do
       let(:requesting_user) { create(:user, :unpermitted) }

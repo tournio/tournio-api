@@ -78,11 +78,12 @@ module Director
       bowler = Bowler.new(create_bowler_params)
       bowler.tournament = tournament
       unless bowler.valid?
-        render json: nil, status: :bad_request
+        render json: { error: bowler.errors.full_messages.join('; ') }, status: :bad_request
         return
       end
 
       bowler.save
+      # Need to actually register the bowler, derp. (And auto-assign doubles partner if possible.)
       render json: BowlerBlueprint.render(bowler, view: :director_detail), status: :created
     end
 
@@ -215,8 +216,8 @@ module Director
     def additional_question_response_data(responses)
       responses.each_with_object([]) do |response_param, collected|
         collected << {
-          response: response_param['response'],
-          extended_form_field_id: extended_form_fields[response_param['name']].id,
+          response: response_param[:response],
+          extended_form_field_id: extended_form_fields[response_param[:name]].id,
         }
       end
     end
