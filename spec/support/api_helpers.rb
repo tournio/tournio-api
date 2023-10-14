@@ -232,6 +232,7 @@ module ApiHelpers
 
   def create_bowler_test_data
     {
+      'position' => '3',
       'person_attributes' => {
         'first_name' => 'Giacomo',
         'last_name' => 'Hale',

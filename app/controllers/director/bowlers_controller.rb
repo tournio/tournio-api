@@ -65,6 +65,42 @@ module Director
       render json: BowlerBlueprint.render(bowler, view: :director_detail, **url_options)
     end
 
+    def create
+      load_tournament
+      unless tournament.present?
+        skip_authorization
+        render json: nil, status: :not_found
+        return
+      end
+
+      authorize tournament, :update?
+
+      bowler = Bowler.new(create_bowler_params)
+      bowler.tournament = tournament
+      unless bowler.valid?
+        render json: { error: bowler.errors.full_messages.join('; ') }, status: :bad_request
+        return
+      end
+
+      bowler.save
+      team = bowler.team
+      TournamentRegistration.register_bowler(bowler, team.present? ? 'standard' : 'solo')
+
+      if team.present? && team.bowlers.count == tournament.team_size
+        # automatically pair up the last two bowlers
+        # TODO: only if there's a team event (which we don't handle separately yet)
+        unpartnered = team.bowlers.without_doubles_partner
+        if unpartnered.count == 2
+          unpartnered[0].doubles_partner = unpartnered[1]
+          unpartnered[1].doubles_partner = unpartnered[0]
+          unpartnered.map(&:save)
+        end
+      end
+
+      # Need to actually register the bowler, derp. (And auto-assign doubles partner if possible.)
+      render json: BowlerBlueprint.render(bowler.reload, view: :director_detail), status: :created
+    end
+
     def update
       load_bowler_and_tournament
       unless bowler.present?
@@ -148,7 +184,7 @@ module Director
       @tournament = @bowler.tournament if @bowler.present?
     end
 
-    def bowler_params
+    def update_bowler_params
       params.require(:bowler).permit(
         team: %i(identifier),
         doubles_partner: %i(identifier),
@@ -159,8 +195,53 @@ module Director
             .to_h.with_indifferent_access
     end
 
+    def create_bowler_params
+      bowler_data = params.require(:bowler).permit(
+        :position,
+        team: %i(identifier),
+        doubles_partner: %i(identifier),
+        person_attributes: PERSON_ATTRS,
+        additional_question_responses: %i(name response),
+        verified_data: %i(verified_average handicap igbo_member),
+      ).to_h.with_indifferent_access
+      bowler_data[:additional_question_responses_attributes] = additional_question_response_data(bowler_data[:additional_question_responses])
+      bowler_data.delete(:additional_question_responses)
+
+      # Are we creating a bowler on a team?
+      unless bowler_data[:team][:identifier].blank?
+        team = tournament.teams.find_by(identifier: bowler_data[:team][:identifier])
+        unless team.present?
+          self.error = 'Could not find the specified team.'
+          return
+        end
+
+        unless team.bowlers.count < tournament.team_size
+          self.error = 'The specified team is full.'
+          return
+        end
+
+        bowler_data[:team_id] = team.id
+        bowler_data.delete(:team)
+      end
+
+      bowler_data
+    end
+
+    def additional_question_response_data(responses)
+      responses.each_with_object([]) do |response_param, collected|
+        collected << {
+          response: response_param[:response],
+          extended_form_field_id: extended_form_fields[response_param[:name]].id,
+        }
+      end
+    end
+
+    def extended_form_fields
+      @extended_form_fields ||= ExtendedFormField.all.index_by(&:name)
+    end
+
     def try_reassigning
-      bowler_data = bowler_params
+      bowler_data = update_bowler_params
       return unless bowler_data[:team].present?
 
       new_team = tournament.teams.find_by(identifier: bowler_data[:team][:identifier])
@@ -178,7 +259,7 @@ module Director
     end
 
     def try_partnering
-      bowler_data = bowler_params
+      bowler_data = update_bowler_params
       return unless bowler_data[:doubles_partner] && bowler_data[:doubles_partner][:identifier].present?
 
       new_partner = tournament.bowlers.find_by(identifier: bowler_data[:doubles_partner][:identifier])
@@ -191,7 +272,7 @@ module Director
     end
 
     def try_updating_details
-      bowler_data = bowler_params
+      bowler_data = update_bowler_params
 
       # First, update bowler deets
       if bowler_data[:verified_data].present?
@@ -211,7 +292,7 @@ module Director
     end
 
     def try_updating_additional_question_responses
-      bowler_data = bowler_params
+      bowler_data = update_bowler_params
       return false unless bowler_data[:additional_question_responses].present?
 
       bowler_data[:additional_question_responses].each do |aqr_data|
