@@ -83,8 +83,22 @@ module Director
       end
 
       bowler.save
+      team = bowler.team
+      TournamentRegistration.register_bowler(bowler, team.present? ? 'standard' : 'solo')
+
+      if team.present? && team.bowlers.count == tournament.team_size
+        # automatically pair up the last two bowlers
+        # TODO: only if there's a team event (which we don't handle separately yet)
+        unpartnered = team.bowlers.without_doubles_partner
+        if unpartnered.count == 2
+          unpartnered[0].doubles_partner = unpartnered[1]
+          unpartnered[1].doubles_partner = unpartnered[0]
+          unpartnered.map(&:save)
+        end
+      end
+
       # Need to actually register the bowler, derp. (And auto-assign doubles partner if possible.)
-      render json: BowlerBlueprint.render(bowler, view: :director_detail), status: :created
+      render json: BowlerBlueprint.render(bowler.reload, view: :director_detail), status: :created
     end
 
     def update
