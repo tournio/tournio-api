@@ -32,7 +32,7 @@ Rails.application.routes.draw do
         get 'stripe_status'
         post 'logo_upload'
       end
-      resources :bowlers, only: %i(index show destroy update), param: :identifier, shallow: true do
+      resources :bowlers, only: %i(index show create destroy update), param: :identifier, shallow: true do
         resources :ledger_entries, only: %i(create), shallow: true
         member do
           post 'resend_email'

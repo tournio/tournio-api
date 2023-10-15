@@ -169,5 +169,18 @@ FactoryBot.define do
         create(:purchasable_item, :sanction, tournament: t)
       end
     end
+
+    trait :with_additional_questions do
+      after(:create) do |t, _|
+        comment = create(:extended_form_field, :comment)
+        pronouns = create(:extended_form_field, :pronouns)
+        standings = create(:extended_form_field, :standings_link)
+
+        create(:additional_question, extended_form_field: comment, tournament: t)
+        create(:additional_question, extended_form_field: pronouns, tournament: t)
+        create(:additional_question, extended_form_field: standings, tournament: t)
+
+      end
+    end
   end
 end
