@@ -141,7 +141,7 @@ class TeamsController < ApplicationController
   # TODO: This is a good candidate for consolidation, since it's essentially repeated from BowlersController
   def clean_up_bowler_data(permitted_params)
     # Remove any empty person attributes
-    permitted_params['person_attributes'].delete_if { |_k, v| v.length.zero? }
+    permitted_params['person_attributes'].delete_if { |_k, v| v.to_s.length.zero? }
 
     # strip leading and trailing whitespace from email, in case they managed to sneak some in
     permitted_params['person_attributes'][:email].strip! if permitted_params['person_attributes'][:email].present?
