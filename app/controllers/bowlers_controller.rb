@@ -237,7 +237,7 @@ class BowlersController < ApplicationController
   def clean_up_bowler_data(permitted_params)
     permitted_params.each do |p|
       # Remove any empty person attributes
-      p['person_attributes'].delete_if { |_k, v| v.length.zero? }
+      p['person_attributes'].delete_if { |_k, v| v.to_s.length.zero? }
 
       # strip leading and trailing whitespace from email, in case they managed to sneak some in
       p['person_attributes'][:email].strip! if p['person_attributes'][:email].present?
