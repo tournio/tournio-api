@@ -35,6 +35,8 @@ class Shift < ApplicationRecord
   private
 
   def generate_identifier
-    self.identifier = SecureRandom.uuid
+    begin
+      self.identifier = SecureRandom.alphanumeric(6)
+    end while Shift.exists?(identifier: self.identifier)
   end
 end

@@ -10,7 +10,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema[7.0].define(version: 2023_09_20_155523) do
+ActiveRecord::Schema[7.0].define(version: 2023_11_02_155728) do
   # These are extensions that must be enabled in order to support this database
   enable_extension "plpgsql"
 
@@ -149,6 +149,13 @@ ActiveRecord::Schema[7.0].define(version: 2023_09_20_155523) do
     t.bigint "event_id", null: false
     t.bigint "scratch_division_id", null: false
     t.index ["event_id", "scratch_division_id"], name: "event_division_idx", unique: true
+  end
+
+  create_table "events_shifts", id: false, force: :cascade do |t|
+    t.bigint "event_id", null: false
+    t.bigint "shift_id", null: false
+    t.index ["event_id"], name: "index_events_shifts_on_event_id"
+    t.index ["shift_id"], name: "index_events_shifts_on_shift_id"
   end
 
   create_table "extended_form_fields", force: :cascade do |t|
