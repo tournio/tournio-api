@@ -87,6 +87,68 @@ RSpec.describe MoveTeamShiftToShiftTeam do
   end
 
   describe 'down' do
+    subject { described_class.new.down }
 
+    context 'a tournament with just one shift' do
+      let(:tournament) { create :tournament }
+      let(:shift) { tournament.shifts.first }
+
+      context 'a team with no bowlers' do
+        let!(:team) do
+          create :team,
+            tournament: tournament,
+            shifts: [shift]
+        end
+
+        it 'adds the shift to the belongs-to relationship' do
+          subject
+          expect(team.reload.shift_id).to eq(shift.id)
+        end
+      end
+
+      context 'a team with bowlers' do
+        let!(:team) do
+          create :team, :standard_full_team,
+            tournament: tournament,
+            shifts: [tournament.shifts.last]
+        end
+
+        it 'adds the shift to the belongs-to relationship' do
+          subject
+          expect(team.reload.shift_id).to eq(shift.id)
+        end
+      end
+    end
+
+    context 'a tournament with two shifts' do
+      let(:tournament) { create :tournament, :two_shifts }
+      let(:shift) { tournament.shifts.last }
+
+      context 'a team with no bowlers' do
+        let!(:team) do
+          create :team,
+            tournament: tournament,
+            shifts: [shift]
+        end
+
+        it 'adds the shift to the belongs-to relationship' do
+          subject
+          expect(team.reload.shift_id).to eq(shift.id)
+        end
+      end
+
+      context 'a team with bowlers' do
+        let!(:team) do
+          create :team, :standard_full_team,
+            tournament: tournament,
+            shifts: [tournament.shifts.last]
+        end
+
+        it 'adds the shift to the belongs-to relationship' do
+          subject
+          expect(team.reload.shift_id).to eq(shift.id)
+        end
+      end
+    end
   end
 end
