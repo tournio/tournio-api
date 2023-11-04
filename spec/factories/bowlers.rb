@@ -33,7 +33,7 @@ FactoryBot.define do
     trait :with_team do
       position { 1 }
 
-      team { build :team, tournament: tournament, shift: tournament.shifts.first }
+      team { build :team, tournament: tournament }
     end
   end
 end

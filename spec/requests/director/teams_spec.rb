@@ -22,19 +22,19 @@ describe Director::TeamsController, type: :request do
 
     before do
       10.times do
-        create :team, :standard_full_team, tournament: tournament, shift: shift
+        create :team, :standard_full_team, tournament: tournament
       end
 
       2.times do
-        create :team, :standard_one_bowler, tournament: tournament, shift: shift
+        create :team, :standard_one_bowler, tournament: tournament
       end
 
       2.times do
-        create :team, :standard_two_bowlers, tournament: tournament, shift: shift
+        create :team, :standard_two_bowlers, tournament: tournament
       end
 
       1.times do
-        create :team, :standard_three_bowlers, tournament: tournament, shift: shift
+        create :team, :standard_three_bowlers, tournament: tournament
       end
     end
 

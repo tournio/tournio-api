@@ -21,6 +21,7 @@
 class Shift < ApplicationRecord
   belongs_to :tournament
   has_and_belongs_to_many :teams
+  has_and_belongs_to_many :events
 
   validates :capacity, numericality: { greater_than: 0 }
 
