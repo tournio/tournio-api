@@ -19,6 +19,7 @@
 #
 class Event < ApplicationRecord
   belongs_to :tournament
+  has_and_belongs_to_many :shifts
   has_and_belongs_to_many :scratch_divisions
 
   accepts_nested_attributes_for :scratch_divisions

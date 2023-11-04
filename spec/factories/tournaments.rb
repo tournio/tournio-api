@@ -86,6 +86,21 @@ FactoryBot.define do
       end
     end
 
+    trait :mix_and_match_shifts do
+      after(:create) do |t, _|
+        singles = create :event, :singles, tournament: t
+        doubles = create :event, :doubles, tournament: t
+        team = create :event, :team, tournament: t
+
+        t.shifts = [
+          build(:shift, name: 'SD1', description: 'S&D early', events: [singles, doubles]),
+          build(:shift, name: 'SD2', description: 'S&D late', events: [singles, doubles]),
+          build(:shift, name: 'T1', description: 'T early', events: [team]),
+          build(:shift, name: 'T2', description: 'T late', events: [team]),
+        ]
+      end
+    end
+
     trait :with_entry_fee do
       after(:create) do |t, _|
         create(:purchasable_item,
