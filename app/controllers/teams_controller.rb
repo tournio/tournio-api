@@ -54,11 +54,13 @@ class TeamsController < ApplicationController
       return
     end
 
-    # if team.shift.is_full?
-    #   Rails.logger.warn "======== Requested shift is full. Errors: #{team.errors.full_messages}"
-    #   render json: { team: 'Requested shift is full' }, status: :unprocessable_entity
-    #   return
-    # end
+    # Prevent joining a shift that is already marked as full
+    full_shifts = team.shifts.filter { |s| s.is_full? }
+    if full_shifts.any?
+      shift_names = full_shifts.collect(&:name).join(', ')
+      render json: { team: "Cannot join a full shift: #{shift_names}" }, status: :unprocessable_entity
+      return
+    end
 
     TournamentRegistration.register_team(team)
 

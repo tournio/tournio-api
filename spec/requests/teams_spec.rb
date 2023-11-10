@@ -149,12 +149,29 @@ describe TeamsController, type: :request do
     context 'a tournament with multiple inclusive shifts' do
       let(:tournament) { create :tournament, :active, :two_shifts }
 
-      # We don't need to do additional testing; if the client supplies a shift,
-      # that's all we need
-      it 'succeeds' do
-        subject
-        expect(response).to have_http_status(:created)
+      context 'when a shift is full' do
+        before do
+          tournament.shifts.second.update(is_full: true)
+        end
+
+        it 'succeeds' do
+          subject
+          expect(response).to have_http_status(:created)
+        end
+
+        context 'requesting the full shift' do
+          before do
+            tournament.shifts.first.update(is_full: true)
+            tournament.shifts.second.update(is_full: false)
+          end
+
+          it 'fails' do
+            subject
+            expect(response).to have_http_status(:unprocessable_entity)
+          end
+        end
       end
+
     end
 
     context 'a tournament with mix-and-match shifts' do
@@ -196,31 +213,6 @@ describe TeamsController, type: :request do
         #   subject
         #   expect(response).to have_http_status(:unprocessable_entity)
         # end
-      end
-    end
-
-    context 'when a shift is full' do
-      let(:tournament) { create :tournament, :active, :with_entry_fee, :two_shifts }
-
-      before do
-        tournament.shifts.second.update(is_full: true)
-      end
-
-      it 'succeeds' do
-        subject
-        expect(response).to have_http_status(:created)
-      end
-
-      context 'requesting the full shift' do
-        before do
-          tournament.shifts.first.update(is_full: true)
-          tournament.shifts.second.update(is_full: false)
-        end
-
-        it 'fails' do
-          subject
-          expect(response).to have_http_status(:unprocessable_entity)
-        end
       end
     end
 
