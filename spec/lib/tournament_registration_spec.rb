@@ -499,7 +499,7 @@ RSpec.describe TournamentRegistration do
     subject { subject_class.complete_doubles_link(new_bowler) }
 
     let(:tournament) { create :tournament, :active }
-    let(:team) { create :team, tournament: tournament, shift: tournament.shifts.first }
+    let(:team) { create :team, tournament: tournament, shifts: [tournament.shifts.first] }
 
     context 'when no partner is available' do
       let(:new_bowler) { create(:bowler, person: create(:person), tournament: tournament, position: 3) }
@@ -816,7 +816,7 @@ RSpec.describe TournamentRegistration do
     subject { subject_class.try_assigning_automatic_partners(team) }
 
     let(:tournament) { create :tournament, :active }
-    let(:team) { create :team, tournament: tournament, shift: tournament.shifts.first }
+    let(:team) { create :team, tournament: tournament, shifts: [tournament.shifts.first] }
 
     context 'when the team is not yet full' do
       let(:new_bowler) { bowlers.last }
