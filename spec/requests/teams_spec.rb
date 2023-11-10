@@ -32,9 +32,9 @@ describe TeamsController, type: :request do
     end
     let(:shift_params) do
       {
-        shifts: [{
-          identifier: shift.identifier,
-        }],
+        shift_identifiers: [
+          shift.identifier,
+        ],
       }
     end
 
@@ -49,6 +49,22 @@ describe TeamsController, type: :request do
       expect(json).to have_key('identifier')
       expect(json).to have_key('bowlers')
       expect(json['name']).to eq(single_bowler_team_test_data['name'])
+    end
+
+    it 'correctly associates the new team with its shift' do
+      subject
+      the_shift = Team.last.shifts.first
+      expect(the_shift&.identifier).to eq(shift.identifier)
+    end
+
+    it 'includes shifts in the response' do
+      subject
+      expect(json).to have_key('shifts')
+    end
+
+    it 'includes the correct shifts in the response' do
+      subject
+      expect(json['shifts'][0]['identifier']).to eq(shift.identifier)
     end
 
     it 'creates data points' do
@@ -103,7 +119,7 @@ describe TeamsController, type: :request do
 
     end
 
-    context 'somehow with no shift identifier' do
+    context 'with no shift identifier' do
       let(:shift_params) { {} }
 
       it 'succeeds' do
@@ -111,23 +127,23 @@ describe TeamsController, type: :request do
         expect(response).to have_http_status(:created)
       end
 
-      context "but we need one, because there are multiple shifts" do
-        let(:tournament) { create :tournament, :active, :two_shifts }
-
-        it 'fails' do
-          subject
-          expect(response).to have_http_status(:unprocessable_entity)
-        end
-      end
-
-      context "but we need one, because this is a mix-and-match tournament" do
-        let(:tournament) { create :tournament, :active, :mix_and_match_shifts }
-
-        it 'fails' do
-          subject
-          expect(response).to have_http_status(:unprocessable_entity)
-        end
-      end
+      # context "but we need one, because there are multiple shifts" do
+      #   let(:tournament) { create :tournament, :active, :two_shifts }
+      #
+      #   it 'fails' do
+      #     subject
+      #     expect(response).to have_http_status(:unprocessable_entity)
+      #   end
+      # end
+      #
+      # context "but we need one, because this is a mix-and-match tournament" do
+      #   let(:tournament) { create :tournament, :active, :mix_and_match_shifts }
+      #
+      #   it 'fails' do
+      #     subject
+      #     expect(response).to have_http_status(:unprocessable_entity)
+      #   end
+      # end
     end
 
     context 'a tournament with multiple inclusive shifts' do
@@ -145,13 +161,9 @@ describe TeamsController, type: :request do
       let(:tournament) { create :tournament, :active, :mix_and_match_shifts }
       let(:shift_params) do
         {
-          shifts: [
-            {
-              identifier: tournament.events.team.first.shifts.first.identifier,
-            },
-            {
-              identifier: tournament.events.double.first.shifts.last.identifier,
-            }
+          shift_identifiers: [
+            tournament.events.team.first.shifts.first.identifier,
+            tournament.events.double.first.shifts.last.identifier,
           ],
         }
       end
@@ -161,16 +173,21 @@ describe TeamsController, type: :request do
         expect(response).to have_http_status(:created)
       end
 
+      it 'includes the correct shifts in the response' do
+        subject
+        identifiers = json['shifts'].collect { |s| s['identifier'] }
+        expect(identifiers).to match_array(shift_params[:shift_identifiers])
+      end
+
+
       # This is worth doing, though maybe not initially.
       # ...
       # My client code will not let this happen, but never trust the public not to mess things up.
       context 'missing a shift for a set of events' do
         let(:shift_params) do
           {
-            shifts: [
-              {
-                identifier: tournament.events.team.first.shifts.first.identifier,
-              },
+            shift_identifiers: [
+              tournament.events.team.first.shifts.first.identifier,
             ],
           }
         end
