@@ -22,19 +22,19 @@ describe Director::TeamsController, type: :request do
 
     before do
       10.times do
-        create :team, :standard_full_team, tournament: tournament
+        create :team, :standard_full_team, tournament: tournament, shifts: [shift]
       end
 
       2.times do
-        create :team, :standard_one_bowler, tournament: tournament
+        create :team, :standard_one_bowler, tournament: tournament, shifts: [shift]
       end
 
       2.times do
-        create :team, :standard_two_bowlers, tournament: tournament
+        create :team, :standard_two_bowlers, tournament: tournament, shifts: [shift]
       end
 
       1.times do
-        create :team, :standard_three_bowlers, tournament: tournament
+        create :team, :standard_three_bowlers, tournament: tournament, shifts: [shift]
       end
     end
 
@@ -111,7 +111,7 @@ describe Director::TeamsController, type: :request do
       {
         team: {
           name: 'High Rollers',
-          shift_identifier: shift.identifier,
+          shift_identifiers: [shift.identifier],
         }
       }
     end
@@ -132,11 +132,11 @@ describe Director::TeamsController, type: :request do
 
     it 'links the team with the indicated shift' do
       subject
-      expect(json).to have_key('shift')
-      expect(json['shift']['identifier']).to eq(shift.identifier)
+      expect(json).to have_key('shifts')
+      expect(json['shifts'][0]['identifier']).to eq(shift.identifier)
     end
 
-    context 'when the tournament has multiple shifts' do
+    context 'when the tournament has 2 inclusive shifts' do
       let(:tournament) { create :tournament, :active, :two_shifts }
       let(:shift) { tournament.shifts.last }
 
@@ -147,8 +147,39 @@ describe Director::TeamsController, type: :request do
 
       it 'links the team with the indicated shift' do
         subject
-        expect(json).to have_key('shift')
-        expect(json['shift']['identifier']).to eq(shift.identifier)
+        expect(json).to have_key('shifts')
+        expect(json['shifts'][0]['identifier']).to eq(shift.identifier)
+      end
+    end
+
+    context 'when the tournament has mix-and-match shifts' do
+      let(:tournament) { create :tournament, :active, :mix_and_match_shifts }
+      let(:shifts) do
+        [
+          tournament.events.team.first.shifts.first,
+          tournament.events.double.first.shifts.last,
+        ]
+      end
+      let(:shift_identifiers) { shifts.collect(&:identifier) }
+      let(:params) do
+        {
+          team: {
+            name: 'High Rollers',
+            shift_identifiers: shift_identifiers,
+          }
+        }
+      end
+
+      it 'succeeds with a 201 Created' do
+        subject
+        expect(response).to have_http_status(:created)
+      end
+
+      it 'links the team with the indicated shifts' do
+        subject
+        expect(json).to have_key('shifts')
+        identifiers = json['shifts'].collect { |s| s['identifier'] }
+        expect(identifiers).to match_array(shift_identifiers)
       end
     end
 
@@ -196,8 +227,8 @@ describe Director::TeamsController, type: :request do
 
     let(:uri) { "/director/teams/#{team_identifier}" }
 
-    let(:tournament) { create :tournament, :one_shift }
-    let(:team) { create :team, tournament: tournament, shift: tournament.shifts.first }
+    let(:tournament) { create :tournament }
+    let(:team) { create :team, tournament: tournament, shifts: tournament.shifts }
     let(:team_identifier) { team.identifier }
 
     include_examples 'an authorized action'
@@ -247,7 +278,7 @@ describe Director::TeamsController, type: :request do
     let(:uri) { "/director/teams/#{team_identifier}" }
 
     let(:tournament) { create :tournament, :active }
-    let(:team) { create :team, :standard_three_bowlers, tournament: tournament, shift: tournament.shifts.first, initial_size: 3 }
+    let(:team) { create :team, :standard_full_team, tournament: tournament, shifts: tournament.shifts }
     let(:team_identifier) { team.identifier }
     let(:new_name) { 'High Rollers' }
     let(:new_initial_size) { 4 }
@@ -293,12 +324,12 @@ describe Director::TeamsController, type: :request do
       let(:tournament) { create :tournament, :active, :two_shifts }
       let(:old_shift) { tournament.shifts.first }
       let(:new_shift) { tournament.shifts.second }
-      let(:team) { create :team, :standard_full_team, tournament: tournament, shift: old_shift }
+      let(:team) { create :team, :standard_full_team, tournament: tournament, shifts: [old_shift] }
 
       let(:params) do
         {
           team: {
-            shift_identifier: new_shift.identifier,
+            shift_identifiers: [new_shift.identifier],
           }
         }
       end
@@ -310,7 +341,7 @@ describe Director::TeamsController, type: :request do
 
       it 'includes the updated team in the response' do
         subject
-        expect(json['shift']['name']).to eq(new_shift.name)
+        expect(json['shifts'][0]['name']).to eq(new_shift.name)
       end
 
       context 'error scenarios' do
@@ -318,7 +349,7 @@ describe Director::TeamsController, type: :request do
           let(:params) do
             {
               team: {
-                shift_identifier: 'no-the-other-one',
+                shift_identifiers: ['no-the-other-one'],
               }
             }
           end
@@ -339,6 +370,40 @@ describe Director::TeamsController, type: :request do
         #     expect(response).to have_http_status(:conflict)
         #   end
         # end
+      end
+    end
+
+    context 'moving around a mix-and-match tournament' do
+      let(:tournament) { create :tournament, :active, :mix_and_match_shifts }
+      let(:old_shifts) do
+        [
+          tournament.events.team.first.shifts.first,
+          tournament.events.double.first.shifts.last,
+        ]
+      end
+      let(:new_shifts) do
+        [
+          tournament.events.team.first.shifts.last,
+          tournament.events.double.first.shifts.first,
+        ]
+      end
+      let(:params) do
+        {
+          team: {
+            shift_identifiers: new_shifts.collect { |s| s.identifier },
+          }
+        }
+      end
+
+      it 'succeeds with a 200 OK' do
+        subject
+        expect(response).to have_http_status(:ok)
+      end
+
+      it 'includes the new shifts in the response' do
+        subject
+        identifiers = json['shifts'].collect { |s| s['identifier'] }
+        expect(identifiers).to match_array(new_shifts.collect { |s| s.identifier })
       end
     end
 
@@ -419,7 +484,7 @@ describe Director::TeamsController, type: :request do
     let(:uri) { "/director/teams/#{team_identifier}" }
 
     let(:tournament) { create :tournament, :active }
-    let(:team) { create :team, :standard_full_team, tournament: tournament, shift: tournament.shifts.first }
+    let(:team) { create :team, :standard_full_team, tournament: tournament, shifts: tournament.shifts }
     let(:team_identifier) { team.identifier }
 
     include_examples 'an authorized action'
