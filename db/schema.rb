@@ -10,7 +10,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema[7.0].define(version: 2023_11_02_160543) do
+ActiveRecord::Schema[7.0].define(version: 2023_11_13_193935) do
   # These are extensions that must be enabled in order to support this database
   enable_extension "plpgsql"
 
@@ -312,6 +312,8 @@ ActiveRecord::Schema[7.0].define(version: 2023_11_02_160543) do
     t.datetime "created_at", null: false
     t.datetime "updated_at", null: false
     t.boolean "is_full", default: false
+    t.string "event_string"
+    t.string "group_title"
     t.index ["identifier"], name: "index_shifts_on_identifier", unique: true
     t.index ["tournament_id"], name: "index_shifts_on_tournament_id"
   end
