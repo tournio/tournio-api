@@ -39,6 +39,10 @@ class TeamsController < ApplicationController
   # Controller actions
   #####################
 
+  class MissingShiftIdentifiers < Exception
+
+  end
+
   def create
     unless tournament.present?
       Rails.logger.warn "========= Tried to create a team with a bad tournament id: #{params[:tournament_identifier]}"
@@ -67,6 +71,8 @@ class TeamsController < ApplicationController
     team.bowlers.includes(:person, :ledger_entries).order(:position)
     # render json: TeamDetailedSerializer.new(team, within: {bowlers: {doubles_partner: :doubles_partner}}).serialize, status: :created
     render json: TeamBlueprint.render(team, view: :detail), status: :created
+  rescue MissingShiftIdentifiers => e
+    render json: { team: e.message }, status: :unprocessable_entity
   end
 
   def index
@@ -128,8 +134,12 @@ class TeamsController < ApplicationController
     cleaned_up = permitted_params.dup
     cleaned_up['bowlers_attributes'].map! { |bowler_attrs| clean_up_bowler_data(bowler_attrs) }
 
-    cleaned_up['shifts'] = Shift.where(identifier: permitted_params['shift_identifiers'])
-    cleaned_up.delete('shift_identifiers')
+    if tournament.shifts.count > 1
+      raise MissingShiftIdentifiers.new('Missing preferred shift identifiers') unless permitted_params['shift_identifiers'].present?
+
+      cleaned_up['shifts'] = Shift.where(identifier: permitted_params['shift_identifiers'])
+      cleaned_up.delete('shift_identifiers')
+    end
 
     cleaned_up
   end

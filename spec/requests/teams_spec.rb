@@ -136,14 +136,19 @@ describe TeamsController, type: :request do
       #   end
       # end
       #
-      # context "but we need one, because this is a mix-and-match tournament" do
-      #   let(:tournament) { create :tournament, :active, :mix_and_match_shifts }
-      #
-      #   it 'fails' do
-      #     subject
-      #     expect(response).to have_http_status(:unprocessable_entity)
-      #   end
-      # end
+      context "but we need one, because this is a mix-and-match tournament" do
+        let(:tournament) { create :tournament, :active, :mix_and_match_shifts }
+
+        it 'fails' do
+          subject
+          expect(response).to have_http_status(:unprocessable_entity)
+        end
+
+        it 'with a useful error message' do
+          subject
+          expect(json['team']).not_to be_nil
+        end
+      end
     end
 
     context 'a tournament with multiple inclusive shifts' do
