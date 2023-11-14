@@ -50,6 +50,6 @@ class Shift < ApplicationRecord
   end
 
   def generate_group_title
-    self.group_title = events.collect(&:name).sort.join(' & ')
+    self.group_title = events.collect(&:name).join(' / ')
   end
 end
