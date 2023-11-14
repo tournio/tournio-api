@@ -6,6 +6,8 @@
 #  capacity      :integer          default(128), not null
 #  description   :string
 #  display_order :integer          default(1), not null
+#  event_string  :string
+#  group_title   :string
 #  identifier    :string           not null
 #  is_full       :boolean          default(FALSE)
 #  name          :string

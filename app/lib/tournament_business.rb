@@ -3,6 +3,12 @@
 module TournamentBusiness
   DEFAULT_TEAM_SIZE = 4
 
+  # Tournament types
+  IGBO_STANDARD = 'igbo_standard'
+  IGBO_MULTI_SHIFT = 'igbo_multi_shift'
+  IGBO_MIX_AND_MATCH = 'igbo_mix_and_match'
+  # IGBO_NON_STANDARD = 'igbo_non_standard'
+
   def entry_fee
     purchasable_items.entry_fee.first.value
   end
@@ -29,6 +35,26 @@ module TournamentBusiness
 
   def config
     @config ||= TournamentConfig.new(config_items)
+  end
+
+  def create_default_config
+    self.config_items += [
+      ConfigItem.new(key: 'display_capacity', value: 'false', label: 'Display Capacity'),
+      ConfigItem.new(key: 'publicly_listed', value: 'true', label: 'Publicly Listed'), # applies to tournaments in the "active" state
+      ConfigItem.new(key: 'accept_payments', value: 'true', label: 'Accept Payments'),
+      ConfigItem.new(key: 'automatic_discount_voids', value: 'false', label: 'Automatically Void Early Discounts'),
+      ConfigItem.new(key: 'automatic_late_fees', value: 'false', label: 'Automatically Charge Unpaid Bowlers the Late Fee'),
+      ConfigItem.new(key: 'website', value: '', label: 'Website'),
+      ConfigItem.new(key: 'stripe_receipts', value: 'true', label: 'Send Receipt Emails'),
+      ConfigItem.new(key:'tournament_type', value: IGBO_STANDARD)
+    ]
+
+    if Rails.env.development?
+      self.config_items += [
+        ConfigItem.new(key: 'email_in_dev', value: 'false', label: '[dev] Send Emails'),
+        ConfigItem.new(key: 'skip_stripe', value: 'true', label: 'Skip Stripe'),
+      ]
+    end
   end
 
   def late_fee_applies_at
