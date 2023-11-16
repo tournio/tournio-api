@@ -6,7 +6,7 @@ class TeamBlueprint < Blueprinter::Base
   field :initial_size
 
   association :tournament, blueprint: TournamentBlueprint
-  association :shift, blueprint: ShiftBlueprint
+  association :shifts, blueprint: ShiftBlueprint
 
   view :list do
     field :name do |t, _|
@@ -34,12 +34,6 @@ class TeamBlueprint < Blueprinter::Base
     end
     field :place_with_others do |t, _|
       t.options['place_with_others'].nil? ? 'n/a' : t.options['place_with_others']
-    end
-
-    field :shift do |t, _|
-      if t.shift.present?
-        ShiftBlueprint.render_as_hash(t.shift)
-      end
     end
 
     field :who_has_paid do |t, _|

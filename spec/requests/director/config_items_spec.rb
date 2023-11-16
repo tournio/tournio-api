@@ -83,7 +83,7 @@ describe Director::ConfigItemsController, type: :request do
         end
 
         context 'website' do
-          let(:config_item) { create :config_item, :website, value: 'foo.bar', tournament: tournament }
+          let(:config_item) { tournament.config_items.find_by(key: 'website') }
           let(:params) do
             {
               config_item: {

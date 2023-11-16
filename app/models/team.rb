@@ -25,7 +25,11 @@ class Team < ApplicationRecord
   include TeamBusiness
 
   belongs_to :tournament
-  belongs_to :shift
+
+  # @mix-and-match Create a migration to drop shift_id from this table
+
+  has_and_belongs_to_many :shifts
+
   has_many :bowlers, -> { order(position: :asc) }, dependent: :destroy
   accepts_nested_attributes_for :bowlers
 

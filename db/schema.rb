@@ -10,7 +10,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema[7.0].define(version: 2023_09_20_155523) do
+ActiveRecord::Schema[7.0].define(version: 2023_11_13_193935) do
   # These are extensions that must be enabled in order to support this database
   enable_extension "plpgsql"
 
@@ -149,6 +149,13 @@ ActiveRecord::Schema[7.0].define(version: 2023_09_20_155523) do
     t.bigint "event_id", null: false
     t.bigint "scratch_division_id", null: false
     t.index ["event_id", "scratch_division_id"], name: "event_division_idx", unique: true
+  end
+
+  create_table "events_shifts", id: false, force: :cascade do |t|
+    t.bigint "event_id", null: false
+    t.bigint "shift_id", null: false
+    t.index ["event_id"], name: "index_events_shifts_on_event_id"
+    t.index ["shift_id"], name: "index_events_shifts_on_shift_id"
   end
 
   create_table "extended_form_fields", force: :cascade do |t|
@@ -305,8 +312,17 @@ ActiveRecord::Schema[7.0].define(version: 2023_09_20_155523) do
     t.datetime "created_at", null: false
     t.datetime "updated_at", null: false
     t.boolean "is_full", default: false
+    t.string "event_string"
+    t.string "group_title"
     t.index ["identifier"], name: "index_shifts_on_identifier", unique: true
     t.index ["tournament_id"], name: "index_shifts_on_tournament_id"
+  end
+
+  create_table "shifts_teams", id: false, force: :cascade do |t|
+    t.bigint "shift_id", null: false
+    t.bigint "team_id", null: false
+    t.index ["shift_id"], name: "index_shifts_teams_on_shift_id"
+    t.index ["team_id"], name: "index_shifts_teams_on_team_id"
   end
 
   create_table "stripe_accounts", primary_key: "identifier", id: :string, force: :cascade do |t|

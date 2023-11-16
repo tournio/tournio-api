@@ -31,5 +31,5 @@ class TeamSerializer
   attributes :identifier, :name, :initial_size, :created_at
 
   # one :tournament, resource: TournamentSerializer
-  one :shift, resource: ShiftSerializer
+  many :shifts, resource: ShiftSerializer
 end

@@ -22,7 +22,7 @@ ExtendedFormField.create(
 
 ExtendedFormField.create(
   name: 'pronouns',
-  label: 'Preferred pronouns',
+  label: 'Personal pronouns',
   html_element_type: 'select',
   html_element_config: {
     options: [
@@ -258,26 +258,6 @@ ExtendedFormField.create(
   helper_text: '',
   helper_url: '',
 ) unless ExtendedFormField.find_by(name: 'igbo_rep').present?
-
-ExtendedFormField.create(
-  name: 'friday_team_event',
-  label: "Would you be able to bowl the Team Event on Friday at 8pm?",
-  html_element_type: 'checkbox',
-  html_element_config: { label: 'Yes', value: 'no' },
-  validation_rules: { required: false },
-  helper_text: '',
-  helper_url: '',
-) unless ExtendedFormField.find_by(name: 'friday_team_event').present?
-
-ExtendedFormField.create(
-  name: 'has_free_entry',
-  label: "I have a free entry",
-  html_element_type: 'checkbox',
-  html_element_config: { label: '', value: 'no' },
-  validation_rules: { required: false },
-  helper_text: '',
-  helper_url: '',
-) unless ExtendedFormField.find_by(name: 'has_free_entry').present?
 
 ExtendedFormField.create(
   name: 'igbo_tad_average',

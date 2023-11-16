@@ -274,7 +274,7 @@ RSpec.describe DirectorUtilities do
     subject { described_class.igbots_hash(tournament: tournament) }
 
     let(:tournament) { create :tournament, :one_shift }
-    let(:team) { create :team, tournament: tournament }
+    let(:team) { create :team, tournament: tournament, shifts: tournament.shifts }
     let!(:b1) { create(:bowler, tournament: tournament, position: 1, person: create(:person), team: team) }
     let!(:b2) { create(:bowler, tournament: tournament, position: 2, person: create(:person), team: team) }
     let!(:b3) { create(:bowler, tournament: tournament, position: 3, person: create(:person), team: team) }
