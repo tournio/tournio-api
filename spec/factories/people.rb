@@ -9,6 +9,7 @@
 #  address2    :string
 #  birth_day   :integer
 #  birth_month :integer
+#  birth_year  :integer
 #  city        :string
 #  country     :string
 #  email       :string           not null

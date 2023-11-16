@@ -8,6 +8,8 @@ class ChangePersonFieldsToNullable < ActiveRecord::Migration[7.0]
     change_column_null :people, :postal_code, true
     change_column_null :people, :state, true
 
-    remove_column :people, :igbo_id
+    remove_column :people, :igbo_id, :string
+
+    add_column :people, :birth_year, :integer
   end
 end
