@@ -134,8 +134,11 @@ class TeamsController < ApplicationController
     cleaned_up = permitted_params.dup
     cleaned_up['bowlers_attributes'].map! { |bowler_attrs| clean_up_bowler_data(bowler_attrs) }
 
-    if tournament.shifts.count > 1
-      raise MissingShiftIdentifiers.new('Missing preferred shift identifiers') unless permitted_params['shift_identifiers'].present?
+    if tournament.shifts.count > 0
+      # We need to specify shift_identifiers if there are more than one to choose from
+      if tournament.shifts.count > 1 && permitted_params['shift_identifiers'].blank?
+        raise MissingShiftIdentifiers.new('Missing preferred shift identifiers')
+      end
 
       cleaned_up['shifts'] = Shift.where(identifier: permitted_params['shift_identifiers'])
       cleaned_up.delete('shift_identifiers')

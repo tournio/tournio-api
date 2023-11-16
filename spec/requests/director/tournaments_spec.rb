@@ -530,7 +530,7 @@ describe Director::TournamentsController, type: :request do
             timezone: 'Pacific/Honolulu',
             config_items_attributes: [
               {
-                key: 'website',
+                key: 'travel-site',
                 value: 'http://maui.hawaii.us',
               },
             ],
@@ -549,9 +549,9 @@ describe Director::TournamentsController, type: :request do
         expect{ subject }.to change(tournament.config_items, :count).by(1)
       end
 
-      it 'creates a website config item' do
+      it 'creates a travel-site config item' do
         subject
-        expect(tournament.config[:website]).to eq('http://maui.hawaii.us')
+        expect(tournament.config['travel-site']).to eq('http://maui.hawaii.us')
       end
     end
 

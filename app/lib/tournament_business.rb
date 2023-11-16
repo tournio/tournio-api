@@ -46,7 +46,7 @@ module TournamentBusiness
       ConfigItem.new(key: 'automatic_late_fees', value: 'false', label: 'Automatically Charge Unpaid Bowlers the Late Fee'),
       ConfigItem.new(key: 'website', value: '', label: 'Website'),
       ConfigItem.new(key: 'stripe_receipts', value: 'true', label: 'Send Receipt Emails'),
-      ConfigItem.new(key:'tournament_type', value: IGBO_STANDARD, label: 'Tournament Type'),
+      ConfigItem.new(key: 'tournament_type', value: IGBO_STANDARD, label: 'Tournament Type'),
     ]
 
     if Rails.env.development?
