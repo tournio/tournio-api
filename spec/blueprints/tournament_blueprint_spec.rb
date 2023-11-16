@@ -10,18 +10,16 @@ describe TournamentBlueprint do
     let(:entry_deadline) { (Time.zone.today + 20.days).iso8601 }
     let(:location) { 'San Diego, CA' }
     let(:timezone) { 'America/Los_Angeles' }
-    let(:website) { 'https://tourn.io' }
     let(:abbreviation) { 'QUART' }
 
     before do
       tournament.config_items += [
-        ConfigItem.new(key: 'abbreviation', value: abbreviation),
-        ConfigItem.new(key: 'start_date', value: start_date),
-        ConfigItem.new(key: 'end_date', value: end_date),
-        ConfigItem.new(key: 'entry_deadline', value: entry_deadline),
-        ConfigItem.new(key: 'location', value: location),
-        ConfigItem.new(key: 'timezone', value: timezone),
-        ConfigItem.new(key: 'website', value: website),
+        ConfigItem.new(key: :abbreviation, value: abbreviation),
+        ConfigItem.new(key: :start_date, value: start_date),
+        ConfigItem.new(key: :end_date, value: end_date),
+        ConfigItem.new(key: :entry_deadline, value: entry_deadline),
+        ConfigItem.new(key: :location, value: location),
+        ConfigItem.new(key: :timezone, value: timezone),
       ]
     end
 
