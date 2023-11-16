@@ -5,22 +5,21 @@
 # Table name: people
 #
 #  id          :bigint           not null, primary key
-#  address1    :string           not null
+#  address1    :string
 #  address2    :string
-#  birth_day   :integer          not null
-#  birth_month :integer          not null
-#  city        :string           not null
-#  country     :string           not null
+#  birth_day   :integer
+#  birth_month :integer
+#  city        :string
+#  country     :string
 #  email       :string           not null
 #  first_name  :string           not null
 #  last_name   :string           not null
 #  nickname    :string
 #  phone       :string           not null
-#  postal_code :string           not null
-#  state       :string           not null
+#  postal_code :string
+#  state       :string
 #  created_at  :datetime         not null
 #  updated_at  :datetime         not null
-#  igbo_id     :string
 #  usbc_id     :string
 #
 # Indexes
@@ -36,13 +35,6 @@ class Person < ApplicationRecord
 
   validates :first_name,
             :last_name,
-            :address1,
-            :city,
-            :state,
-            :country,
-            :postal_code,
-            :birth_month,
-            :birth_day,
             :email,
             :phone,
             presence: { message: 'is required' }
