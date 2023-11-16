@@ -48,7 +48,7 @@ module TournamentBusiness
       ConfigItem.new(key: 'stripe_receipts', value: 'true', label: 'Send Receipt Emails'),
       ConfigItem.new(key: 'team_size', value: 4, label: 'Team Size'),
       ConfigItem.new(key: 'tournament_type', value: IGBO_STANDARD, label: 'Tournament Type'),
-      ConfigItem.new(key: 'required_bowler_fields', value: '', label: 'Required Bowler Fields')
+      ConfigItem.new(key: 'bowler_form_fields', value: '', label: 'Bowler Form Fields')
     ]
 
     if Rails.env.development?
