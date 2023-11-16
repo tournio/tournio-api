@@ -4,6 +4,8 @@ class ConfigItemBlueprint < Blueprinter::Base
   field :value do |c, _|
     if %w(email_in_dev display_capacity skip_stripe publicly_listed accept_payments automatic_discount_voids automatic_late_fees stripe_receipts).include?(c.key)
       self.boolean_value(c.value)
+    elsif c.key == 'required_bowler_fields'
+      c.value.split(' ')
     else
       c.value
     end
