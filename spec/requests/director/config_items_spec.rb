@@ -36,6 +36,27 @@ describe Director::ConfigItemsController, type: :request do
       expect(response).to have_http_status(:ok)
     end
 
+    context 'updating the bowler form fields' do
+      let(:config_item) { tournament.config_items.find_by_key(:bowler_form_fields) }
+      let(:params) do
+        {
+          config_item: {
+            value: 'uno dos tres',
+          }
+        }
+      end
+
+      it 'succeeds with a 200 OK' do
+        subject
+        expect(response).to have_http_status(:ok)
+      end
+
+      it 'succeeds with a 200 OK' do
+        subject
+        expect(json['value']).to match_array(%w(uno dos tres));
+      end
+    end
+
     context 'an active tournament' do
       let(:tournament) { create :tournament, :active }
 
