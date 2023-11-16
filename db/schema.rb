@@ -238,6 +238,7 @@ ActiveRecord::Schema[7.0].define(version: 2023_11_16_164853) do
     t.string "usbc_id"
     t.datetime "created_at", null: false
     t.datetime "updated_at", null: false
+    t.integer "birth_year"
     t.index ["last_name"], name: "index_people_on_last_name"
     t.index ["usbc_id"], name: "index_people_on_usbc_id"
   end
