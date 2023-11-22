@@ -352,13 +352,12 @@ class BowlersController < ApplicationController
     end
 
     # Add any discounts that are among the unpaid purchases
-    discount_items = matching_purchases.early_discount.collect(&:purchasable_item)
-    @applicable_discounts += discount_items
+    @applicable_discounts = matching_purchases.early_discount.collect(&:purchasable_item)
 
     # apply any relevant event bundle discounts
     bundle_discount_items = tournament.purchasable_items.bundle_discount
     previous_paid_event_item_identifiers = bowler.purchases.event.paid.map { |p| p.purchasable_item.identifier }
-    @applicable_discounts = bundle_discount_items.select do |discount|
+    @applicable_discounts += bundle_discount_items.select do |discount|
       (identifiers + previous_paid_event_item_identifiers).intersection(discount.configuration['events']).length == discount.configuration['events'].length
     end
 
