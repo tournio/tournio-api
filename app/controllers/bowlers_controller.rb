@@ -351,9 +351,9 @@ class BowlersController < ApplicationController
       raise PurchaseError.new('Cannot purchase multiple instances of one-time items.', :unprocessable_entity)
     end
 
-    # Here is where we'll want to determine any applicable discounts that aren't bundle_discount,
-    # such as event-linked early-registration discount. (We don't do that yet, since there has not yet
-    # been a need.)
+    # Add any discounts that are among the unpaid purchases
+    discount_items = matching_purchases.early_discount.collect(&:purchasable_item)
+    @applicable_discounts += discount_items
 
     # apply any relevant event bundle discounts
     bundle_discount_items = tournament.purchasable_items.bundle_discount
@@ -361,6 +361,11 @@ class BowlersController < ApplicationController
     @applicable_discounts = bundle_discount_items.select do |discount|
       (identifiers + previous_paid_event_item_identifiers).intersection(discount.configuration['events']).length == discount.configuration['events'].length
     end
+
+    ################################################################
+    # Not yet implemented: event-linked early-registration discounts
+    ################################################################
+
     total_discount = applicable_discounts.sum(&:value)
 
     # apply any relevant event-linked late fees
