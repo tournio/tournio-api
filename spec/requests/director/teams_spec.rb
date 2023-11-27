@@ -247,9 +247,10 @@ describe Director::TeamsController, type: :request do
     let(:uri) { "/director/teams/#{team_identifier}" }
 
     let(:tournament) { create :tournament, :active }
-    let(:team) { create :team, :standard_full_team, tournament: tournament, shift: tournament.shifts.first }
+    let(:team) { create :team, :standard_three_bowlers, tournament: tournament, shift: tournament.shifts.first, initial_size: 3 }
     let(:team_identifier) { team.identifier }
     let(:new_name) { 'High Rollers' }
+    let(:new_initial_size) { 4 }
     let(:attributes_array) do
       team.bowlers.each_with_object([]) do |bowler, result|
         result << {
@@ -263,6 +264,7 @@ describe Director::TeamsController, type: :request do
       {
         team: {
           name: new_name,
+          initial_size: new_initial_size,
           bowlers_attributes: attributes_array,
         }
       }
@@ -280,6 +282,11 @@ describe Director::TeamsController, type: :request do
       expect(json).to have_key('name')
       expect(json).to have_key('identifier')
       expect(json['name']).to eq(new_name)
+    end
+
+    it 'updates the initial size' do
+      subject
+      expect(team.reload.initial_size).to eq(new_initial_size)
     end
 
     context 'moving to a different shift' do
