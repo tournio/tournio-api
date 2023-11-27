@@ -133,6 +133,7 @@ module Director
     def team_params
       params.require(:team).permit(
         :name,
+        :initial_size,
         :shift_identifier,
         options: {},
       ).to_h.symbolize_keys
@@ -141,6 +142,7 @@ module Director
     def edit_team_params
       params.require(:team).permit(
         :name,
+        :initial_size,
         :shift_identifier,
         bowlers_attributes: %i[id position doubles_partner_id],
       ).to_h.with_indifferent_access
