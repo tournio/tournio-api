@@ -18,7 +18,7 @@ describe Director::ConfigItemsController, type: :request do
 
     let(:tournament_identifier) { tournament.identifier }
     let(:tournament) { create :tournament }
-    let(:config_item) { create :config_item, :team_size, tournament: tournament }
+    let(:config_item) { tournament.config_items.find_by(key: 'team_size') }
     let(:config_item_id) { config_item.id }
 
     let(:params) do

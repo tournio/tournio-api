@@ -35,7 +35,7 @@ RSpec.describe TournamentConfig do
     end
 
     context 'an integer value' do
-      let!(:c3) { create :config_item, key: 'team_size', value: 42, tournament: tournament }
+      before { tournament.config_items.find_by(key: 'team_size').update(value: 42) }
 
       it 'returns the value as an integer' do
         expect(tournament_config['team_size']).to be_instance_of Integer

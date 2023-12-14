@@ -88,7 +88,7 @@ RSpec.describe TournamentBusiness do
 
     context 'with a config item for team size' do
       before do
-        tournament.config_items << ConfigItem.new(key: 'team_size', value: 6)
+        tournament.config_items.find_by(key: 'team_size').update(value: 6)
       end
 
       it { is_expected.to eq(6) }
