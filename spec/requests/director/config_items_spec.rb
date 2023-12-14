@@ -18,7 +18,7 @@ describe Director::ConfigItemsController, type: :request do
 
     let(:tournament_identifier) { tournament.identifier }
     let(:tournament) { create :tournament }
-    let(:config_item) { create :config_item, :team_size, tournament: tournament }
+    let(:config_item) { tournament.config_items.find_by(key: 'team_size') }
     let(:config_item_id) { config_item.id }
 
     let(:params) do
@@ -34,6 +34,27 @@ describe Director::ConfigItemsController, type: :request do
     it 'succeeds with a 200 OK' do
       subject
       expect(response).to have_http_status(:ok)
+    end
+
+    context 'updating the bowler form fields' do
+      let(:config_item) { tournament.config_items.find_by_key(:bowler_form_fields) }
+      let(:params) do
+        {
+          config_item: {
+            value: 'uno dos tres',
+          }
+        }
+      end
+
+      it 'succeeds with a 200 OK' do
+        subject
+        expect(response).to have_http_status(:ok)
+      end
+
+      it 'succeeds with a 200 OK' do
+        subject
+        expect(json['value']).to match_array(%w(uno dos tres));
+      end
     end
 
     context 'an active tournament' do
