@@ -499,7 +499,6 @@ describe Director::BowlersController, type: :request do
     let(:tournament) { create :tournament, :with_additional_questions }
     let(:team) { create :team, tournament: tournament }
     let(:partner_params) { {} }
-    let(:additional_question_response_params) { {} }
     let(:params) do
       {
         bowler: create_bowler_test_data.merge({
@@ -530,8 +529,26 @@ describe Director::BowlersController, type: :request do
       expect(json['team']['identifier']).to eq(team.identifier)
     end
 
-    context 'including additional question responses' do
+    it 'includes the additional question responses' do
+      subject
+      expect(json['additional_question_responses']).to have_key('pronouns')
+    end
 
+    context 'without extraneous data' do
+      let(:params) do
+        {
+          bowler: create_bowler_slimmed_down_test_data.merge({
+            team: {
+              identifier: team.identifier,
+            },
+          })
+        }
+      end
+
+      it 'succeeds with a 201 Created' do
+        subject
+        expect(response).to have_http_status(:created)
+      end
     end
 
     context 'as an unpermitted user' do
