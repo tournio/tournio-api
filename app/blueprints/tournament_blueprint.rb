@@ -124,10 +124,6 @@ class TournamentBlueprint < Blueprinter::Base
       output
     end
 
-    field :additional_questions do |t, _|
-      t.additional_questions.order(:order).each_with_object([]) { |aq, obj| obj << AdditionalQuestionBlueprint.render_as_hash(aq) }
-    end
-
     field :available_questions do |t, _|
       if t.setup? || t.testing? || t.demo?
         ExtendedFormField.where.not(id: t.additional_questions.select(:extended_form_field_id)).collect do |eff|
