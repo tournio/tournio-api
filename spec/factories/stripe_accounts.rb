@@ -18,7 +18,6 @@
 #
 FactoryBot.define do
   factory :stripe_account do
-    identifier  { "stripe_account_#{SecureRandom.uuid}" }
     tournament_org
   end
 end

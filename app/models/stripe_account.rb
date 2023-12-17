@@ -20,7 +20,13 @@ class StripeAccount < ApplicationRecord
   belongs_to :tournament, optional: true
   belongs_to :tournament_org, optional: true
 
+  before_create :generate_identifier, if: -> { identifier.blank? }
+
   def can_accept_payments?
     onboarding_completed_at.present?
+  end
+
+  def generate_identifier
+    self.identifier = "stripe_account_#{SecureRandom.uuid}"
   end
 end
