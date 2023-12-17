@@ -10,7 +10,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema[7.0].define(version: 2023_09_20_155523) do
+ActiveRecord::Schema[7.0].define(version: 2023_11_16_164853) do
   # These are extensions that must be enabled in order to support this database
   enable_extension "plpgsql"
 
@@ -151,6 +151,13 @@ ActiveRecord::Schema[7.0].define(version: 2023_09_20_155523) do
     t.index ["event_id", "scratch_division_id"], name: "event_division_idx", unique: true
   end
 
+  create_table "events_shifts", id: false, force: :cascade do |t|
+    t.bigint "event_id", null: false
+    t.bigint "shift_id", null: false
+    t.index ["event_id"], name: "index_events_shifts_on_event_id"
+    t.index ["shift_id"], name: "index_events_shifts_on_shift_id"
+  end
+
   create_table "extended_form_fields", force: :cascade do |t|
     t.string "name", null: false
     t.string "label", null: false
@@ -218,20 +225,20 @@ ActiveRecord::Schema[7.0].define(version: 2023_09_20_155523) do
     t.string "first_name", null: false
     t.string "last_name", null: false
     t.string "email", null: false
-    t.integer "birth_month", null: false
-    t.integer "birth_day", null: false
+    t.integer "birth_month"
+    t.integer "birth_day"
     t.string "nickname"
-    t.string "address1", null: false
+    t.string "address1"
     t.string "address2"
-    t.string "city", null: false
-    t.string "state", null: false
-    t.string "postal_code", null: false
-    t.string "country", null: false
+    t.string "city"
+    t.string "state"
+    t.string "postal_code"
+    t.string "country"
     t.string "phone", null: false
-    t.string "igbo_id"
     t.string "usbc_id"
     t.datetime "created_at", null: false
     t.datetime "updated_at", null: false
+    t.integer "birth_year"
     t.index ["last_name"], name: "index_people_on_last_name"
     t.index ["usbc_id"], name: "index_people_on_usbc_id"
   end
@@ -305,8 +312,17 @@ ActiveRecord::Schema[7.0].define(version: 2023_09_20_155523) do
     t.datetime "created_at", null: false
     t.datetime "updated_at", null: false
     t.boolean "is_full", default: false
+    t.string "event_string"
+    t.string "group_title"
     t.index ["identifier"], name: "index_shifts_on_identifier", unique: true
     t.index ["tournament_id"], name: "index_shifts_on_tournament_id"
+  end
+
+  create_table "shifts_teams", id: false, force: :cascade do |t|
+    t.bigint "shift_id", null: false
+    t.bigint "team_id", null: false
+    t.index ["shift_id"], name: "index_shifts_teams_on_shift_id"
+    t.index ["team_id"], name: "index_shifts_teams_on_team_id"
   end
 
   create_table "stripe_accounts", primary_key: "identifier", id: :string, force: :cascade do |t|

@@ -30,7 +30,7 @@ class TeamsController < ApplicationController
   TEAM_ATTRS = [
     :name,
     :initial_size,
-    :shift_identifier,
+    shift_identifiers: [],
     bowlers_attributes: BOWLER_ATTRS,
     options: {},
   ].freeze
@@ -38,6 +38,10 @@ class TeamsController < ApplicationController
   #####################
   # Controller actions
   #####################
+
+  class MissingShiftIdentifiers < Exception
+
+  end
 
   def create
     unless tournament.present?
@@ -54,9 +58,11 @@ class TeamsController < ApplicationController
       return
     end
 
-    if team.shift.is_full?
-      Rails.logger.warn "======== Requested shift is full. Errors: #{team.errors.full_messages}"
-      render json: { team: 'Requested shift is full' }, status: :unprocessable_entity
+    # Prevent joining a shift that is already marked as full
+    full_shifts = team.shifts.filter { |s| s.is_full? }
+    if full_shifts.any?
+      shift_names = full_shifts.collect(&:name).join(', ')
+      render json: { team: "Cannot join a full shift: #{shift_names}" }, status: :unprocessable_entity
       return
     end
 
@@ -65,6 +71,8 @@ class TeamsController < ApplicationController
     team.bowlers.includes(:person, :ledger_entries).order(:position)
     # render json: TeamDetailedSerializer.new(team, within: {bowlers: {doubles_partner: :doubles_partner}}).serialize, status: :created
     render json: TeamBlueprint.render(team, view: :detail), status: :created
+  rescue MissingShiftIdentifiers => e
+    render json: { team: e.message }, status: :unprocessable_entity
   end
 
   def index
@@ -119,11 +127,6 @@ class TeamsController < ApplicationController
       b.tournament = tournament
     end
 
-    # When there's only one shift, ignore the provided shift_identifier parameter.
-    if tournament.shifts.count == 1
-      team.shift_id = tournament.shifts.first.id
-    end
-
     team
   end
 
@@ -131,9 +134,15 @@ class TeamsController < ApplicationController
     cleaned_up = permitted_params.dup
     cleaned_up['bowlers_attributes'].map! { |bowler_attrs| clean_up_bowler_data(bowler_attrs) }
 
-    shift = Shift.find_by(identifier: permitted_params['shift_identifier'])
-    cleaned_up['shift_id'] = shift.id unless shift.nil?
-    cleaned_up.delete('shift_identifier')
+    if tournament.shifts.count > 0
+      # We need to specify shift_identifiers if there are more than one to choose from
+      if tournament.shifts.count > 1 && permitted_params['shift_identifiers'].blank?
+        raise MissingShiftIdentifiers.new('Missing preferred shift identifiers')
+      end
+
+      cleaned_up['shifts'] = Shift.where(identifier: permitted_params['shift_identifiers'])
+      cleaned_up.delete('shift_identifiers')
+    end
 
     cleaned_up
   end

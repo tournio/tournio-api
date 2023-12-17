@@ -45,12 +45,7 @@ module Director
 
       authorize tournament, :update?
 
-      # new_team_params = { tournament: tournament }.merge(team_params)
-      new_team_params = team_params
-      shift = Shift.find_by_identifier(new_team_params[:shift_identifier])
-      new_team_params.delete :shift_identifier
-
-      team = Team.new({ tournament: tournament }.merge(new_team_params.merge(shift_id: shift.id)))
+      team = Team.new({ tournament: tournament }.merge(new_team_params))
       unless team.valid?
         render json: nil, status: :bad_request
         return
@@ -73,16 +68,9 @@ module Director
 
       authorize tournament
       new_values = edit_team_params
-
-      if new_values['shift_identifier'].present?
-        # This isn't a normal RESTful request.
-        new_values['shift_id'] = new_shift_id new_values['shift_identifier']
-        new_values.delete 'shift_identifier'
-      else
-        unless positions_valid?(new_values)
-          render json: { errors: ['Positions must be unique across the team'] }, status: :bad_request
-          return
-        end
+      unless positions_valid?(new_values)
+        render json: { errors: ['Positions must be unique across the team'] }, status: :bad_request
+        return
       end
 
       unless team.update(new_values)
@@ -130,32 +118,38 @@ module Director
       @tournament = team.tournament if team.present?
     end
 
-    def team_params
-      params.require(:team).permit(
+    def new_team_params
+      parameters = params.require(:team).permit(
         :name,
         :initial_size,
-        :shift_identifier,
+        shift_identifiers: [],
         options: {},
       ).to_h.symbolize_keys
+
+      parameters[:shifts] = Shift.where(identifier: parameters[:shift_identifiers])
+      parameters.delete(:shift_identifiers)
+
+      parameters
     end
 
     def edit_team_params
-      params.require(:team).permit(
+      parameters = params.require(:team).permit(
         :name,
         :initial_size,
-        :shift_identifier,
+        shift_identifiers: [],
         bowlers_attributes: %i[id position doubles_partner_id],
       ).to_h.with_indifferent_access
+
+      parameters[:shifts] = Shift.where(identifier: parameters[:shift_identifiers])
+      raise ActiveRecord::RecordNotFound unless parameters[:shift_identifiers].blank? || parameters[:shifts].count == parameters[:shift_identifiers].count
+      parameters.delete(:shift_identifiers)
+
+      parameters
     end
 
     def positions_valid?(proposed_values)
-      positions = proposed_values[:bowlers_attributes].collect { |attrs| attrs[:position] }
-      positions.count == positions.uniq.count
-    end
-
-    def new_shift_id(new_shift_identifier)
-      new_shift = Shift.find_by!(identifier: new_shift_identifier)
-      new_shift.id
+      positions = proposed_values[:bowlers_attributes]&.collect { |attrs| attrs[:position] }
+      positions.nil? || positions.count == positions.uniq.count
     end
   end
 end

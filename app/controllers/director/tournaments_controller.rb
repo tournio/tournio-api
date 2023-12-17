@@ -47,6 +47,7 @@ module Director
         :id,
         :roster_type,
         :name,
+        :game_count,
         :required,
         :scratch,
         :entry_fee, # not a model attribute
@@ -151,6 +152,7 @@ module Director
       authorize Tournament
 
       tournament = Tournament.new(create_params)
+
       if tournament.valid?
         tournament.save
       else
@@ -395,6 +397,24 @@ module Director
     end
 
     def create_params
+      # Add standard events to each new tournament
+      params[:tournament][:events_attributes] = [
+        {
+          name: 'Singles',
+          roster_type: :single,
+          game_count: 3,
+        },
+        {
+          name: 'Doubles',
+          roster_type: :double,
+          game_count: 3,
+        },
+        {
+          name: 'Team',
+          roster_type: :team,
+          game_count: 3,
+        },
+      ]
       params.require(:tournament).permit(TOURNAMENT_PARAMS << :identifier)
     end
   end

@@ -21,7 +21,7 @@ require 'rails_helper'
 
 RSpec.describe ConfigItemSerializer do
   let(:tournament) { create :tournament }
-  let(:config_item) { create :config_item, :team_size, tournament: tournament }
+  let(:config_item) { tournament.config_items.find_by(key: 'team_size') }
 
   subject { ConfigItemSerializer.new(config_item).serialize }
 

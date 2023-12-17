@@ -3,7 +3,7 @@
 class CreateAutomaticDiscountVoidsConfigItems < ActiveRecord::Migration[7.0]
   def up
     Tournament.all.each do |t|
-      t.config_items << ConfigItem.new(key: 'automatic_discount_voids', label: 'Automatically Void Early Discounts', value: false)
+      t.config_items << ConfigItem.new(key: 'automatic_discount_voids', label: 'Automatically Void Early Discounts', value: false) unless t.config_items.exists?(key: 'automatic_discount_voids')
     end
   end
 

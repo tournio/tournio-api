@@ -6,6 +6,8 @@
 #  capacity      :integer          default(128), not null
 #  description   :string
 #  display_order :integer          default(1), not null
+#  event_string  :string
+#  group_title   :string
 #  identifier    :string           not null
 #  is_full       :boolean          default(FALSE)
 #  name          :string
@@ -20,13 +22,16 @@
 #
 class Shift < ApplicationRecord
   belongs_to :tournament
-  has_many :teams
+  has_and_belongs_to_many :teams
+  has_and_belongs_to_many :events
 
   validates :capacity, numericality: { greater_than: 0 }
 
   scope :available, -> { where(is_full: false) }
 
   before_create :generate_identifier, if: -> { identifier.blank? }
+  before_save :generate_event_string, if: -> { events.any? }
+  before_save :generate_group_title, if: -> { events.any? }
 
   def to_param
     identifier
@@ -35,6 +40,16 @@ class Shift < ApplicationRecord
   private
 
   def generate_identifier
-    self.identifier = SecureRandom.uuid
+    begin
+      self.identifier = SecureRandom.alphanumeric(6)
+    end while Shift.exists?(identifier: self.identifier)
+  end
+
+  def generate_event_string
+    self.event_string = events.collect(&:roster_type).sort.join('_')
+  end
+
+  def generate_group_title
+    self.group_title = events.collect(&:name).join(' / ')
   end
 end

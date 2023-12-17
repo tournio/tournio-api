@@ -262,6 +262,31 @@ module ApiHelpers
     }
   end
 
+  def create_bowler_slimmed_down_test_data
+    {
+      'position' => '3',
+      'person_attributes' => {
+        'first_name' => 'Giacomo',
+        'last_name' => 'Hale',
+        'usbc_id' => '6621-43399',
+        'nickname' => 'Gio',
+        'phone' => '814-499-4750',
+        'email' => 'lite@yahoo.com',
+      },
+      'additional_question_responses' => [
+        {
+          'name' => 'pronouns',
+          'response' => 'something else',
+        },
+        {
+          'name' => 'comment',
+          'response' => 'I like pizza!',
+        },
+      ],
+    }
+  end
+
+
   def invalid_create_bowler_test_data
     {
       'person_attributes' => {

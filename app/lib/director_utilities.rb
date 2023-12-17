@@ -176,7 +176,7 @@ module DirectorUtilities
         team_id: team.id, # team.identifier,
         team_name: team.name,
         team_order: bowler.position,
-        preferred_shift: team.shift&.name,
+        preferred_shift: team.shifts.collect(&:name).join(', '),
       }
     else
       {

@@ -19,6 +19,19 @@
 #
 FactoryBot.define do
   factory :event do
-    ScratchDivision { "MyString" }
+    trait :singles do
+      roster_type { :single }
+      name { 'Singles Event' }
+    end
+
+    trait :doubles do
+      roster_type { :double }
+      name { 'Doubles Event' }
+    end
+
+    trait :team do
+      roster_type { :team }
+      name { 'Team Event' }
+    end
   end
 end

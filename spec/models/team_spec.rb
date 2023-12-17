@@ -24,13 +24,13 @@
 require 'rails_helper'
 
 RSpec.describe Team, type: :model do
-  let(:team) { create :team, tournament: create(:tournament) }
+  let(:tournament) { create :tournament }
 
   describe 'creation callbacks' do
     subject { team.save }
 
     context 'on a new team' do
-      let(:team) { build(:team, tournament: create(:tournament)) }
+      let(:team) { build(:team, tournament: tournament) }
 
       it 'generates an identifier upon initial save' do
         expect { subject }.to change(team, :identifier).from(nil).to(anything)
@@ -38,10 +38,13 @@ RSpec.describe Team, type: :model do
     end
 
     context 'on an existing team' do
+      let(:team) { create :team, tournament: tournament }
+
       it 'does not change the identifier, even if the name has changed' do
         team.name = team.name + ' for real'
         expect { subject }.not_to change(team, :identifier)
       end
     end
   end
+
 end

@@ -9,7 +9,7 @@ describe ShiftBlueprint do
 
     before do
       team_count.times do
-        create :team, tournament: tournament, shift: shift
+        create :team, tournament: tournament, shifts: [shift]
       end
     end
 

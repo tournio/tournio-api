@@ -92,6 +92,10 @@ class TournamentBlueprint < Blueprinter::Base
     field :event_items do |t, _|
       organized_event_items(tournament: t)
     end
+
+    field :shifts_by_event do |t, _|
+      shifts_by_events(tournament: t)
+    end
   end
 
   view :director_detail do
@@ -118,10 +122,6 @@ class TournamentBlueprint < Blueprinter::Base
         }
       end
       output
-    end
-
-    field :additional_questions do |t, _|
-      t.additional_questions.order(:order).each_with_object([]) { |aq, obj| obj << AdditionalQuestionBlueprint.render_as_hash(aq) }
     end
 
     field :available_questions do |t, _|
@@ -240,5 +240,15 @@ class TournamentBlueprint < Blueprinter::Base
       ledger: PurchasableItemBlueprint.render_as_hash(ledger_items.sort_by { |li| determination_order[li.determination.to_sym] }),
       event: PurchasableItemBlueprint.render_as_hash(event_items.sort_by { |ei| event_refinement_order[ei.refinement.to_sym] }),
     }
+  end
+
+  def self.shifts_by_events(tournament:)
+    tournament.shifts.each_with_object({}) do |shift, collector|
+      event_string = shift.event_string
+      if collector[event_string].blank?
+        collector[event_string] = []
+      end
+      collector[event_string] << ShiftBlueprint.render_as_hash(shift)
+    end
   end
 end

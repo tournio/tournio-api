@@ -8,14 +8,16 @@ RSpec.describe TournamentConfig do
 
   describe '#[]' do
     let!(:c1) { create :config_item, :email_in_dev, tournament: tournament, value: 'true' }
-    let!(:c2) { create :config_item, :website, tournament: tournament }
+    let(:url) { 'www.igbo.org' }
+
+    before { tournament.config_items.find_by_key('website').update(value: url) }
 
     it 'accepts a string argument' do
-      expect(tournament_config['website']).to eq(c2.value)
+      expect(tournament_config['website']).to eq(url)
     end
 
     it 'accepts a symbol argument' do
-      expect(tournament_config[:website]).to eq(c2.value)
+      expect(tournament_config[:website]).to eq(url)
     end
 
     it 'returns null when the key is not present' do
@@ -33,7 +35,7 @@ RSpec.describe TournamentConfig do
     end
 
     context 'an integer value' do
-      let!(:c3) { create :config_item, key: 'team_size', value: 42, tournament: tournament }
+      before { tournament.config_items.find_by(key: 'team_size').update(value: 42) }
 
       it 'returns the value as an integer' do
         expect(tournament_config['team_size']).to be_instance_of Integer
@@ -43,7 +45,6 @@ RSpec.describe TournamentConfig do
 
   describe '#[]=' do
     let!(:c1) { create :config_item, :email_in_dev, tournament: tournament, value: 'true' }
-    let!(:c2) { create :config_item, :website, tournament: tournament }
 
     subject { tournament_config[key] = new_value }
 
@@ -53,7 +54,8 @@ RSpec.describe TournamentConfig do
 
       it 'updates the config item value' do
         subject
-        expect(c2.reload.value).to eq(new_value)
+        config_item = tournament.config_items.find_by_key(key)
+        expect(config_item.value).to eq(new_value)
       end
     end
 
@@ -63,7 +65,8 @@ RSpec.describe TournamentConfig do
 
       it 'updates the config item value' do
         subject
-        expect(c2.reload.value).to eq(new_value)
+        config_item = tournament.config_items.find_by_key(key)
+        expect(config_item.value).to eq(new_value)
       end
     end
 
@@ -73,7 +76,8 @@ RSpec.describe TournamentConfig do
 
       it 'updates the config item value' do
         subject
-        expect(c2.reload.value).to eq(new_value.to_s)
+        config_item = tournament.config_items.find_by_key(key)
+        expect(config_item.value.to_i).to eq(new_value)
       end
     end
 
