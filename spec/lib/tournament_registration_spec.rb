@@ -173,11 +173,6 @@ RSpec.describe TournamentRegistration do
       subject
     end
 
-    it "adds discounts to the bowler's ledger items" do
-      expect(subject_class).to receive(:add_early_discount_to_ledger).with(bowler).once
-      subject
-    end
-
     it "adds late fees to the bowler's ledger items" do
       expect(subject_class).to receive(:add_late_fees_to_ledger).with(bowler).once
       subject
@@ -349,6 +344,8 @@ RSpec.describe TournamentRegistration do
     end
   end
 
+  # @early-discount Candidate for removal entirely, unless this can encapsulate
+  # the work done from the CheckoutSessionCompleted event handler
   describe '#add_early_discount_to_ledger' do
     subject { subject_class.add_early_discount_to_ledger(bowler, time) }
 
@@ -421,6 +418,7 @@ RSpec.describe TournamentRegistration do
     end
   end
 
+  # @early-discount no longer needed
   describe '#add_discount_expiration_to_ledger' do
     subject { subject_class.add_discount_expiration_to_ledger(bowler, purchasable_item) }
 
