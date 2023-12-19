@@ -378,5 +378,4 @@ module ApiHelpers
       },
     ]
   end
-
 end

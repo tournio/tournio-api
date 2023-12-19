@@ -433,5 +433,61 @@ RSpec.describe Stripe::CheckoutSessionCompleted, type: :job do
 
     end
 
+    describe 'using a real-world example from Stripe' do
+
+      let(:mock_checkout_session) { real_checkout_session }
+
+      let(:entry_fee_amount) { 120 }
+      let(:entry_fee_item) do
+        create(:purchasable_item,
+          :entry_fee,
+          :with_stripe_product,
+          value: entry_fee_amount,
+          tournament: tournament
+        )
+      end
+      let(:discount_item) do
+        create(:purchasable_item,
+          :early_discount,
+          :with_stripe_coupon,
+          value: 10,
+          tournament: tournament
+        )
+      end
+
+      before do
+        entry_fee_item.stripe_product.update(price_id: 'price_1O6QifIorUnGjsWjKZ03KPNd', product_id: 'prod_OuFDqBYJV0yny6')
+        discount_item.stripe_coupon.update(coupon_id: 'PmiNeEIO')
+        TournamentRegistration.purchase_entry_fee bowler
+        create :stripe_checkout_session,
+          bowler: bowler,
+          identifier: mock_checkout_session[:id]
+      end
+
+      it 'associates the ExternalPayment to the entry-fee Purchase' do
+        subject
+        expect(bowler.purchases.entry_fee.first.external_payment_id).to eq(ExternalPayment.last.id)
+      end
+
+      it 'marks the entry-fee purchase as paid' do
+        subject
+        expect(bowler.purchases.entry_fee.first.paid_at).not_to be_nil
+      end
+
+      it 'creates a new Purchase object for the discount' do
+        expect { subject }.to change { bowler.purchases.early_discount.count }
+      end
+
+      it 'updates the paid_at attribute of the discount Purchase' do
+        subject
+        expect(bowler.purchases.early_discount.where(paid_at: nil).count).to be_zero
+      end
+
+      it 'winds up with a zero balance' do
+        subject
+        expect(TournamentRegistration.amount_due(bowler)).to be_zero
+      end
+
+    end
   end
 end
