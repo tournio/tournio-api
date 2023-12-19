@@ -2,6 +2,7 @@
 
 require "rails_helper"
 
+# @early-discount update this not to use an early-registration discount
 RSpec.describe VoidPurchaseJob, type: :job do
   describe '#perform' do
     let(:tournament) { create :tournament }

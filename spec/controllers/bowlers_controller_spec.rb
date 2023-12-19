@@ -41,7 +41,6 @@ RSpec.describe BowlersController, type: :controller do
 
     context 'a standard tournament' do
       let(:entry_fee_amount) { 117 }
-      let(:early_discount_amount) { 13 }
       let(:late_fee_amount) { 24 }
       let(:tournament) { create :tournament, :active }
       let!(:entry_fee_item) do
@@ -51,16 +50,6 @@ RSpec.describe BowlersController, type: :controller do
           :with_stripe_product,
           value: entry_fee_amount,
           tournament: tournament
-        )
-      end
-      let!(:early_discount_item) do
-        create(
-          :purchasable_item,
-          :early_discount,
-          :with_stripe_coupon,
-          value: early_discount_amount,
-          tournament: tournament,
-          configuration: { valid_until: 1.week.from_now }
         )
       end
       let!(:late_fee_item) do
@@ -83,51 +72,6 @@ RSpec.describe BowlersController, type: :controller do
         )
       end
 
-      #     context 'when entry/early/late fees are already paid' do
-      #       before do
-      #         bowler.purchases << Purchase.new(purchasable_item: entry_fee_item, paid_at: 2.days.ago)
-      #         bowler.purchases << Purchase.new(purchasable_item: early_discount_item, paid_at: 2.days.ago)
-      #       end
-      #
-      #       context 'but we send their identifiers up anyway' do
-      #         let(:purchase_identifiers) { bowler.purchases.collect(&:identifier) }
-      #
-      #         # expect error, since purchases are already paid-for
-      #         it 'returns a Precondition Failed status code' do
-      #           subject
-      #           expect(response).to have_http_status(:precondition_failed)
-      #         end
-      #       end
-      #
-      #       context 'sending up no purchase identifiers' do
-      #         # expect an error, because we ought to prevent purchasing nothing
-      #         it 'returns a Precondition Failed status code' do
-      #           subject
-      #           expect(response).to have_http_status(:precondition_failed)
-      #         end
-      #
-      #         context '...but with some chosen items' do
-      #           let(:chosen_items) do
-      #             [
-      #               create(:purchasable_item, :scratch_competition, tournament: tournament),
-      #               create(:purchasable_item, :optional_event, tournament: tournament),
-      #             ]
-      #           end
-      #
-      #           it 'returns an OK status code' do
-      #             subject
-      #             expect(response).to have_http_status(:ok)
-      #           end
-      #
-      #           it 'returns the correct total' do
-      #             subject
-      #             result = JSON.parse(response.body)
-      #             expect(result['total']).to eq(total_to_charge)
-      #           end
-      #         end
-      #       end
-      #     end
-      #
       context 'regular registration' do
         let(:expected_total) { bowler.purchases.sum(&:amount) }
 
@@ -150,7 +94,20 @@ RSpec.describe BowlersController, type: :controller do
         end
 
         context 'with early-registration discount' do
-          before { bowler.purchases << Purchase.new(purchasable_item: early_discount_item) }
+          # Bowlers no longer get a Purchase for the early-registration discount
+
+          let(:early_discount_amount) { 13 }
+          let(:early_discount_item) do
+            create(
+              :purchasable_item,
+              :early_discount,
+              :with_stripe_coupon,
+              value: early_discount_amount,
+              tournament: tournament,
+            )
+          end
+
+          let(:expected_total) { entry_fee_amount - early_discount_item.value }
 
           it 'returns an OK status code' do
             subject

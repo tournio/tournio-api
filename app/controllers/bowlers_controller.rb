@@ -313,7 +313,7 @@ class BowlersController < ApplicationController
       details[:purchasable_items][index][:quantity] = details[:purchasable_items][index][:quantity].to_i
     end
 
-    # validate required ledger items (entry fee, early discount, late fee)
+    # validate required ledger items (entry fee, late fee)
     purchase_identifiers = details[:purchase_identifiers] || []
     @matching_purchases = bowler.purchases.unpaid.where(identifier: purchase_identifiers)
     unless purchase_identifiers.count == matching_purchases.count
@@ -352,8 +352,18 @@ class BowlersController < ApplicationController
       raise PurchaseError.new('Cannot purchase multiple instances of one-time items.', :unprocessable_entity)
     end
 
-    # Add any discounts that are among the unpaid purchases
-    @applicable_discounts = matching_purchases.early_discount.collect(&:purchasable_item)
+    @applicable_discounts = []
+
+    # If the entry fee is among the matching purchases, see if we have an early discount
+    if matching_purchases.filter { |p| p.purchasable_item.entry_fee? }.any?
+      if tournament.in_early_registration?
+        # and if we do, apply it
+        early_discount_item = tournament.purchasable_items.early_discount.first
+        if early_discount_item.present?
+          @applicable_discounts << early_discount_item
+        end
+      end
+    end
 
     # apply any relevant event bundle discounts
     bundle_discount_items = tournament.purchasable_items.bundle_discount
