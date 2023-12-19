@@ -273,3 +273,13 @@ ExtendedFormField.create(
   },
   helper_text: 'See tournament rules for details',
 ) unless ExtendedFormField.find_by(name: 'igbo_tad_average').present?
+
+ExtendedFormField.create(
+  name: 'igbo_gives_back',
+  label: "I would like to enter the IGBO Gives Back Campaign",
+  html_element_type: 'checkbox',
+  html_element_config: { label: 'Yes', value: 'no' },
+  validation_rules: { required: false },
+  helper_text: '',
+  helper_url: '',
+) unless ExtendedFormField.find_by(name: 'igbo_gives_back').present?
