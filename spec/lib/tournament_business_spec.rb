@@ -241,6 +241,18 @@ RSpec.describe TournamentBusiness do
           it { is_expected.to eq(true) }
         end
 
+        context 'when the tournament just past the expiration, but is in the grace period' do
+          let(:the_time) { DateTime.parse(end_time) + 15.minutes }
+
+          it { is_expected.to eq(true) }
+        end
+
+        context 'when the tournament just past the expiration, and just past the grace period' do
+          let(:the_time) { DateTime.parse(end_time) + 31.minutes }
+
+          it { is_expected.to eq(false) }
+        end
+
         context 'when the tournament is not in early registration' do
           let(:the_time) { DateTime.parse(end_time) + 1.week }
 

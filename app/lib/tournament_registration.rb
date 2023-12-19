@@ -146,20 +146,6 @@ module TournamentRegistration
     bowler.purchases << Purchase.new(purchasable_item: entry_fee_item)
   end
 
-  # @early-discount Candidate for removal entirely, unless it becomes
-  # usable from the CheckoutSessionCompleted event handler
-  def self.add_early_discount_to_ledger(bowler, current_time = Time.zone.now)
-    tournament = bowler.tournament
-    return unless tournament.in_early_registration?(current_time)
-
-    early_discount_item = tournament.purchasable_items.early_discount&.first
-    return unless early_discount_item.present?
-
-    early_discount = early_discount_item.value
-    bowler.ledger_entries << LedgerEntry.new(credit: early_discount, identifier: 'early registration')
-    bowler.purchases << Purchase.new(purchasable_item: early_discount_item)
-  end
-
   def self.add_late_fees_to_ledger(bowler)
     tournament = bowler.tournament
     return unless tournament.in_late_registration?
@@ -171,12 +157,6 @@ module TournamentRegistration
     late_fee = late_fee_item.value
     bowler.ledger_entries << LedgerEntry.new(debit: late_fee, identifier: 'late registration')
     bowler.purchases << Purchase.new(purchasable_item: late_fee_item)
-  end
-
-  # @early-discount no longer needed
-  def self.add_discount_expiration_to_ledger(bowler, purchasable_item)
-    bowler.ledger_entries << LedgerEntry.new(debit: purchasable_item.value, identifier: 'discount expiration')
-    bowler.purchases << Purchase.new(purchasable_item: purchasable_item)
   end
 
   def self.amount_paid(bowler)

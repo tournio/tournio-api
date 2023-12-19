@@ -2,6 +2,7 @@
 
 module TournamentBusiness
   DEFAULT_TEAM_SIZE = 4
+  DISCOUNT_EXPIRATION_GRACE_PERIOD = 30 # minutes -- half an hour
 
   # Tournament types
   IGBO_STANDARD = 'igbo_standard'
@@ -93,7 +94,7 @@ module TournamentBusiness
       testing_environment.conditions['registration_period'] == TestingEnvironment::EARLY_REGISTRATION
     else
       end_time = early_registration_ends
-      end_time.present? && current_time < end_time
+      end_time.present? && current_time < end_time.advance(minutes: DISCOUNT_EXPIRATION_GRACE_PERIOD)
     end
   end
 
