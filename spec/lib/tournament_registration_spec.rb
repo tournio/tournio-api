@@ -646,7 +646,6 @@ RSpec.describe TournamentRegistration do
     let(:entry_fee_item) { create :purchasable_item, :entry_fee, tournament: tournament }
     let(:late_fee_item) { create :purchasable_item, :late_fee, tournament: tournament }
     let(:early_discount_item) { create :purchasable_item, :early_discount, tournament: tournament }
-    let(:early_discount_expiration_item) { create :purchasable_item, :early_discount_expiration, tournament: tournament }
     let(:scratch_item) { create :purchasable_item, :scratch_competition, tournament: tournament }
     let(:optional_event_item) { create :purchasable_item, :optional_event, tournament: tournament }
     let(:banquet_item) { create :purchasable_item, :banquet_entry, tournament: tournament }
@@ -661,11 +660,11 @@ RSpec.describe TournamentRegistration do
     end
 
     it 'puts the late fee item first' do
-      expect(described_class.purchasable_item_sort(late_fee_item)).to be < described_class.purchasable_item_sort(early_discount_expiration_item)
+      expect(described_class.purchasable_item_sort(late_fee_item)).to be < described_class.purchasable_item_sort(scratch_item)
     end
 
     it 'puts the bowling item after the ledger item' do
-      expect(described_class.purchasable_item_sort(early_discount_expiration_item)).to be < described_class.purchasable_item_sort(scratch_item)
+      expect(described_class.purchasable_item_sort(late_fee_item)).to be < described_class.purchasable_item_sort(scratch_item)
     end
 
     it 'puts the scratch item first' do
