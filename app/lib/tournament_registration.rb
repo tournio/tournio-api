@@ -25,7 +25,6 @@ module TournamentRegistration
       early_discount: 2,
       late_fee: 3,
       bundle_discount: 5,
-      discount_expiration: 6,
       igbo: 9,
       event: 10,
       single_use: 11,

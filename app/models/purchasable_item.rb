@@ -62,12 +62,6 @@ class PurchasableItem < ApplicationRecord
     igbo: 'igbo',
     usbc: 'usbc',
 
-    # this allows directors to cancel out an early-registration discount when
-    # a bowler has failed to complete their registration, e.g., pay fees, before
-    # the deadline.
-    # Currently only available to use by superusers via console.
-    discount_expiration: 'discount_expiration',
-
     # Product items:
     general: 'general', # For things that don't fit into the other groups
     apparel: 'apparel', # shirts and such

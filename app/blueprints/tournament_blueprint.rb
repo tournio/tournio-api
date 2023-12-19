@@ -192,7 +192,6 @@ class TournamentBlueprint < Blueprinter::Base
       entry_fee: 0,
       early_discount: 1,
       late_fee: 2,
-      discount_expiration: 3,
       event: 4,
       igbo: 5,
       single_use: 6,
@@ -224,7 +223,6 @@ class TournamentBlueprint < Blueprinter::Base
       entry_fee: 0,
       early_discount: 1,
       late_fee: 2,
-      discount_expiration: 3,
       event: 4,
       bundle_discount: 8,
     }
