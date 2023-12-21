@@ -449,5 +449,216 @@ describe BowlersController, type: :request do
       end
     end
   end
+
+  describe '#commerce' do
+    subject { get uri, as: :json }
+
+    let(:uri) { "/bowlers/#{bowler.identifier}/commerce" }
+    let(:tournament) do
+      create :tournament,
+        :active,
+        :with_entry_fee
+    end
+    let(:bowler) { create :bowler, tournament: tournament }
+
+    it 'succeeds' do
+      subject
+      expect(response).to have_http_status(:ok)
+    end
+
+    it 'includes bowler details' do
+      subject
+      expect(json).to have_key('bowler')
+    end
+
+    it 'includes paid purchases' do
+      subject
+      expect(json).to have_key('purchases')
+    end
+
+    it 'includes unpaid purchases, including entry fes' do
+      subject
+      expect(json).to have_key('unpaidPurchases')
+    end
+
+    it 'includes available items' do
+      subject
+      expect(json).to have_key('availableItems')
+    end
+
+    it 'includes automatic items' do
+      subject
+      expect(json).to have_key('automaticItems')
+    end
+
+    it 'includes the bowler identifier' do
+      subject
+      expect(json['bowler']['identifier']).to eq(bowler.identifier)
+    end
+
+    #
+    # base cases
+    #
+    it 'has zero available items' do
+      subject
+      expect(json['availableItems']).to be_empty
+    end
+
+    it 'has zero paid purchases' do
+      subject
+      expect(json['purchases']).to be_empty
+    end
+
+    it 'has zero unpaid purchases' do
+      subject
+      expect(json['unpaidPurchases']).to be_empty
+    end
+
+    it 'has no automatic items' do
+      subject
+      expect(json['automaticItems']).to be_empty
+    end
+
+    context 'with an entry fee' do
+      let(:entry_fee_item) { tournament.purchasable_items.entry_fee.first }
+      let!(:purchase) do
+        create :purchase,
+          bowler: bowler,
+          purchasable_item: entry_fee_item,
+          amount: entry_fee_item.value
+      end
+
+      context 'that is unpaid' do
+        it 'contains at least one unpaid purchase' do
+          subject
+          expect(json['unpaidPurchases']).not_to be_empty
+        end
+
+        it 'has the entry fee as the single unpaid purchase' do
+          subject
+          expect(json['unpaidPurchases'].first['purchasableItem']['identifier']).to eq(tournament.purchasable_items.entry_fee.first.identifier)
+        end
+      end
+
+      context 'that is paid' do
+        let!(:purchase) do
+          create :purchase,
+            :paid,
+            bowler: bowler,
+            purchasable_item: entry_fee_item,
+            amount: entry_fee_item.value
+        end
+
+        it 'contains no unpaid purchases' do
+          subject
+          expect(json['unpaidPurchases']).to be_empty
+        end
+
+        it 'has the entry fee as the single unpaid purchase' do
+          subject
+          expect(json['purchases'].first['purchasableItem']['identifier']).to eq(tournament.purchasable_items.entry_fee.first.identifier)
+        end
+      end
+    end
+
+    context 'when there is an early-registration discount' do
+      context 'but it does not apply (anymore)' do
+        before do
+          create :purchasable_item,
+            :early_discount,
+            tournament: tournament,
+            configuration: { valid_until: 2.days.ago }
+        end
+
+        it 'does not include the discount in automatic items' do
+          subject
+          expect(json['automaticItems'].collect(&:identifier)).not_to include(tournament.purchasable_items.early_discount.first.identifier)
+        end
+      end
+
+      context 'and it applies' do
+        before do
+          create :purchasable_item,
+            :early_discount,
+            tournament: tournament,
+            configuration: { valid_until: 2.days.from_now }
+        end
+
+        it 'includes the discount item as automatic' do
+          subject
+          expect(json['automaticItems'].collect(&:identifier)).to include(tournament.purchasable_items.early_discount.first.identifier)
+        end
+      end
+    end
+
+    context 'when there is a late-registration charge' do
+      context 'but it does not apply yet' do
+        before do
+          create :purchasable_item,
+            :late_fee,
+            tournament: tournament,
+            configuration: { applies_at: 2.days.from_now }
+        end
+
+        it 'does not include the discount in automatic items' do
+          subject
+          expect(json['automaticItems'].collect(&:identifier)).not_to include(tournament.purchasable_items.late_fee.first.identifier)
+        end
+      end
+
+      context 'and it applies' do
+        before do
+          create :purchasable_item,
+            :late_fee,
+            tournament: tournament,
+            configuration: { applies_at: 2.weeks.ago }
+        end
+
+        it 'includes the late-fee item as automatic' do
+          subject
+          expect(json['automaticItems'].collect(&:identifier)).to include(tournament.purchasable_items.late_fee.first.identifier)
+        end
+      end
+    end
+
+    context 'when there are user-selectable purchasable items' do
+      let(:tournament) do
+        create :tournament,
+          :active,
+          :with_entry_fee,
+          :with_scratch_competition_divisions, # scratch masters
+          :with_an_optional_event,  # an optional event
+          :with_extra_stuff         # raffle and banquet
+      end
+
+      it 'indexes the available items by their identifiers' do
+        subject
+        pi_identifiers = tournament.purchasable_items.user_selectable.collect(&:identifier)
+        expect(json['availableItems'].keys).to match_array(pi_identifiers)
+      end
+
+      context 'and the bowler has bought one', pending: true do
+
+        it 'excludes the one they bought from availableItems' do
+
+        end
+
+        it 'includes the one they bought in purchases' do
+
+        end
+      end
+    end
+
+
+
+    #
+    # when we support requesting items without paying for them...
+    # --> Does not include entry fees
+    #
+    # it 'includes requested items' do
+    #   subject
+    #   expect(json).to have_key('requested_items')
+    # end
+  end
 end
 

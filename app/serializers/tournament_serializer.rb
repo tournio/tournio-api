@@ -26,14 +26,16 @@
 #  index_tournaments_on_identifier         (identifier)
 #  index_tournaments_on_tournament_org_id  (tournament_org_id)
 #
-class TournamentSerializer
-  include Alba::Resource
-
-  transform_keys :lower_camel
-
-  root_key :tournament
-
-  attributes :identifier, :name, :year, :abbreviation, :start_date, :end_date, :location, :timezone, :team_size
+class TournamentSerializer < JsonSerializer
+  attributes :identifier,
+    :name,
+    :year,
+    :abbreviation,
+    :start_date,
+    :end_date,
+    :location,
+    :timezone,
+    :team_size
 
   # Seems silly to use a block for this, but oh well. Implementation via DSL would wind up
   # doing the same thing, I suppose.

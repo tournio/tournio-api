@@ -33,7 +33,7 @@ gem "rack-cors"
 # Added by me
 
 gem 'aasm'                       # state machine behavior
-gem 'alba', '~> 2.3'           # JSON serialization
+gem 'alba'                       # JSON serialization
 gem 'amazing_print'              # human-friendly printing of things on the console
 gem 'aws-sdk-s3', '~> 1.121'   # For using Backblaze's S3-compatible API for asset storage
 gem 'blueprinter'                # JSON serialization, but not JSON:API style

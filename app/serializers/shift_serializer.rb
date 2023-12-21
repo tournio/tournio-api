@@ -22,12 +22,10 @@
 #  index_shifts_on_identifier     (identifier) UNIQUE
 #  index_shifts_on_tournament_id  (tournament_id)
 #
-class ShiftSerializer
-  include Alba::Resource
-
-  transform_keys :lower_camel
-
-  root_key :shift
-
-  attributes :identifier, :name, :description, :capacity, :display_order
+class ShiftSerializer < JsonSerializer
+  attributes :identifier,
+    :name,
+    :description,
+    :capacity,
+    :display_order
 end
