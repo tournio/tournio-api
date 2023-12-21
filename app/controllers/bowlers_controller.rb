@@ -1,7 +1,7 @@
 class BowlersController < ApplicationController
   wrap_parameters false
 
-  before_action :load_bowler, only: %i(show purchase_details stripe_checkout)
+  before_action :load_bowler, only: %i(show commerce stripe_checkout)
 
   # gives us attributes: tournament, stripe_account
   include StripeUtilities
@@ -51,7 +51,7 @@ class BowlersController < ApplicationController
     end
 
     list = parameters[:unpartnered].present? ? tournament.bowlers.without_doubles_partner : tournament.bowlers
-    render json: BowlerSerializer.new(list, within: {doubles_partner: :doubles_partner}).serialize, status: :ok
+    render json: ListBowlerSerializer.new(list, within: {doubles_partner: :doubles_partner}).serialize, status: :ok
   end
 
   def create
@@ -131,6 +131,28 @@ class BowlersController < ApplicationController
     render json: result, status: :ok
   end
 
+  def commerce
+    unless bowler.present?
+      render json: nil, status: :not_found
+      return
+    end
+
+    # ..
+    # The question now: should we continue to send available items down indexed by identifier, or
+    # switch to sending just an array, since it's quicker and easier that way?
+    # Why does the frontend need them indexed by identifier? It breaks them up by kind anyway...
+    # ..
+
+    result = {
+      bowler: BowlerSerializer.new(bowler, within: {doubles_partner: :doubles_partner}).as_json,
+      purchases: PurchaseSerializer.new(bowler.purchases.paid).as_json,
+      unpaidPurchases: PurchaseSerializer.new(bowler.purchases.unpaid).as_json,
+      availableItems: PurchasableItemSerializer.new(rendered_purchasable_items_by_identifier).as_json,
+      automaticItems: [],
+    }
+    render json: result, status: :ok
+  end
+
   class PurchaseError < RuntimeError
     attr_reader :http_status
 
@@ -192,6 +214,7 @@ class BowlersController < ApplicationController
     :bowler,
     :parameters,
     :matching_purchases,
+
     :applicable_discounts, # An array of PurchasableItems representing event-linked discounts (early-registration, bundle)
     :applicable_fees, # An array of PurchasableItems representing late fees (currently, only event-linked late fees)
     :purchasable_items,

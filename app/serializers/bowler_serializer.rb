@@ -24,46 +24,17 @@
 #  index_bowlers_on_team_id             (team_id)
 #  index_bowlers_on_tournament_id       (tournament_id)
 #
-class BowlerSerializer
-  include Alba::Resource
-
-  transform_keys :lower_camel
-
-  root_key :bowler
+class BowlerSerializer < JsonSerializer
 
   attributes :identifier,
-    :position,
-    :address1,
-    :address2,
-    :birth_day,
-    :birth_month,
-    :city,
-    :country,
     :email,
     :first_name,
     :last_name,
     :phone,
-    :postal_code,
     :preferred_name,
-    :state
+    :usbc_id
 
-  one :team, resource: TeamSerializer
-
-  attribute :registered_on do |b|
-    b.created_at.strftime('%F')
-  end
-  attribute :list_name do |b|
-    TournamentRegistration.person_list_name(b.person)
-  end
   attribute :full_name do |b|
     TournamentRegistration.person_display_name(b.person)
   end
-  attribute :usbc_id do |b|
-    b.usbc_id
-  end
-  attribute :team_name do |b|
-    TournamentRegistration.team_display_name(b.team) if b.team.present?
-  end
-
-  one :doubles_partner, resource: BowlerSerializer
 end

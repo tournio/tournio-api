@@ -17,11 +17,7 @@
 #  index_config_items_on_tournament_id_and_key  (tournament_id,key) UNIQUE
 #
 
-class ConfigItemSerializer
-  include Alba::Resource
-
-  transform_keys :lower_camel
-
+class ConfigItemSerializer < JsonSerializer
   attributes :id, :key, :label
 
   attribute :value do |ci|
