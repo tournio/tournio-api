@@ -562,61 +562,61 @@ describe BowlersController, type: :request do
     end
 
     context 'when there is an early-registration discount' do
-      context 'but it does not apply (anymore)' do
-        before do
-          create :purchasable_item,
-            :early_discount,
-            tournament: tournament,
-            configuration: { valid_until: 2.days.ago }
-        end
-
-        it 'does not include the discount in automatic items' do
-          subject
-          expect(json['automaticItems'].collect(&:identifier)).not_to include(tournament.purchasable_items.early_discount.first.identifier)
-        end
+      let!(:early_discount_item) do
+        create :purchasable_item,
+          :early_discount,
+          tournament: tournament
       end
 
-      context 'and it applies' do
+      context 'and the tournament says it applies' do
         before do
-          create :purchasable_item,
-            :early_discount,
-            tournament: tournament,
-            configuration: { valid_until: 2.days.from_now }
+          allow_any_instance_of(Tournament).to receive(:in_early_registration?).and_return(true)
         end
 
         it 'includes the discount item as automatic' do
           subject
-          expect(json['automaticItems'].collect(&:identifier)).to include(tournament.purchasable_items.early_discount.first.identifier)
+          expect(json['automaticItems'].collect{ |ai| ai['identifier'] }).to include(early_discount_item.identifier)
+        end
+      end
+
+      context 'and the tournament says it does not apply' do
+        before do
+          allow_any_instance_of(Tournament).to receive(:in_early_registration?).and_return(false)
+        end
+
+        it 'does not include the discount item as automatic' do
+          subject
+          expect(json['automaticItems'].collect{ |ai| ai['identifier'] }).not_to include(early_discount_item.identifier)
         end
       end
     end
 
     context 'when there is a late-registration charge' do
+      let!(:late_fee_item) do
+        create :purchasable_item,
+          :late_fee,
+          tournament: tournament
+      end
+
       context 'but it does not apply yet' do
         before do
-          create :purchasable_item,
-            :late_fee,
-            tournament: tournament,
-            configuration: { applies_at: 2.days.from_now }
+          allow_any_instance_of(Tournament).to receive(:in_late_registration?).and_return(false)
         end
 
         it 'does not include the discount in automatic items' do
           subject
-          expect(json['automaticItems'].collect(&:identifier)).not_to include(tournament.purchasable_items.late_fee.first.identifier)
+          expect(json['automaticItems'].collect{ |ai| ai['identifier'] }).not_to include(late_fee_item.identifier)
         end
       end
 
       context 'and it applies' do
         before do
-          create :purchasable_item,
-            :late_fee,
-            tournament: tournament,
-            configuration: { applies_at: 2.weeks.ago }
+          allow_any_instance_of(Tournament).to receive(:in_late_registration?).and_return(true)
         end
 
         it 'includes the late-fee item as automatic' do
           subject
-          expect(json['automaticItems'].collect(&:identifier)).to include(tournament.purchasable_items.late_fee.first.identifier)
+          expect(json['automaticItems'].collect{ |ai| ai['identifier'] }).to include(late_fee_item.identifier)
         end
       end
     end
