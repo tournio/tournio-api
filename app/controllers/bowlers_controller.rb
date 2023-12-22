@@ -145,14 +145,14 @@ class BowlersController < ApplicationController
 
     extra_ledger_items = tournament.purchasable_items.event_linked + tournament.purchasable_items.bundle_discount
 
-    availableItems = selectable_items + extra_ledger_items
+    available_items = selectable_items + extra_ledger_items
 
     result = {
       bowler: BowlerSerializer.new(bowler, within: {doubles_partner: :doubles_partner}).as_json,
       purchases: PurchaseSerializer.new(bowler.purchases.paid).as_json,
       unpaidPurchases: PurchaseSerializer.new(bowler.purchases.unpaid).as_json,
-      availableItems: PurchasableItemSerializer.new(availableItems).as_json,
-      automaticItems: [],
+      availableItems: PurchasableItemSerializer.new(available_items).as_json,
+      automaticItems: PurchasableItemSerializer.new(automatic_items).as_json,
     }
     render json: result, status: :ok
   end
@@ -260,6 +260,34 @@ class BowlersController < ApplicationController
     extra_ledger_items = tournament.purchasable_items.event_linked + tournament.purchasable_items.bundle_discount
 
     (items + extra_ledger_items).each_with_object({}) { |i, result| result[i.identifier] = PurchasableItemBlueprint.render_as_hash(i) }
+  end
+
+  def automatic_items
+    # Start with all ledger items the bowler hasn't already paid for
+    purchased_item_ids = bowler.purchases.collect(&:purchasable_item_id)
+    items = tournament.purchasable_items.ledger.where.not(id: purchased_item_ids)
+
+    ap "All items: #{items.collect(&:identifier)}"
+    # Remove early discounts if they don't apply
+    unless tournament.in_early_registration?
+      # remove any early discounts
+      ap "Removing early discount"
+      items -= tournament.purchasable_items.early_discount
+    end
+
+    # Remove late fees if they don't apply
+    unless tournament.in_late_registration?
+      ap "Removing late fee"
+      # remove any late fees
+      items -= tournament.purchasable_items.late_fee
+    end
+
+    # event-linked fees and discounts will be here, if applicable, but that's ok. We want them
+    # there, and will handle their addition appropriately. This implies that "automatic" means
+    # "every time" only for standard tournaments.
+
+    # ready to go
+    items
   end
 
   def clean_up_bowler_data(permitted_params)
