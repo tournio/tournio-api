@@ -163,20 +163,20 @@ RSpec.describe TournamentRegistration do
 
     let(:bowler) { create :bowler, :with_team }
 
-    before do
-      allow(subject_class).to receive(:purchase_entry_fee)
-      allow(subject_class).to receive(:add_late_fees_to_ledger)
-    end
-
-    it "adds the bowler's ledger items" do
-      expect(subject_class).to receive(:purchase_entry_fee).with(bowler).once
-      subject
-    end
-
-    it "adds late fees to the bowler's ledger items" do
-      expect(subject_class).to receive(:add_late_fees_to_ledger).with(bowler).once
-      subject
-    end
+    # before do
+    #   allow(subject_class).to receive(:purchase_entry_fee)
+    #   allow(subject_class).to receive(:add_late_fees_to_ledger)
+    # end
+    #
+    # it "adds the bowler's ledger items" do
+    #   expect(subject_class).to receive(:purchase_entry_fee).with(bowler).once
+    #   subject
+    # end
+    #
+    # it "adds late fees to the bowler's ledger items" do
+    #   expect(subject_class).to receive(:add_late_fees_to_ledger).with(bowler).once
+    #   subject
+    # end
 
     it 'queues up an email notification to the bowler' do
       expect(subject_class).to receive(:send_confirmation_email).with(bowler).once

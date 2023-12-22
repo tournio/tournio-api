@@ -113,9 +113,12 @@ module TournamentRegistration
   end
 
   def self.register_bowler(bowler, registration_type='new_team')
-    purchase_entry_fee(bowler)
+    # @early-discount Add entry fees, discounts, and late fees at the time of payment,
+    # rather than at registration
+    #
+    # purchase_entry_fee(bowler)
+    # add_late_fees_to_ledger(bowler)
 
-    add_late_fees_to_ledger(bowler)
     complete_doubles_link(bowler) if bowler.doubles_partner_id.present?
     try_assigning_automatic_partners(bowler.team) if bowler.team.present?
 
@@ -135,6 +138,9 @@ module TournamentRegistration
     unpartnered.map(&:save)
   end
 
+  # @early-discoiunt When we move this call to the checkout session completed handler, add
+  # a current_time parameter so we can set the paid_at attribute on the purchase. (Or maybe
+  # the ExternalPayment instance instead...)
   def self.purchase_entry_fee(bowler)
     entry_fee_item = bowler.tournament.purchasable_items.entry_fee.first
     return unless entry_fee_item.present?
