@@ -631,11 +631,28 @@ describe BowlersController, type: :request do
           :with_extra_stuff         # raffle and banquet
       end
 
-      it 'indexes the available items by their identifiers' do
+      it 'includes an array of available items' do
         subject
-        pi_identifiers = tournament.purchasable_items.user_selectable.collect(&:identifier)
-        expect(json['availableItems'].keys).to match_array(pi_identifiers)
+        expect(json['availableItems']).to be_an_instance_of(Array)
       end
+
+      it 'includes the expected number of available items' do
+        subject
+        expect(json['availableItems'].count).to eq(tournament.purchasable_items.user_selectable.count)
+      end
+
+      it 'includes the correct available items' do
+        subject
+        item_identifiers = tournament.purchasable_items.user_selectable.collect(&:identifier)
+        json_identifiers = json['availableItems'].collect { |ai| ai['identifier'] }
+        expect(json_identifiers).to match_array(item_identifiers)
+      end
+
+      # it 'indexes the available items by their identifiers' do
+      #   subject
+      #   pi_identifiers = tournament.purchasable_items.user_selectable.collect(&:identifier)
+      #   expect(json['availableItems'].keys).to match_array(pi_identifiers)
+      # end
 
       context 'and the bowler has bought one', pending: true do
 

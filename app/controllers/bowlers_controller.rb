@@ -138,17 +138,21 @@ class BowlersController < ApplicationController
       return
     end
 
-    # ..
-    # The question now: should we continue to send available items down indexed by identifier, or
-    # switch to sending just an array, since it's quicker and easier that way?
-    # Why does the frontend need them indexed by identifier? It breaks them up by kind anyway...
-    # ..
+    # Excluse one-time items that are already purchased.
+    # And we use name so that other division-based things with the same name (like Scratch Masters)
+    # also get excluded.
+    excluded_item_names = bowler.purchases.one_time.collect(&:name)
+    selectable_items = tournament.purchasable_items.user_selectable.enabled.where.not(name: excluded_item_names)
+
+    extra_ledger_items = tournament.purchasable_items.event_linked + tournament.purchasable_items.bundle_discount
+
+    availableItems = selectable_items + extra_ledger_items
 
     result = {
       bowler: BowlerSerializer.new(bowler, within: {doubles_partner: :doubles_partner}).as_json,
       purchases: PurchaseSerializer.new(bowler.purchases.paid).as_json,
       unpaidPurchases: PurchaseSerializer.new(bowler.purchases.unpaid).as_json,
-      availableItems: PurchasableItemSerializer.new(rendered_purchasable_items_by_identifier).as_json,
+      availableItems: PurchasableItemSerializer.new(availableItems).as_json,
       automaticItems: [],
     }
     render json: result, status: :ok
@@ -249,6 +253,7 @@ class BowlersController < ApplicationController
     end
   end
 
+  # @early-discount We can get rid of this once we're using the #commerce action instead of #show
   def rendered_purchasable_items_by_identifier
     excluded_item_names = bowler.purchases.one_time.collect { |p| p.purchasable_item.name }
     items = tournament.purchasable_items.user_selectable.enabled.where.not(name: excluded_item_names)
