@@ -90,12 +90,6 @@ describe BowlersController, type: :request do
         expect(json[0]['team_identifier']).to eq(team.identifier)
       end
 
-      it 'creates an entry-fee purchase for the bowler' do
-        subject
-        bowler = Bowler.last
-        expect(bowler.purchases.entry_fee).not_to be_empty
-      end
-
       it 'creates a data point' do
         expect { subject }.to change(DataPoint, :count).by(1)
       end
@@ -233,13 +227,6 @@ describe BowlersController, type: :request do
         bowler = Bowler.last
         expect(json[0]['identifier']).to eq(bowler.identifier)
       end
-
-      it 'creates an entry-fee purchase for the bowler' do
-        subject
-        bowler = Bowler.last
-        expect(bowler.purchases.entry_fee).not_to be_empty
-      end
-
 
       it 'creates a data point' do
         expect { subject }.to change(DataPoint, :count).by(1)
@@ -459,6 +446,7 @@ describe BowlersController, type: :request do
         :active,
         :with_entry_fee
     end
+    let(:entry_fee_item) { tournament.purchasable_items.entry_fee.first }
     let(:bowler) { create :bowler, tournament: tournament }
 
     it 'succeeds' do
@@ -514,21 +502,20 @@ describe BowlersController, type: :request do
       expect(json['unpaidPurchases']).to be_empty
     end
 
-    it 'has no automatic items' do
+    it 'has the entry fee as automatic' do
       subject
-      expect(json['automaticItems']).to be_empty
+      expect(json['automaticItems'][0]['identifier']).to eq(entry_fee_item.identifier)
     end
 
-    context 'with an entry fee' do
-      let(:entry_fee_item) { tournament.purchasable_items.entry_fee.first }
-      let!(:purchase) do
-        create :purchase,
-          bowler: bowler,
-          purchasable_item: entry_fee_item,
-          amount: entry_fee_item.value
-      end
-
+    context 'with an entry fee purchase' do
       context 'that is unpaid' do
+        before do
+          create :purchase,
+            bowler: bowler,
+            purchasable_item: entry_fee_item,
+            amount: entry_fee_item.value
+        end
+
         it 'contains at least one unpaid purchase' do
           subject
           expect(json['unpaidPurchases']).not_to be_empty
@@ -536,14 +523,13 @@ describe BowlersController, type: :request do
 
         it 'has the entry fee as the single unpaid purchase' do
           subject
-          expect(json['unpaidPurchases'].first['purchasableItem']['identifier']).to eq(tournament.purchasable_items.entry_fee.first.identifier)
+          expect(json['unpaidPurchases'].first['purchasableItem']['identifier']).to eq(entry_fee_item.identifier)
         end
       end
 
       context 'that is paid' do
-        let!(:purchase) do
-          create :purchase,
-            :paid,
+        before do
+          create :purchase, :paid,
             bowler: bowler,
             purchasable_item: entry_fee_item,
             amount: entry_fee_item.value
@@ -554,9 +540,9 @@ describe BowlersController, type: :request do
           expect(json['unpaidPurchases']).to be_empty
         end
 
-        it 'has the entry fee as the single unpaid purchase' do
+        it 'has the entry fee as the single paid purchase' do
           subject
-          expect(json['purchases'].first['purchasableItem']['identifier']).to eq(tournament.purchasable_items.entry_fee.first.identifier)
+          expect(json['purchases'].first['purchasableItem']['identifier']).to eq(entry_fee_item.identifier)
         end
       end
     end
@@ -654,19 +640,183 @@ describe BowlersController, type: :request do
       #   expect(json['availableItems'].keys).to match_array(pi_identifiers)
       # end
 
-      context 'and the bowler has bought one', pending: true do
+      context 'and the bowler has bought one' do
+        let(:bowling_item) { tournament.purchasable_items.bowling.single_use.first }
+
+        before do
+          create :purchase, :paid,
+            bowler: bowler,
+            purchasable_item: bowling_item,
+            amount: bowling_item.value
+        end
 
         it 'excludes the one they bought from availableItems' do
+          subject
 
+          json_identifiers = json['availableItems'].collect { |ai| ai['identifier'] }
+          expect(json_identifiers).not_to include(bowling_item.identifier)
         end
 
         it 'includes the one they bought in purchases' do
+          subject
 
+          json_identifiers = json['purchases'].collect { |p| p['purchasableItem']['identifier'] }
+          expect(json_identifiers).to include(bowling_item.identifier)
+        end
+      end
+
+      context 'and the bowler has bought a multi-use item, like a banquet ticket' do
+        let(:banquet_item) { tournament.purchasable_items.banquet.first }
+
+        before do
+          create :purchase, :paid,
+            bowler: bowler,
+            purchasable_item: banquet_item,
+            amount: banquet_item.value
+        end
+
+        it 'still includes the item in availableItems' do
+          subject
+
+          json_identifiers = json['availableItems'].collect { |ai| ai['identifier'] }
+          expect(json_identifiers).to include(banquet_item.identifier)
+        end
+
+        it 'includes the one they bought in purchases' do
+          subject
+
+          json_identifiers = json['purchases'].collect { |p| p['purchasableItem']['identifier'] }
+          expect(json_identifiers).to include(banquet_item.identifier)
         end
       end
     end
 
+    context 'kitchen sink' do
+      let(:tournament) do
+        create :tournament,
+          :active,
+          :with_entry_fee,
+          :with_scratch_competition_divisions, # scratch masters
+          :with_an_optional_event,  # an optional event
+          :with_extra_stuff         # raffle and banquet
+      end
+      let(:entry_fee_item) { tournament.purchasable_items.entry_fee.first }
+      let(:late_fee_item) { tournament.purchasable_items.late_fee.first }
+      let(:raffle_item) { tournament.purchasable_items.raffle.first }
+      let(:bowling_item) { tournament.purchasable_items.bowling.division.first }
+      let(:unbought_bowling_item) { tournament.purchasable_items.single_use.first }
 
+      before do
+        allow_any_instance_of(Tournament).to receive(:in_late_registration?).and_return(true)
+        create :purchasable_item,
+          :late_fee,
+          tournament: tournament
+      end
+
+      context 'when the bowler has bought nothing' do
+        it 'includes the entry fee item as automatic' do
+          subject
+          expect(json['automaticItems'].collect{ |ai| ai['identifier'] }).to include(entry_fee_item.identifier)
+        end
+
+        it 'includes the late-fee item as automatic' do
+          subject
+          expect(json['automaticItems'].collect{ |ai| ai['identifier'] }).to include(late_fee_item.identifier)
+        end
+      end
+
+      context 'when the bowler has bought some things, including an entry fee and a late fee' do
+        before do
+          create :purchase, :paid,
+            bowler: bowler,
+            purchasable_item: entry_fee_item,
+            amount: entry_fee_item.value
+          create :purchase, :paid,
+            bowler: bowler,
+            purchasable_item: late_fee_item,
+            amount: entry_fee_item.value
+          create :purchase, :paid,
+            bowler: bowler,
+            purchasable_item: bowling_item,
+            amount: bowling_item.value
+          create :purchase, :paid,
+            bowler: bowler,
+            purchasable_item: raffle_item,
+            amount: raffle_item.value
+        end
+
+        #####################
+        # Automatic
+        # ###################
+
+        it 'excludes the entry fee as automatic' do
+          subject
+          expect(json['automaticItems'].collect{ |ai| ai['identifier'] }).not_to include(entry_fee_item.identifier)
+        end
+
+        it 'excludes the late-fee item as automatic' do
+          subject
+          expect(json['automaticItems'].collect{ |ai| ai['identifier'] }).not_to include(late_fee_item.identifier)
+        end
+
+        #######################
+        # Purchases
+        # #####################
+        it 'contains purchases' do
+          subject
+          expect(json['purchases']).not_to be_empty
+        end
+
+        it 'has the entry fee in purchases' do
+          subject
+          json_identifiers = json['purchases'].collect { |p| p['purchasableItem']['identifier'] }
+          expect(json_identifiers).to include(entry_fee_item.identifier)
+        end
+
+        it 'has the late fee in purchases' do
+          subject
+          json_identifiers = json['purchases'].collect { |p| p['purchasableItem']['identifier'] }
+          expect(json_identifiers).to include(late_fee_item.identifier)
+        end
+
+        it 'includes the bowling item they bought in purchases' do
+          subject
+          json_identifiers = json['purchases'].collect { |p| p['purchasableItem']['identifier'] }
+          expect(json_identifiers).to include(bowling_item.identifier)
+        end
+
+        it 'includes the raffle item they bought in purchases' do
+          subject
+          json_identifiers = json['purchases'].collect { |p| p['purchasableItem']['identifier'] }
+          expect(json_identifiers).to include(raffle_item.identifier)
+        end
+
+        ##########################
+        # Available items
+        # ########################
+
+        it 'excludes the bowling item they bought from availableItems' do
+          subject
+
+          json_identifiers = json['availableItems'].collect { |ai| ai['identifier'] }
+          expect(json_identifiers).not_to include(bowling_item.identifier)
+        end
+
+        it 'includes the bowling item they did not buy in availableItems' do
+          subject
+
+          json_identifiers = json['availableItems'].collect { |ai| ai['identifier'] }
+          expect(json_identifiers).not_to include(unbought_bowling_item.identifier)
+        end
+
+        it 'includes the raffle item in availableItems' do
+          subject
+
+          json_identifiers = json['availableItems'].collect { |ai| ai['identifier'] }
+          expect(json_identifiers).to include(raffle_item.identifier)
+        end
+      end
+    end
 
     #
     # when we support requesting items without paying for them...
