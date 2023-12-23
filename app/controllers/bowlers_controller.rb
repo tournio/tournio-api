@@ -154,6 +154,7 @@ class BowlersController < ApplicationController
       unpaidPurchases: PurchaseSerializer.new(bowler.purchases.unpaid).as_json,
       availableItems: PurchasableItemSerializer.new(available_items).as_json,
       automaticItems: PurchasableItemSerializer.new(automatic_items).as_json,
+      # requestedItems: [],
     }
     render json: result, status: :ok
   end
@@ -268,17 +269,14 @@ class BowlersController < ApplicationController
     purchased_item_ids = bowler.purchases.collect(&:purchasable_item_id)
     items = tournament.purchasable_items.ledger.where.not(id: purchased_item_ids)
 
-    ap "All items: #{items.collect(&:identifier)}"
     # Remove early discounts if they don't apply
     unless tournament.in_early_registration?
       # remove any early discounts
-      ap "Removing early discount"
       items -= tournament.purchasable_items.early_discount
     end
 
     # Remove late fees if they don't apply
     unless tournament.in_late_registration?
-      ap "Removing late fee"
       # remove any late fees
       items -= tournament.purchasable_items.late_fee
     end
