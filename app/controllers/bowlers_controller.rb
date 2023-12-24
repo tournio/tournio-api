@@ -149,6 +149,7 @@ class BowlersController < ApplicationController
 
     result = {
       bowler: BowlerSerializer.new(bowler, within: {doubles_partner: :doubles_partner}).as_json,
+      tournament: TournamentSerializer.new(tournament, params: url_options).as_json,
       purchases: PurchaseSerializer.new(bowler.purchases.paid).as_json,
       unpaidPurchases: PurchaseSerializer.new(bowler.purchases.unpaid).as_json,
       availableItems: PurchasableItemSerializer.new(available_items).as_json,
