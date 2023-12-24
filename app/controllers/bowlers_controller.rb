@@ -269,6 +269,9 @@ class BowlersController < ApplicationController
   end
 
   def automatic_items
+    # Free entry means no automatic items
+    return [] if bowler.free_entry.present?
+
     # Start with all ledger items the bowler hasn't already paid for
     purchased_item_ids = bowler.purchases.collect(&:purchasable_item_id)
     items = tournament.purchasable_items.ledger.where.not(id: purchased_item_ids)
