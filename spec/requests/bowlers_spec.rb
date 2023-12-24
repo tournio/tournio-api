@@ -469,6 +469,11 @@ describe BowlersController, type: :request do
       expect(json['tournament'].keys).to include(*%w(identifier name year abbreviation imageUrl))
     end
 
+    it 'includes a team property' do
+      subject
+      expect(json).to have_key('team')
+    end
+
     it 'includes paid purchases' do
       subject
       expect(json).to have_key('purchases')

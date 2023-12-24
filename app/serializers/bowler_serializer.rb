@@ -32,9 +32,18 @@ class BowlerSerializer < JsonSerializer
     :last_name,
     :phone,
     :preferred_name,
-    :usbc_id
+    :usbc_id,
+    :position
 
+  attribute :registered_on do |b|
+    b.created_at.strftime('%F')
+  end
+  attribute :list_name do |b|
+    TournamentRegistration.person_list_name(b.person)
+  end
   attribute :full_name do |b|
     TournamentRegistration.person_display_name(b.person)
   end
+
+  one :free_entry, resource: FreeEntrySerializer
 end

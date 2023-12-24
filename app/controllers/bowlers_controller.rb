@@ -51,7 +51,10 @@ class BowlersController < ApplicationController
     end
 
     list = parameters[:unpartnered].present? ? tournament.bowlers.without_doubles_partner : tournament.bowlers
-    render json: ListBowlerSerializer.new(list, within: {doubles_partner: :doubles_partner}).serialize, status: :ok
+    render json: ListBowlerSerializer.new(list, within: {
+      doubles_partner: :doubles_partner,
+      team: :team,
+    }).as_json, status: :ok
   end
 
   def create
@@ -148,7 +151,8 @@ class BowlersController < ApplicationController
     available_items = selectable_items + extra_ledger_items
 
     result = {
-      bowler: BowlerSerializer.new(bowler, within: {doubles_partner: :doubles_partner}).as_json,
+      bowler: ListBowlerSerializer.new(bowler, within: {doubles_partner: :doubles_partner}).as_json,
+      team: bowler.team.present? ? TeamSerializer.new(bowler.team).as_json : nil,
       tournament: TournamentSerializer.new(tournament, params: url_options).as_json,
       purchases: PurchaseSerializer.new(bowler.purchases.paid).as_json,
       unpaidPurchases: PurchaseSerializer.new(bowler.purchases.unpaid).as_json,
