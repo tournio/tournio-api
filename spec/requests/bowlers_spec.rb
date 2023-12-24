@@ -522,6 +522,35 @@ describe BowlersController, type: :request do
       expect(json['automaticItems'][0]['identifier']).to eq(entry_fee_item.identifier)
     end
 
+    context 'when the bowler has a free entry' do
+      context 'and it is not confirmed' do
+        before do
+          create :free_entry,
+            bowler: bowler,
+            tournament: tournament
+        end
+
+        it 'has no automatic items' do
+          subject
+          expect(json['automaticItems']).to be_empty
+        end
+      end
+
+      context 'and it is confirmed' do
+        before do
+          create :free_entry,
+            confirmed: true,
+            bowler: bowler,
+            tournament: tournament
+        end
+
+        it 'has no automatic items' do
+          subject
+          expect(json['automaticItems']).to be_empty
+        end
+      end
+    end
+
     context 'with an entry fee purchase' do
       context 'that is unpaid' do
         before do
