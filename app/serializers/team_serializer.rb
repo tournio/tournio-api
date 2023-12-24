@@ -27,6 +27,5 @@ class TeamSerializer < JsonSerializer
     :initial_size,
     :created_at
 
-  # one :tournament, resource: TournamentSerializer
   many :shifts, resource: ShiftSerializer
 end
