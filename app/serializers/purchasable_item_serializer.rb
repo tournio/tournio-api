@@ -16,9 +16,10 @@
 class PurchasableItemSerializer < JsonSerializer
   attributes :identifier,
     :name,
-    :configuration,
+    :category,
     :determination,
     :refinement,
+    :configuration,
     :enabled,
     :user_selectable,
     :value

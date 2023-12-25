@@ -153,10 +153,11 @@ class BowlersController < ApplicationController
 
     result = {
       bowler: ListBowlerSerializer.new(bowler, within: {doubles_partner: :doubles_partner}).as_json,
+      freeEntry: bowler.free_entry.present? ? FreeEntrySerializer.new(bowler.free_entry).as_json : nil,
       team: bowler.team.present? ? TeamSerializer.new(bowler.team).as_json : nil,
       tournament: TournamentSerializer.new(tournament, params: url_options).as_json,
       purchases: PurchaseSerializer.new(bowler.purchases.paid).as_json,
-      unpaidPurchases: PurchaseSerializer.new(bowler.purchases.unpaid).as_json,
+      # unpaidPurchases: PurchaseSerializer.new(bowler.purchases.unpaid).as_json,
       availableItems: PurchasableItemSerializer.new(available_items).as_json,
       automaticItems: PurchasableItemSerializer.new(automatic_items).as_json,
       # requestedItems: [],
