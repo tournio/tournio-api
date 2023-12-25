@@ -44,6 +44,4 @@ class BowlerSerializer < JsonSerializer
   attribute :full_name do |b|
     TournamentRegistration.person_display_name(b.person)
   end
-
-  one :free_entry, resource: FreeEntrySerializer
 end

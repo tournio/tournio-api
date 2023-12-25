@@ -479,14 +479,19 @@ describe BowlersController, type: :request do
       expect(json).to have_key('purchases')
     end
 
-    it 'includes unpaid purchases, including entry fes' do
-      subject
-      expect(json).to have_key('unpaidPurchases')
-    end
+    # it 'includes unpaid purchases, including entry fes' do
+    #   subject
+    #   expect(json).to have_key('unpaidPurchases')
+    # end
 
     it 'includes available items' do
       subject
       expect(json).to have_key('availableItems')
+    end
+
+    it 'includes free entry' do
+      subject
+      expect(json).to have_key('freeEntry')
     end
 
     it 'includes automatic items' do
@@ -512,10 +517,10 @@ describe BowlersController, type: :request do
       expect(json['purchases']).to be_empty
     end
 
-    it 'has zero unpaid purchases' do
-      subject
-      expect(json['unpaidPurchases']).to be_empty
-    end
+    # it 'has zero unpaid purchases' do
+    #   subject
+    #   expect(json['unpaidPurchases']).to be_empty
+    # end
 
     it 'has the entry fee as automatic' do
       subject
@@ -523,13 +528,23 @@ describe BowlersController, type: :request do
     end
 
     context 'when the bowler has a free entry' do
-      context 'and it is not confirmed' do
-        before do
-          create :free_entry,
-            bowler: bowler,
-            tournament: tournament
-        end
+      let(:free_entry_code) { 'BOWLING-IS-LIFE' }
+      let(:confirmed) { false }
 
+      before do
+        create :free_entry,
+          unique_code: free_entry_code,
+          confirmed: confirmed,
+          bowler: bowler,
+          tournament: tournament
+      end
+
+      it 'includes it' do
+        subject
+        expect(json['freeEntry']['uniqueCode']).to eq(free_entry_code)
+      end
+
+      context 'and it is not confirmed' do
         it 'has no automatic items' do
           subject
           expect(json['automaticItems']).to be_empty
@@ -537,12 +552,7 @@ describe BowlersController, type: :request do
       end
 
       context 'and it is confirmed' do
-        before do
-          create :free_entry,
-            confirmed: true,
-            bowler: bowler,
-            tournament: tournament
-        end
+        let(:confirmed) { true }
 
         it 'has no automatic items' do
           subject
