@@ -375,6 +375,8 @@ class BowlersController < ApplicationController
       details[:purchasable_items][index][:quantity] = details[:purchasable_items][index][:quantity].to_i
     end
 
+    # @early-discount This is probably no longer necessary
+    # ...
     # validate required ledger items (entry fee, late fee)
     purchase_identifiers = details[:purchase_identifiers] || []
     @matching_purchases = bowler.purchases.unpaid.where(identifier: purchase_identifiers)
@@ -393,7 +395,8 @@ class BowlersController < ApplicationController
       raise PurchaseError.new('Mismatched number of purchasable item identifiers', :not_found)
     end
 
-    # are we purchasing any single-use item_quantities that have been purchased previously?
+    # are we attempting to purchase any single-use item_quantities that have been purchased previously?
+    # ... because we shouldn't.
     matching_previous_single_item_purchases = PurchasableItem.single_use.joins(:purchases)
                                                              .where(identifier: identifiers)
                                                              .where(purchases: { bowler_id: bowler.id })
@@ -416,6 +419,8 @@ class BowlersController < ApplicationController
 
     @applicable_discounts = []
 
+    # @early-discount This is also a candidate for deletion.
+    # ...
     # If the entry fee is among the matching purchases, see if we have an early discount
     if matching_purchases.filter { |p| p.purchasable_item.entry_fee? }.any?
       if tournament.in_early_registration?
@@ -427,16 +432,14 @@ class BowlersController < ApplicationController
       end
     end
 
+    # @early-discount Does an early-registration discount apply?
+
     # apply any relevant event bundle discounts
     bundle_discount_items = tournament.purchasable_items.bundle_discount
     previous_paid_event_item_identifiers = bowler.purchases.event.paid.map { |p| p.purchasable_item.identifier }
     @applicable_discounts += bundle_discount_items.select do |discount|
       (identifiers + previous_paid_event_item_identifiers).intersection(discount.configuration['events']).length == discount.configuration['events'].length
     end
-
-    ################################################################
-    # Not yet implemented: event-linked early-registration discounts
-    ################################################################
 
     total_discount = applicable_discounts.sum(&:value)
 
