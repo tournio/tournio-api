@@ -112,7 +112,7 @@ module Stripe
       coupon_id = discount[:discount][:coupon][:id]
       sc = StripeCoupon.includes(:purchasable_item).find_by!(coupon_id: coupon_id)
       pi = sc.purchasable_item
-      discounts_already_applied = bowler.purchases.where(purchasable_item: pi)
+      discounts_already_applied = bowler.purchases.paid.where(purchasable_item: pi)
       unless discounts_already_applied.any?
         bowler.purchases << Purchase.new(
           purchasable_item: pi,
