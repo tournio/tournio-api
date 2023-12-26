@@ -29,9 +29,9 @@ module Stripe
         tournament: bowler.tournament
       )
 
-      # TODO: any sanity-checking, e.g.,
-      #  - in the event the SCP model shows it was already completed
-      #  - verifying that the amount of each line item matches the value of the PurchasableItem
+      # TODO: @early-discount
+      #  - remove handling of unpaid purchases; we no longer create a Purchase as part of registration
+      #    - probably means "matching purchases" is no longer a thing
 
       new_purchases = []
       # previous_paid_event_item_ids = bowler.purchases.event.paid.map { |p| p.purchasable_item.identifier }
