@@ -16,6 +16,7 @@ class BowlersController < ApplicationController
       usbc_id
       birth_month
       birth_day
+      birth_year
       nickname
       phone
       email

@@ -239,6 +239,7 @@ module ApiHelpers
         'usbc_id' => '6621-43399',
         'birth_month' => '6',
         'birth_day' => '16',
+        'birth_year' => '1980',
         'nickname' => 'Gio',
         'phone' => '814-499-4750',
         'email' => 'lite@yahoo.com',
