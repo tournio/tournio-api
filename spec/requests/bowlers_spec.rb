@@ -881,5 +881,9 @@ describe BowlersController, type: :request do
     #   expect(json).to have_key('requested_items')
     # end
   end
+
+  describe '#stripe_checkout' do
+    # TODO: move the controller spec test over here and make it worth a damn.
+  end
 end
 
