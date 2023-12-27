@@ -11,6 +11,7 @@ class TeamsController < ApplicationController
       usbc_id
       birth_month
       birth_day
+      birth_year
       nickname
       phone
       email
@@ -156,7 +157,7 @@ class TeamsController < ApplicationController
     permitted_params['person_attributes'][:email].strip! if permitted_params['person_attributes'][:email].present?
 
     # Person attributes: Convert integer params from string to integer
-    %w[birth_month birth_day].each do |attr|
+    %w[birth_month birth_day birth_year].each do |attr|
       permitted_params['person_attributes'][attr] = permitted_params['person_attributes'][attr].to_i
     end
     permitted_params['position'] = permitted_params['position'].to_i if permitted_params['position'].present?

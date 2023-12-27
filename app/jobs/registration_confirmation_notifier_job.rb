@@ -32,6 +32,7 @@ class RegistrationConfirmationNotifierJob < TemplateMailerJob
       usbc_id: bowler.usbc_id,
       birth_month: bowler.birth_month,
       birth_day: bowler.birth_day,
+      birth_year: bowler.birth_year,
       address1: bowler.address1,
       address2: bowler.address2,
       city: bowler.city,

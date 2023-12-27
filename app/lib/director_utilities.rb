@@ -138,6 +138,7 @@ module DirectorUtilities
 
       birth_day: bowler.birth_day,
       birth_month: bowler.birth_month,
+      birth_year: bowler.birth_year,
 
       address1: bowler.address1,
       address2: bowler.address2.present? ? bowler.address2 : '',

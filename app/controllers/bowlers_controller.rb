@@ -244,7 +244,7 @@ class BowlersController < ApplicationController
       p['person_attributes'][:email].strip! if p['person_attributes'][:email].present?
 
       # Person attributes: Convert integer params from string to integer
-      %w[birth_month birth_day].each do |attr|
+      %w[birth_month birth_day birth_year].each do |attr|
         p['person_attributes'][attr] = p['person_attributes'][attr].to_i
       end
       p['position'] = p['position'].to_i if p['position'].present?
