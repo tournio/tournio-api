@@ -433,8 +433,6 @@ class BowlersController < ApplicationController
       end
     end
 
-    # @early-discount Does an early-registration discount apply?
-
     # apply any relevant event bundle discounts
     bundle_discount_items = tournament.purchasable_items.bundle_discount
     previous_paid_event_item_identifiers = bowler.purchases.event.paid.map { |p| p.purchasable_item.identifier }
