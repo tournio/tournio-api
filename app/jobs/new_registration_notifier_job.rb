@@ -39,7 +39,7 @@ class NewRegistrationNotifierJob < TemplateMailerJob
         full_name: TournamentRegistration.bowler_full_name(bowler),
         email: bowler.email,
         usbc_id: bowler.usbc_id,
-        birthday: "#{bowler.birth_month}/#{bowler.birth_day}",
+        birthday: "#{bowler.birth_month}/#{bowler.birth_day}/#{bowler.birth_year}",
         team_name: bowler.team&.name || 'n/a',
         team_order: bowler.position || 'n/a',
         doubles_partner: bowler.doubles_partner.present? ? TournamentRegistration.bowler_full_name(bowler.doubles_partner) : 'n/a',

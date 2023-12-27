@@ -42,6 +42,7 @@ class Bowler < ApplicationRecord
            :address2,
            :birth_day,
            :birth_month,
+           :birth_year,
            :city,
            :country,
            :email,
