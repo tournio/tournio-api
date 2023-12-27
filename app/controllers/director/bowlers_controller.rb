@@ -12,6 +12,7 @@ module Director
         igbo_id
         birth_month
         birth_day
+        birth_year
         nickname
         phone
         email
