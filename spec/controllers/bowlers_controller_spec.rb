@@ -1,6 +1,7 @@
 require 'rails_helper'
 
 RSpec.describe BowlersController, type: :controller do
+  #
   describe 'stripe_checkout' do
     subject do
       post :stripe_checkout,

@@ -109,4 +109,29 @@ module StripeUtilities
       Stripe::CouponCreator.perform_in(Rails.configuration.sidekiq_async_delay, pi.id)
     end
   end
+
+  def build_checkout_session_items(fees, discounts, items, item_quantities)
+    line_items = fees.each_with_object([]) do |pi, a|
+      a << line_item_for_purchasable_item(pi, 1)
+    end
+
+    line_items += item_quantities.collect do |iq|
+      pi = items[iq[:identifier]]
+      line_item_for_purchasable_item(pi, iq[:quantity])
+    end
+
+    discounts = discounts.each_with_object([]) do |pi, a|
+      if pi.early_discount? || pi.bundle_discount?
+        a << discount_for_purchasable_item(pi)
+      end
+    end
+
+    session_params = {
+      line_items: line_items,
+    }
+
+    session_params[:discounts] = discounts unless discounts.empty?
+
+    session_params
+  end
 end
