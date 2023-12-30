@@ -136,17 +136,26 @@ RSpec.describe StripeUtilities do
 
       let(:items) do
         {
-          item1.identifier.to_sym => item1,
-          item2.identifier.to_sym => item2,
-          multi_item.identifier.to_sym => multi_item,
+          item1.identifier => item1,
+          item2.identifier => item2,
+          multi_item.identifier => multi_item,
         }
       end
       let(:item_quantities) do
-        {
-          item1.identifier.to_sym => 1,
-          item2.identifier.to_sym => 1,
-          multi_item.identifier.to_sym => 3,
-        }
+        [
+          {
+            identifier: item1.identifier,
+            quantity: 1,
+          },
+          {
+            identifier: item2.identifier,
+            quantity: 1,
+          },
+          {
+            identifier: multi_item.identifier,
+            quantity: 3,
+          },
+        ]
       end
 
       it 'behaves correctly' do

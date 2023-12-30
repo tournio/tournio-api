@@ -461,7 +461,6 @@ class BowlersController < ApplicationController
   end
 
   def stripe_checkout_session
-
     session_params = {
       success_url: "#{client_host}/bowlers/#{bowler.identifier}/finish_checkout",
       cancel_url: "#{client_host}/bowlers/#{bowler.identifier}",
