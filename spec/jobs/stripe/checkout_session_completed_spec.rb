@@ -102,8 +102,8 @@ RSpec.describe Stripe::CheckoutSessionCompleted, type: :job do
           ])
         end
 
-        before do
-          TournamentRegistration.purchase_entry_fee bowler
+        it 'creates a Purchase for the entry fee' do
+          expect { subject }.to change { bowler.purchases.entry_fee.count }.by(1)
         end
 
         it 'associates the ExternalPayment to the entry-fee Purchase' do
@@ -162,11 +162,11 @@ RSpec.describe Stripe::CheckoutSessionCompleted, type: :job do
           end
 
           it 'creates a Purchase for each optional item' do
-            expect { subject }.to change { bowler.purchases.count }.by(2)
+            expect { subject }.to change { bowler.purchases.count }.by(3)
           end
 
           it 'creates a ledger entry for each Purchase' do
-            expect { subject }.to change { bowler.ledger_entries.purchase.count }.by(2)
+            expect { subject }.to change { bowler.ledger_entries.purchase.count }.by(3)
           end
         end
 
@@ -211,11 +211,11 @@ RSpec.describe Stripe::CheckoutSessionCompleted, type: :job do
           end
 
           it 'creates a Purchase for each optional item' do
-            expect { subject }.to change { bowler.purchases.count }.by(5)
+            expect { subject }.to change { bowler.purchases.count }.by(6)
           end
 
           it 'creates a ledger entry for each Purchase' do
-            expect { subject }.to change { bowler.ledger_entries.purchase.count }.by(5)
+            expect { subject }.to change { bowler.ledger_entries.purchase.count }.by(6)
           end
         end
 
@@ -248,32 +248,15 @@ RSpec.describe Stripe::CheckoutSessionCompleted, type: :job do
           end
 
           context 'because the bowler registered late' do
-            # So the late-fee Purchase already exists when they make their payment
-
-            before do
-              create(:purchase, bowler: bowler, purchasable_item: late_fee_item, amount: late_fee_item.value)
-            end
-
             it_behaves_like 'a Stripe event handler'
             it_behaves_like 'a completed checkout session'
 
-            it 'creates no new Purchases' do
-              expect { subject }.not_to change { bowler.purchases.count }
-            end
-          end
-
-          context 'because the bowler waited too long to pay' do
-            # So there is not a pre-existing late-fee Purchase
-
-            it_behaves_like 'a Stripe event handler'
-            it_behaves_like 'a completed checkout session'
-
-            it 'creates a Purchase for the late fee item' do
-              expect { subject }.to change { bowler.purchases.count }.by(1)
+            it 'creates a Purchase for the late fee item and the entry fee' do
+              expect { subject }.to change { bowler.purchases.count }.by(2)
             end
 
             it 'creates a ledger entry for the Purchase' do
-              expect { subject }.to change { bowler.ledger_entries.purchase.count }.by(1)
+              expect { subject }.to change { bowler.ledger_entries.purchase.count }.by(2)
             end
           end
         end
@@ -298,17 +281,13 @@ RSpec.describe Stripe::CheckoutSessionCompleted, type: :job do
             ])
           end
 
-          # before do
-          #   create(:purchase, bowler: bowler, purchasable_item: discount_item, amount: discount_item.value)
-          # end
-          #
           it 'winds up with a zero balance' do
             subject
             expect(TournamentRegistration.amount_due(bowler)).to be_zero
           end
 
-          it 'creates a new Purchase object' do
-            expect { subject }.to change { bowler.purchases.count }
+          it 'creates two new Purchase objects' do
+            expect { subject }.to change { bowler.purchases.count }.by(2)
           end
 
           it 'updates the paid_at attribute of the discount Purchase' do
@@ -458,7 +437,6 @@ RSpec.describe Stripe::CheckoutSessionCompleted, type: :job do
       before do
         entry_fee_item.stripe_product.update(price_id: 'price_1O6QifIorUnGjsWjKZ03KPNd', product_id: 'prod_OuFDqBYJV0yny6')
         discount_item.stripe_coupon.update(coupon_id: 'PmiNeEIO')
-        TournamentRegistration.purchase_entry_fee bowler
         create :stripe_checkout_session,
           bowler: bowler,
           identifier: mock_checkout_session[:id]
@@ -472,6 +450,10 @@ RSpec.describe Stripe::CheckoutSessionCompleted, type: :job do
       it 'marks the entry-fee purchase as paid' do
         subject
         expect(bowler.purchases.entry_fee.first.paid_at).not_to be_nil
+      end
+
+      it 'creates a new Purchase object for the entry fee' do
+        expect { subject }.to change { bowler.purchases.entry_fee.count }
       end
 
       it 'creates a new Purchase object for the discount' do
