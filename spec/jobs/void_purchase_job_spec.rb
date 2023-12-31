@@ -2,11 +2,10 @@
 
 require "rails_helper"
 
-# @early-discount update this not to use an early-registration discount
 RSpec.describe VoidPurchaseJob, type: :job do
   describe '#perform' do
     let(:tournament) { create :tournament }
-    let(:pi) { create :purchasable_item, :early_discount, tournament: tournament }
+    let(:pi) { create :purchasable_item, :optional_event, tournament: tournament }
     let(:bowler) { create :bowler, tournament: tournament }
     let(:paid_at) { nil }
     let(:voided_at) { nil }
@@ -44,20 +43,10 @@ RSpec.describe VoidPurchaseJob, type: :job do
       expect(le.identifier).to start_with('[voided]')
     end
 
-    it 'marks the ledger entry as a debit' do
+    it 'marks the ledger entry as a credit' do
       subject
       le = LedgerEntry.last
-      expect(le.debit).to eq(pi.value)
-    end
-
-    context 'when the purchase is not a discount' do
-      let(:pi) { create :purchasable_item, :banquet_entry, tournament: tournament }
-
-      it 'marks the ledger entry as a credit' do
-        subject
-        le = LedgerEntry.last
-        expect(le.credit).to eq(pi.value)
-      end
+      expect(le.credit).to eq(pi.value)
     end
 
     context 'when the purchase is paid' do

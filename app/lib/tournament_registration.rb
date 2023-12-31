@@ -113,12 +113,6 @@ module TournamentRegistration
   end
 
   def self.register_bowler(bowler, registration_type='new_team')
-    # @early-discount Add entry fees, discounts, and late fees at the time of payment,
-    # rather than at registration
-    #
-    # purchase_entry_fee(bowler)
-    # add_late_fees_to_ledger(bowler)
-
     complete_doubles_link(bowler) if bowler.doubles_partner_id.present?
     try_assigning_automatic_partners(bowler.team) if bowler.team.present?
 

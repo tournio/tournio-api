@@ -1,7 +1,7 @@
 class BowlersController < ApplicationController
   wrap_parameters false
 
-  before_action :load_bowler, only: %i(show commerce stripe_checkout)
+  before_action :load_bowler, only: %i(commerce stripe_checkout)
 
   # gives us attributes: tournament, stripe_account
   include StripeUtilities
@@ -120,19 +120,6 @@ class BowlersController < ApplicationController
     end
 
     render json: BowlerBlueprint.render(bowlers, view: :detail), status: :created
-  end
-
-  def show
-    unless bowler.present?
-      render json: nil, status: :not_found
-      return
-    end
-
-    result = {
-      bowler: BowlerBlueprint.render_as_hash(bowler, view: :detail, **url_options),
-      available_items: rendered_purchasable_items_by_identifier,
-    }
-    render json: result, status: :ok
   end
 
   def commerce
@@ -256,16 +243,6 @@ class BowlersController < ApplicationController
       @team = Team.find_by_identifier(identifier)
       @tournament = team&.tournament
     end
-  end
-
-  # @early-discount We can get rid of this once we're using the #commerce action instead of #show
-  def rendered_purchasable_items_by_identifier
-    excluded_item_names = bowler.purchases.one_time.collect { |p| p.purchasable_item.name }
-    items = tournament.purchasable_items.user_selectable.enabled.where.not(name: excluded_item_names)
-
-    extra_ledger_items = tournament.purchasable_items.event_linked + tournament.purchasable_items.bundle_discount
-
-    (items + extra_ledger_items).each_with_object({}) { |i, result| result[i.identifier] = PurchasableItemBlueprint.render_as_hash(i) }
   end
 
   def automatic_items
@@ -412,21 +389,7 @@ class BowlersController < ApplicationController
       raise PurchaseError.new('Cannot purchase multiple instances of one-time items.', :unprocessable_entity)
     end
 
-    # @applicable_discounts = []
-
-    # @early-discount This is also a candidate for deletion.
-    # ...
-    # If the entry fee is among the matching purchases, see if we have an early discount
-    # if matching_purchases.filter { |p| p.purchasable_item.entry_fee? }.any?
-    #   if tournament.in_early_registration?
-    #     # and if we do, apply it
-    #     early_discount_item = tournament.purchasable_items.early_discount.first
-    #     if early_discount_item.present?
-    #       @applicable_discounts << early_discount_item
-    #     end
-    #   end
-    # end
-
+    # @bundle-discounts Restore this here
     # apply any relevant event bundle discounts
     # bundle_discount_items = tournament.purchasable_items.bundle_discount
     # previous_paid_event_item_identifiers = bowler.purchases.event.paid.map { |p| p.purchasable_item.identifier }
