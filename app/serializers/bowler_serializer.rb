@@ -32,8 +32,7 @@ class BowlerSerializer < JsonSerializer
     :last_name,
     :phone,
     :preferred_name,
-    :usbc_id,
-    :position
+    :usbc_id
 
   attribute :registered_on do |b|
     b.created_at.strftime('%F')

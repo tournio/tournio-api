@@ -53,71 +53,38 @@ RSpec.describe BowlerSerializer do
     expect(json_hash).to be_an_instance_of(HashWithIndifferentAccess)
   end
 
-  it 'has the expected root key' do
-    expect(json_hash).to have_key(:bowler)
+  it 'does not have a root key' do
+    expect(json_hash).not_to have_key(:bowler)
   end
 
   describe 'model attributes' do
-    let(:expected_attributes) { %w(identifier position) }
+    let(:expected_attributes) { %w(identifier) }
 
     it 'has the expected attributes' do
-      expect(json_hash[:bowler].keys).to include(*expected_attributes)
+      expect(json_hash.keys).to include(*expected_attributes)
     end
   end
 
   describe 'delegated attributes' do
     let(:expected_attributes) do
-      %w(address1
-        address2
-        birthDay
-        birthMonth
-        city
-        country
-        email
+      %w(email
         firstName
         lastName
         preferredName
         phone
-        postalCode
-        state)
+        usbcId)
     end
 
     it 'has the expected attributes delegated to the associated Person' do
-      expect(json_hash[:bowler].keys).to include(*expected_attributes)
+      expect(json_hash.keys).to include(*expected_attributes)
     end
   end
 
   describe 'other simple attributes' do
-    let(:expected_attributes) { %w(registeredOn listName fullName usbcId teamName doublesPartner) }
+    let(:expected_attributes) { %w(registeredOn listName fullName) }
 
     it 'has the expected attributes' do
-      expect(json_hash[:bowler].keys).to include(*expected_attributes)
-    end
-  end
-
-  describe 'associations' do
-    let(:expected_keys) { %w(team) }
-
-    it 'has the expected keys' do
-      expect(json_hash[:bowler].keys).to include(*expected_keys)
-    end
-
-    it 'has nil values for those keys' do
-      expected_keys.each do |attr|
-        expect(json_hash[:bowler][attr]).to be_nil
-      end
-    end
-
-    context 'a bowler on a team' do
-      let(:bowler) { create :bowler, :with_team }
-
-      it 'has something for the team' do
-        expect(json_hash[:bowler][:team]).not_to be_nil
-      end
-
-      it 'gives the bowler a position' do
-        expect(json_hash[:bowler][:position]).to be_a(Integer)
-      end
+      expect(json_hash.keys).to include(*expected_attributes)
     end
   end
 end

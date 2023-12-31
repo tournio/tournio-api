@@ -479,11 +479,6 @@ describe BowlersController, type: :request do
       expect(json).to have_key('purchases')
     end
 
-    # it 'includes unpaid purchases, including entry fes' do
-    #   subject
-    #   expect(json).to have_key('unpaidPurchases')
-    # end
-
     it 'includes available items' do
       subject
       expect(json).to have_key('availableItems')
@@ -562,25 +557,6 @@ describe BowlersController, type: :request do
     end
 
     context 'with an entry fee purchase' do
-      context 'that is unpaid' do
-        before do
-          create :purchase,
-            bowler: bowler,
-            purchasable_item: entry_fee_item,
-            amount: entry_fee_item.value
-        end
-
-        it 'contains at least one unpaid purchase' do
-          subject
-          expect(json['unpaidPurchases']).not_to be_empty
-        end
-
-        it 'has the entry fee as the single unpaid purchase' do
-          subject
-          expect(json['unpaidPurchases'].first['purchasableItem']['identifier']).to eq(entry_fee_item.identifier)
-        end
-      end
-
       context 'that is paid' do
         before do
           create :purchase, :paid,
@@ -589,10 +565,6 @@ describe BowlersController, type: :request do
             amount: entry_fee_item.value
         end
 
-        it 'contains no unpaid purchases' do
-          subject
-          expect(json['unpaidPurchases']).to be_empty
-        end
 
         it 'has the entry fee as the single paid purchase' do
           subject
@@ -1014,7 +986,6 @@ describe BowlersController, type: :request do
             create(:purchasable_item, :optional_event, :with_stripe_product, tournament: tournament),
           ]
         end
-        let(:expected_total) { total_to_charge }
 
         it 'returns an OK status code' do
           subject
@@ -1029,7 +1000,6 @@ describe BowlersController, type: :request do
               create(:purchasable_item, :banquet_entry, :with_stripe_product, tournament: tournament),
             ]
           end
-          let(:expected_total) { total_to_charge }
 
           it 'returns an OK status code' do
             subject
