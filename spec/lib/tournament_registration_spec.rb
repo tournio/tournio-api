@@ -347,39 +347,131 @@ RSpec.describe TournamentRegistration do
   describe '#amount_due' do
     subject { subject_class.amount_due(bowler) }
 
-    let(:tournament) { create :tournament, :active }
+    let(:tournament) { create :tournament, :active, :with_entry_fee }
     let(:bowler) { create :bowler, tournament: tournament }
+    let(:entry_fee_amount) { tournament.purchasable_items.entry_fee.first.value }
 
-    before do
-      create :ledger_entry, debit: 30, bowler: bowler
-      create :ledger_entry, debit: 30, bowler: bowler
-      create :ledger_entry, debit: 30, bowler: bowler
-      create :ledger_entry, credit: 40, source: :manual, bowler: bowler
+    it 'correctly says the entry fee amount' do
+      expect(subject).to eq(entry_fee_amount)
     end
 
-    it 'correctly diffs credits and debits' do
-      expect(subject).to eq(50)
-    end
-
-    context 'when there is an early registration discount' do
+    context 'when the bowler has paid' do
       before do
-        create :ledger_entry, :early_registration, credit: 10, bowler: bowler
+        create :purchase, :paid,
+          purchasable_item: tournament.purchasable_items.entry_fee.first,
+          bowler: bowler,
+          amount: entry_fee_amount
       end
 
-      it 'accounts for the discount' do
-        expect(subject).to eq(40)
+      it 'says they owe nothing' do
+        expect(subject).to eq(0)
       end
     end
 
-    context 'when a purchase has been voided' do
+    context 'when the bowler has a free entry' do
       before do
-        create :ledger_entry, :void_purchase, credit: 30, bowler: bowler
+        create :free_entry,
+          tournament: tournament,
+          bowler: bowler,
+          confirmed: true
       end
 
-      it 'excludes the voided amount from billed total' do
-        expect(subject).to eq(20)
+      it 'says they owe nothing' do
+        expect(subject).to eq(0)
       end
     end
+
+    context 'in early registration' do
+      let(:tournament) { create :tournament, :active, :with_entry_fee, :with_early_discount }
+      let(:discount_amount) { tournament.purchasable_items.early_discount.first.value }
+
+      before do
+        allow(tournament).to receive(:in_early_registration?).and_return(true)
+        allow(tournament).to receive(:in_late_registration?).and_return(false)
+      end
+
+      it 'correctly says the entry fee amount minus discount' do
+        expect(subject).to eq(entry_fee_amount - discount_amount)
+      end
+
+      context 'when the bowler has paid' do
+        before do
+          create :purchase, :paid,
+            purchasable_item: tournament.purchasable_items.entry_fee.first,
+            bowler: bowler,
+            amount: entry_fee_amount
+          create :purchase, :paid,
+            purchasable_item: tournament.purchasable_items.early_discount.first,
+            bowler: bowler,
+            amount: discount_amount
+        end
+
+        it 'says they owe nothing' do
+          expect(subject).to eq(0)
+        end
+      end
+
+      context 'when the bowler has a free entry' do
+        before do
+          create :free_entry,
+            tournament: tournament,
+            bowler: bowler,
+            confirmed: true
+        end
+
+        it 'says they owe nothing' do
+          expect(subject).to eq(0)
+        end
+      end
+    end
+
+    context 'in late registration' do
+      let(:tournament) { create :tournament, :active, :with_entry_fee, :with_late_fee }
+      let(:late_fee_amount) { tournament.purchasable_items.late_fee.first.value }
+
+      before do
+        allow(tournament).to receive(:in_early_registration?).and_return(false)
+        allow(tournament).to receive(:in_late_registration?).and_return(true)
+      end
+
+      it 'correctly says the entry fee amount plus fee' do
+        expect(subject).to eq(entry_fee_amount + late_fee_amount)
+      end
+
+      context 'when the bowler has paid' do
+        before do
+          create :purchase, :paid,
+            purchasable_item: tournament.purchasable_items.entry_fee.first,
+            bowler: bowler,
+            amount: entry_fee_amount
+          create :purchase, :paid,
+            purchasable_item: tournament.purchasable_items.late_fee.first,
+            bowler: bowler,
+            amount: late_fee_amount
+        end
+
+        it 'says they owe nothing' do
+          expect(subject).to eq(0)
+        end
+      end
+
+      context 'when the bowler has a free entry' do
+        before do
+          create :free_entry,
+            tournament: tournament,
+            bowler: bowler,
+            confirmed: true
+        end
+
+        it 'says they owe nothing' do
+          expect(subject).to eq(0)
+        end
+      end
+    end
+
+    # context 'when the bowler has signed up for extras' do
+    #
+    # end
   end
 
   describe '#complete_doubles_link' do

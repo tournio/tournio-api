@@ -275,33 +275,12 @@ ExtendedFormField.create(
 ) unless ExtendedFormField.find_by(name: 'igbo_tad_average').present?
 
 ExtendedFormField.create(
-  name: 'igbo_gives_back',
-  label: "I would like to enter the IGBO Gives Back campaign",
-  html_element_type: 'checkbox',
-  html_element_config: { label: 'Yes', value: 'no' },
+  name: 'nonparticipant_names',
+  label: 'Names of any non-bowlers coming with you',
+  html_element_type: 'input',
+  html_element_config: { type: 'text', value: '' },
   validation_rules: { required: false },
-  helper_text: '',
+  helper_text: '(attending the banquet, etc.)',
   helper_url: '',
-) unless ExtendedFormField.find_by(name: 'igbo_gives_back').present?
+) unless ExtendedFormField.find_by(name: 'nonparticipant_names').present?
 
-ExtendedFormField.create(
-  name: 'igbo_gives_back_shift',
-  label: "If yes, for which shift?",
-  html_element_type: 'select',
-  html_element_config: {
-    options: [
-      {
-        value: 'Shift 1',
-        label: 'Shift 1',
-      },
-      {
-        value: 'Shift 2',
-        label: 'Shift 2',
-      },
-    ],
-    value: 'Shift 1',
-  },
-  validation_rules: { required: false },
-  helper_text: '',
-  helper_url: '',
-) unless ExtendedFormField.find_by(name: 'igbo_gives_back_shift').present?

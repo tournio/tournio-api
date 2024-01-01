@@ -163,7 +163,26 @@ module TournamentRegistration
   end
 
   def self.amount_due(bowler)
-    (bowler.ledger_entries.sum(&:debit) - bowler.ledger_entries.sum(&:credit)).to_i
+    tournament = bowler.tournament
+
+    # (bowler.ledger_entries.sum(&:debit) - bowler.ledger_entries.sum(&:credit)).to_i
+    discount = tournament.in_early_registration? ? tournament.purchasable_items.early_discount.first.value : 0
+    late_fee = tournament.in_late_registration? ? tournament.purchasable_items.late_fee.first.value : 0
+    entry_fee = tournament.purchasable_items.entry_fee.first&.value.to_i
+
+    ledger_amount_owed = 0
+    unless bowler.free_entry&.confirmed?
+      # This is what they'll owe having made no payments
+      ledger_amount_owed = entry_fee + late_fee - discount
+
+      # Minus any payments & discounts
+      ledger_amount_owed -= (bowler.purchases.entry_fee + bowler.purchases.late_fee).sum(&:amount)
+      ledger_amount_owed += bowler.purchases.early_discount.sum(&:amount)
+    end
+
+    # Here's where we can add unpaid optional items to the amount due
+
+    ledger_amount_owed
   end
 
   def self.complete_doubles_link(bowler)
