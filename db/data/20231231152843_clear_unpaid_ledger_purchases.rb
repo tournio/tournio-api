@@ -5,8 +5,10 @@ class ClearUnpaidLedgerPurchases < ActiveRecord::Migration[7.1]
     Tournament.active.each do |t|
       t.purchasable_items.ledger.each do |pi|
         pi.purchases.unpaid.each do |p|
-          pi.purchases.unpaid.destroy_all
+          # pi.purchases.unpaid.destroy_all
+          ap "#{t.identifier} / #{p.name} / #{p.bowler.last_name}"
         end
+        ap "Unpaid total: #{pi.purchases.unpaid.count}"
       end
     end
   end
