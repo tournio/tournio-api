@@ -109,6 +109,22 @@ FactoryBot.define do
       end
     end
 
+    trait :with_late_fee do
+      after(:create) do |t, _|
+        create(:purchasable_item,
+          :late_fee,
+          tournament: t)
+      end
+    end
+
+    trait :with_early_discount do
+      after(:create) do |t, _|
+        create(:purchasable_item,
+          :early_discount,
+          tournament: t)
+      end
+    end
+
     trait :with_scratch_competition_divisions do
       after(:create) do |t, _|
         create(:purchasable_item,

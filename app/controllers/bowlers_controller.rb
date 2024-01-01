@@ -37,6 +37,9 @@ class BowlersController < ApplicationController
   ].freeze
 
   ####################################
+  def show
+    redirect_to action: "commerce", identifier: params[:identifier], status: :moved_permanently
+  end
 
   def index
     permit_params
