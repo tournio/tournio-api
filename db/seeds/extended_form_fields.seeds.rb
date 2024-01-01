@@ -276,10 +276,32 @@ ExtendedFormField.create(
 
 ExtendedFormField.create(
   name: 'igbo_gives_back',
-  label: "I would like to enter the IGBO Gives Back Campaign",
+  label: "I would like to enter the IGBO Gives Back campaign",
   html_element_type: 'checkbox',
   html_element_config: { label: 'Yes', value: 'no' },
   validation_rules: { required: false },
   helper_text: '',
   helper_url: '',
 ) unless ExtendedFormField.find_by(name: 'igbo_gives_back').present?
+
+ExtendedFormField.create(
+  name: 'igbo_gives_back_shift',
+  label: "If yes, for which shift?",
+  html_element_type: 'select',
+  html_element_config: {
+    options: [
+      {
+        value: 'Shift 1',
+        label: 'Shift 1',
+      },
+      {
+        value: 'Shift 2',
+        label: 'Shift 2',
+      },
+    ],
+    value: 'Shift 1',
+  },
+  validation_rules: { required: false },
+  helper_text: '',
+  helper_url: '',
+) unless ExtendedFormField.find_by(name: 'igbo_gives_back_shift').present?

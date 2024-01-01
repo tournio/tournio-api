@@ -10,9 +10,6 @@ module Stripe
       # Go through the line items in the event
       # Mark unpaid purchases as paid, create paid purchases for the rest, and create a ledger entry
 
-      # TODO:
-      #  - event-linked late fees (maybe we don't need to?)
-
       cs = retrieve_stripe_object
       scp = StripeCheckoutSession.includes(bowler: :tournament).find_by(identifier: cs[:id])
 
@@ -29,10 +26,6 @@ module Stripe
         tournament: bowler.tournament
       )
 
-      # TODO: any sanity-checking, e.g.,
-      #  - in the event the SCP model shows it was already completed
-      #  - verifying that the amount of each line item matches the value of the PurchasableItem
-
       new_purchases = []
       # previous_paid_event_item_ids = bowler.purchases.event.paid.map { |p| p.purchasable_item.identifier }
       line_items = cs[:line_items][:data]
@@ -46,46 +39,25 @@ module Stripe
         sp = StripeProduct.includes(purchasable_item: :tournament).find_by(price_id: price_id, product_id: product_id)
         pi = sp.purchasable_item
 
-        # does the pi correspond to an unpaid purchase?
-        unpaid_purchases = bowler.purchases.unpaid.where(purchasable_item: pi)
-        if unpaid_purchases.any?
-          # quantity should be 1, since we don't create multiples of ledger items upon registration.
-          # So, sanity check here.
-          if unpaid_purchases.count != quantity
-            raise "We have a mismatched number of unpaid purchases. PItem ID: #{pi.identifier}. Stripe checkout session: #{cs[:id]}"
-          end
-
-          unpaid_purchases.update_all(
+        quantity.times do |_|
+          new_purchases << Purchase.create(
+            bowler: bowler,
+            purchasable_item: pi,
+            amount: pi.value,
             paid_at: paid_at,
             external_payment_id: external_payment.id
           )
 
-          # Is there a coupon associated, e.g., an early-registration discount?
-          if li[:discounts].present?
-            li[:discounts].each { |d| handle_discount(d) }
-          end
-        else
-          # or is it a new purchase?
-          quantity.times do |_|
-            new_purchases << Purchase.create(
-              bowler: bowler,
-              purchasable_item: pi,
-              amount: pi.value,
-              paid_at: paid_at,
-              external_payment_id: external_payment.id
-            )
+          bowler.ledger_entries << LedgerEntry.new(
+            debit: pi.value,
+            source: :purchase,
+            identifier: pi.name
+          )
+        end
 
-            bowler.ledger_entries << LedgerEntry.new(
-              debit: pi.value,
-              source: :purchase,
-              identifier: pi.name
-            )
-          end
-
-          # any discounts to apply, e.g., bundle discount for just-purchased events?
-          if li[:discounts].present?
-            li[:discounts].each { |d| handle_discount(d) }
-          end
+        # any discounts to apply, e.g., bundle discount for just-purchased events?
+        if li[:discounts].present?
+          li[:discounts].each { |d| handle_discount(d) }
         end
       end
 

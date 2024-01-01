@@ -1,1 +1,1 @@
-DataMigrate::Data.define(version: 20231117202500)
+DataMigrate::Data.define(version: 20231231152843)

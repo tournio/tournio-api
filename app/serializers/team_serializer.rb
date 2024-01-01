@@ -21,15 +21,11 @@
 #  index_teams_on_tournament_id  (tournament_id)
 #
 
-class TeamSerializer
-  include Alba::Resource
+class TeamSerializer < JsonSerializer
+  attributes :identifier,
+    :name,
+    :initial_size,
+    :created_at
 
-  transform_keys :lower_camel
-
-  # root_key :team
-
-  attributes :identifier, :name, :initial_size, :created_at
-
-  # one :tournament, resource: TournamentSerializer
   many :shifts, resource: ShiftSerializer
 end

@@ -64,14 +64,6 @@ FactoryBot.define do
       end
     end
 
-    # DEPRECATED in favor of voiding them
-    trait :early_discount_expiration do
-      category { :ledger }
-      determination { :discount_expiration }
-      name { 'Early-registration discount expiration' }
-      user_selectable { false }
-    end
-
     trait :scratch_competition do
       category { :bowling }
       determination { :single_use }

@@ -163,25 +163,20 @@ RSpec.describe TournamentRegistration do
 
     let(:bowler) { create :bowler, :with_team }
 
-    before do
-      allow(subject_class).to receive(:purchase_entry_fee)
-      allow(subject_class).to receive(:add_late_fees_to_ledger)
-    end
-
-    it "adds the bowler's ledger items" do
-      expect(subject_class).to receive(:purchase_entry_fee).with(bowler).once
-      subject
-    end
-
-    it "adds discounts to the bowler's ledger items" do
-      expect(subject_class).to receive(:add_early_discount_to_ledger).with(bowler).once
-      subject
-    end
-
-    it "adds late fees to the bowler's ledger items" do
-      expect(subject_class).to receive(:add_late_fees_to_ledger).with(bowler).once
-      subject
-    end
+    # before do
+    #   allow(subject_class).to receive(:purchase_entry_fee)
+    #   allow(subject_class).to receive(:add_late_fees_to_ledger)
+    # end
+    #
+    # it "adds the bowler's ledger items" do
+    #   expect(subject_class).to receive(:purchase_entry_fee).with(bowler).once
+    #   subject
+    # end
+    #
+    # it "adds late fees to the bowler's ledger items" do
+    #   expect(subject_class).to receive(:add_late_fees_to_ledger).with(bowler).once
+    #   subject
+    # end
 
     it 'queues up an email notification to the bowler' do
       expect(subject_class).to receive(:send_confirmation_email).with(bowler).once
@@ -346,114 +341,6 @@ RSpec.describe TournamentRegistration do
           expect { subject }.not_to change(Purchase, :count)
         end
       end
-    end
-  end
-
-  describe '#add_early_discount_to_ledger' do
-    subject { subject_class.add_early_discount_to_ledger(bowler, time) }
-
-    let(:time) { Time.zone.now }
-    let(:discount_amount) { -17 }
-
-    let(:tournament) { create :tournament, :active }
-    let(:bowler) { create(:bowler, person: create(:person), tournament: tournament) }
-
-    context 'when the tournament offers an early registration discount' do
-      let(:configuration) do
-        {
-          valid_until: '1976-12-28T18:37:00-07:00',
-        }
-      end
-      let!(:purchasable_item) { create(:purchasable_item, :early_discount, value: discount_amount, tournament: tournament, configuration: configuration) }
-
-      context 'in early registration' do
-        before { allow(tournament).to receive(:in_early_registration?).and_return(true) }
-
-        it 'creates a purchase' do
-          expect { subject }.to change(Purchase, :count).by(1)
-        end
-
-        it 'creates a ledger entry' do
-          expect { subject }.to change(LedgerEntry, :count).by(1)
-        end
-
-        it 'creates a ledger entry for the discount' do
-          subject
-          ledger_entry = LedgerEntry.last
-          expect(ledger_entry.debit).to be_zero
-          expect(ledger_entry.credit).to eq(discount_amount)
-          expect(ledger_entry.identifier).to eq('early registration')
-        end
-
-        it 'creates a purchase for the discount' do
-          subject
-          purchase = Purchase.last
-          expect(purchase.bowler_id).to eq(bowler.id)
-          expect(purchase.purchasable_item_id).to eq(tournament.purchasable_items.early_discount.first.id)
-        end
-      end
-
-      context 'not in early registration' do
-        before { allow(tournament).to receive(:in_early_registration?).and_return(false) }
-
-        it 'does not create a ledger entry' do
-          expect { subject }.not_to change(LedgerEntry, :count)
-        end
-
-        it 'does not create a purchase' do
-          expect { subject }.not_to change(Purchase, :count)
-        end
-      end
-    end
-
-    context 'when the tournament does not offer an early registration discount' do
-      context 'in early registration' do
-        before { allow(tournament).to receive(:in_early_registration?).and_return(true) }
-
-        it 'does not create a ledger entry' do
-          expect { subject }.not_to change(LedgerEntry, :count)
-        end
-
-        it 'does not create a purchase' do
-          expect { subject }.not_to change(Purchase, :count)
-        end
-      end
-    end
-  end
-
-  describe '#add_discount_expiration_to_ledger' do
-    subject { subject_class.add_discount_expiration_to_ledger(bowler, purchasable_item) }
-
-    let(:bowler) { create(:bowler, person: create(:person), tournament: tournament) }
-    let(:config) { {} }
-
-    before { allow(tournament).to receive(:config).and_return(config) }
-
-    let(:tournament) { create :tournament, :active }
-    let(:amount) { 16 }
-    let(:purchasable_item) { create :purchasable_item, :early_discount_expiration, value: amount, tournament: tournament }
-
-    it 'does not create a ledger entry' do
-      expect { subject }.to change(LedgerEntry, :count).by(1)
-    end
-
-    it 'does not create a purchase' do
-      expect { subject }.to change(Purchase, :count).by(1)
-    end
-
-    it 'creates a correct ledger entry' do
-      subject
-      ledger_entry = LedgerEntry.last
-      expect(ledger_entry.debit).to eq(amount)
-      expect(ledger_entry.identifier).to eq('discount expiration')
-    end
-
-    it 'creates a corresponding purchase' do
-      subject
-      purchase = Purchase.last
-      expect(purchase.bowler_id).to eq(bowler.id)
-      expect(purchase.purchasable_item_id).to eq(purchasable_item.id)
-      expect(purchase.amount).to eq(purchasable_item.value)
     end
   end
 
@@ -759,7 +646,6 @@ RSpec.describe TournamentRegistration do
     let(:entry_fee_item) { create :purchasable_item, :entry_fee, tournament: tournament }
     let(:late_fee_item) { create :purchasable_item, :late_fee, tournament: tournament }
     let(:early_discount_item) { create :purchasable_item, :early_discount, tournament: tournament }
-    let(:early_discount_expiration_item) { create :purchasable_item, :early_discount_expiration, tournament: tournament }
     let(:scratch_item) { create :purchasable_item, :scratch_competition, tournament: tournament }
     let(:optional_event_item) { create :purchasable_item, :optional_event, tournament: tournament }
     let(:banquet_item) { create :purchasable_item, :banquet_entry, tournament: tournament }
@@ -774,11 +660,11 @@ RSpec.describe TournamentRegistration do
     end
 
     it 'puts the late fee item first' do
-      expect(described_class.purchasable_item_sort(late_fee_item)).to be < described_class.purchasable_item_sort(early_discount_expiration_item)
+      expect(described_class.purchasable_item_sort(late_fee_item)).to be < described_class.purchasable_item_sort(scratch_item)
     end
 
     it 'puts the bowling item after the ledger item' do
-      expect(described_class.purchasable_item_sort(early_discount_expiration_item)).to be < described_class.purchasable_item_sort(scratch_item)
+      expect(described_class.purchasable_item_sort(late_fee_item)).to be < described_class.purchasable_item_sort(scratch_item)
     end
 
     it 'puts the scratch item first' do

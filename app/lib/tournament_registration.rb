@@ -25,7 +25,6 @@ module TournamentRegistration
       early_discount: 2,
       late_fee: 3,
       bundle_discount: 5,
-      discount_expiration: 6,
       igbo: 9,
       event: 10,
       single_use: 11,
@@ -114,9 +113,6 @@ module TournamentRegistration
   end
 
   def self.register_bowler(bowler, registration_type='new_team')
-    purchase_entry_fee(bowler)
-    add_early_discount_to_ledger(bowler)
-    add_late_fees_to_ledger(bowler)
     complete_doubles_link(bowler) if bowler.doubles_partner_id.present?
     try_assigning_automatic_partners(bowler.team) if bowler.team.present?
 
@@ -136,6 +132,9 @@ module TournamentRegistration
     unpartnered.map(&:save)
   end
 
+  # @early-discoiunt When we move this call to the checkout session completed handler, add
+  # a current_time parameter so we can set the paid_at attribute on the purchase. (Or maybe
+  # the ExternalPayment instance instead...)
   def self.purchase_entry_fee(bowler)
     entry_fee_item = bowler.tournament.purchasable_items.entry_fee.first
     return unless entry_fee_item.present?
@@ -144,18 +143,6 @@ module TournamentRegistration
     bowler.ledger_entries << LedgerEntry.new(debit: entry_fee, identifier: 'entry fee') if entry_fee.positive?
 
     bowler.purchases << Purchase.new(purchasable_item: entry_fee_item)
-  end
-
-  def self.add_early_discount_to_ledger(bowler, current_time = Time.zone.now)
-    tournament = bowler.tournament
-    return unless tournament.in_early_registration?(current_time)
-
-    early_discount_item = tournament.purchasable_items.early_discount&.first
-    return unless early_discount_item.present?
-
-    early_discount = early_discount_item.value
-    bowler.ledger_entries << LedgerEntry.new(credit: early_discount, identifier: 'early registration')
-    bowler.purchases << Purchase.new(purchasable_item: early_discount_item)
   end
 
   def self.add_late_fees_to_ledger(bowler)
@@ -169,11 +156,6 @@ module TournamentRegistration
     late_fee = late_fee_item.value
     bowler.ledger_entries << LedgerEntry.new(debit: late_fee, identifier: 'late registration')
     bowler.purchases << Purchase.new(purchasable_item: late_fee_item)
-  end
-
-  def self.add_discount_expiration_to_ledger(bowler, purchasable_item)
-    bowler.ledger_entries << LedgerEntry.new(debit: purchasable_item.value, identifier: 'discount expiration')
-    bowler.purchases << Purchase.new(purchasable_item: purchasable_item)
   end
 
   def self.amount_paid(bowler)

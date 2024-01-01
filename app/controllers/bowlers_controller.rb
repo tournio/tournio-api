@@ -1,7 +1,7 @@
 class BowlersController < ApplicationController
   wrap_parameters false
 
-  before_action :load_bowler, only: %i(show purchase_details stripe_checkout)
+  before_action :load_bowler, only: %i(commerce stripe_checkout)
 
   # gives us attributes: tournament, stripe_account
   include StripeUtilities
@@ -52,7 +52,10 @@ class BowlersController < ApplicationController
     end
 
     list = parameters[:unpartnered].present? ? tournament.bowlers.without_doubles_partner : tournament.bowlers
-    render json: BowlerSerializer.new(list, within: {doubles_partner: :doubles_partner}).serialize, status: :ok
+    render json: ListBowlerSerializer.new(list, within: {
+      doubles_partner: :doubles_partner,
+      team: :team,
+    }).as_json, status: :ok
   end
 
   def create
@@ -119,15 +122,31 @@ class BowlersController < ApplicationController
     render json: BowlerBlueprint.render(bowlers, view: :detail), status: :created
   end
 
-  def show
+  def commerce
     unless bowler.present?
       render json: nil, status: :not_found
       return
     end
 
+    # Excluse one-time items that are already purchased.
+    # And we use name so that other division-based things with the same name (like Scratch Masters)
+    # also get excluded.
+    excluded_item_names = bowler.purchases.one_time.collect(&:name)
+    selectable_items = tournament.purchasable_items.user_selectable.enabled.where.not(name: excluded_item_names)
+
+    extra_ledger_items = tournament.purchasable_items.event_linked + tournament.purchasable_items.bundle_discount
+
+    available_items = selectable_items + extra_ledger_items
+
     result = {
-      bowler: BowlerBlueprint.render_as_hash(bowler, view: :detail, **url_options),
-      available_items: rendered_purchasable_items_by_identifier,
+      bowler: ListBowlerSerializer.new(bowler, within: {doubles_partner: :doubles_partner}).as_json,
+      freeEntry: bowler.free_entry.present? ? FreeEntrySerializer.new(bowler.free_entry).as_json : nil,
+      team: bowler.team.present? ? TeamSerializer.new(bowler.team).as_json : nil,
+      tournament: TournamentSerializer.new(tournament, params: url_options).as_json,
+      purchases: PurchaseSerializer.new(bowler.purchases.paid).as_json,
+      availableItems: PurchasableItemSerializer.new(available_items).as_json,
+      automaticItems: PurchasableItemSerializer.new(automatic_items).as_json,
+      # requestedItems: [],
     }
     render json: result, status: :ok
   end
@@ -192,7 +211,7 @@ class BowlersController < ApplicationController
   attr_reader :team,
     :bowler,
     :parameters,
-    :matching_purchases,
+
     :applicable_discounts, # An array of PurchasableItems representing event-linked discounts (early-registration, bundle)
     :applicable_fees, # An array of PurchasableItems representing late fees (currently, only event-linked late fees)
     :purchasable_items,
@@ -226,13 +245,32 @@ class BowlersController < ApplicationController
     end
   end
 
-  def rendered_purchasable_items_by_identifier
-    excluded_item_names = bowler.purchases.one_time.collect { |p| p.purchasable_item.name }
-    items = tournament.purchasable_items.user_selectable.enabled.where.not(name: excluded_item_names)
+  def automatic_items
+    # Free entry means no automatic items
+    return [] if bowler.free_entry.present?
 
-    extra_ledger_items = tournament.purchasable_items.event_linked + tournament.purchasable_items.bundle_discount
+    # Start with all ledger items the bowler hasn't already paid for
+    purchased_item_ids = bowler.purchases.collect(&:purchasable_item_id)
+    items = tournament.purchasable_items.ledger.where.not(id: purchased_item_ids)
 
-    (items + extra_ledger_items).each_with_object({}) { |i, result| result[i.identifier] = PurchasableItemBlueprint.render_as_hash(i) }
+    # Remove early discounts if they don't apply
+    unless tournament.in_early_registration?
+      # remove any early discounts
+      items -= tournament.purchasable_items.early_discount
+    end
+
+    # Remove late fees if they don't apply
+    unless tournament.in_late_registration?
+      # remove any late fees
+      items -= tournament.purchasable_items.late_fee
+    end
+
+    # event-linked fees and discounts will be here, if applicable, but that's ok. We want them
+    # there, and will handle their addition appropriately. This implies that "automatic" means
+    # "every time" only for standard tournaments.
+
+    # ready to go
+    items
   end
 
   def clean_up_bowler_data(permitted_params)
@@ -313,13 +351,11 @@ class BowlersController < ApplicationController
       details[:purchasable_items][index][:quantity] = details[:purchasable_items][index][:quantity].to_i
     end
 
-    # validate required ledger items (entry fee, early discount, late fee)
-    purchase_identifiers = details[:purchase_identifiers] || []
-    @matching_purchases = bowler.purchases.unpaid.where(identifier: purchase_identifiers)
-    unless purchase_identifiers.count == matching_purchases.count
-      raise PurchaseError.new('Mismatched unpaid purchases count', :precondition_failed)
-    end
-    purchases_total = matching_purchases.sum(&:amount)
+    # Separate out any automatic things
+    automatic_item_identifiers = details[:automatic_items] || []
+    applicable_automatic_items = automatic_items.filter { |ai| automatic_item_identifiers.include? ai.identifier }
+    @applicable_discounts = applicable_automatic_items.filter { |ai| ai.early_discount? || ai.bundle_discount? }
+    @applicable_fees = applicable_automatic_items.filter { |ai| ai.entry_fee? || ai.late_fee? }
 
     # gather purchasable items
     @item_quantities = details[:purchasable_items] || []
@@ -331,7 +367,8 @@ class BowlersController < ApplicationController
       raise PurchaseError.new('Mismatched number of purchasable item identifiers', :not_found)
     end
 
-    # are we purchasing any single-use item_quantities that have been purchased previously?
+    # are we attempting to purchase any single-use item_quantities that have been purchased previously?
+    # ... because we shouldn't.
     matching_previous_single_item_purchases = PurchasableItem.single_use.joins(:purchases)
                                                              .where(identifier: identifiers)
                                                              .where(purchases: { bowler_id: bowler.id })
@@ -352,27 +389,21 @@ class BowlersController < ApplicationController
       raise PurchaseError.new('Cannot purchase multiple instances of one-time items.', :unprocessable_entity)
     end
 
-    # Add any discounts that are among the unpaid purchases
-    @applicable_discounts = matching_purchases.early_discount.collect(&:purchasable_item)
-
+    # @bundle-discounts Restore this here
     # apply any relevant event bundle discounts
-    bundle_discount_items = tournament.purchasable_items.bundle_discount
-    previous_paid_event_item_identifiers = bowler.purchases.event.paid.map { |p| p.purchasable_item.identifier }
-    @applicable_discounts += bundle_discount_items.select do |discount|
-      (identifiers + previous_paid_event_item_identifiers).intersection(discount.configuration['events']).length == discount.configuration['events'].length
-    end
-
-    ################################################################
-    # Not yet implemented: event-linked early-registration discounts
-    ################################################################
+    # bundle_discount_items = tournament.purchasable_items.bundle_discount
+    # previous_paid_event_item_identifiers = bowler.purchases.event.paid.map { |p| p.purchasable_item.identifier }
+    # @applicable_discounts += bundle_discount_items.select do |discount|
+    #   (identifiers + previous_paid_event_item_identifiers).intersection(discount.configuration['events']).length == discount.configuration['events'].length
+    # end
 
     total_discount = applicable_discounts.sum(&:value)
 
     # apply any relevant event-linked late fees
-    late_fee_items = tournament.purchasable_items.late_fee.event_linked
-    @applicable_fees = late_fee_items.select do |fee|
-      identifiers.include?(fee.configuration['event']) && tournament.in_late_registration?(event_linked_late_fee: fee)
-    end
+    # late_fee_items = tournament.purchasable_items.late_fee.event_linked
+    # @applicable_fees = late_fee_items.select do |fee|
+    #   identifiers.include?(fee.configuration['event']) && tournament.in_late_registration?(event_linked_late_fee: fee)
+    # end
     total_fees = applicable_fees.sum(&:value)
 
     # items_total = purchasable_items.sum(&:value)
@@ -383,7 +414,7 @@ class BowlersController < ApplicationController
     end.sum
 
     # sum up the total of unpaid purchases and indicated purchasable items
-    @total_to_charge = purchases_total + items_total + total_discount + total_fees
+    @total_to_charge = items_total + total_discount + total_fees
 
     # Disallow a purchase if there's nothing owed
     if total_to_charge == 0
@@ -392,37 +423,18 @@ class BowlersController < ApplicationController
   end
 
   def stripe_checkout_session
-    line_items = matching_purchases.each_with_object([]) do |mp, a|
-      pi = mp.purchasable_item
-      unless pi.early_discount? || pi.bundle_discount?
-        a.push(line_item_for_purchasable_item(pi))
-      end
-    end
-
-    line_items += item_quantities.collect do |iq|
-      pi = purchasable_items[iq[:identifier]]
-      line_item_for_purchasable_item(pi, iq[:quantity])
-    end
-
-    line_items += applicable_fees.each_with_object([]) do |pi, a|
-      line_item_for_purchasable_item(pi, 1)
-    end
-
-    discounts = applicable_discounts.each_with_object([]) do |pi, a|
-      if pi.early_discount? || pi.bundle_discount?
-        a.push(discount_for_purchasable_item(pi))
-      end
-    end
-
     session_params = {
       success_url: "#{client_host}/bowlers/#{bowler.identifier}/finish_checkout",
       cancel_url: "#{client_host}/bowlers/#{bowler.identifier}",
-      line_items: line_items,
       mode: 'payment',
       submit_type: 'pay',
-    }
+    }.merge(build_checkout_session_items(
+      applicable_fees,
+      applicable_discounts,
+      purchasable_items,
+      item_quantities
+    ))
 
-    session_params[:discounts] = discounts unless discounts.empty?
     create_stripe_checkout_session(session_params)
   end
 
@@ -446,21 +458,6 @@ class BowlersController < ApplicationController
       payment_type: :stripe,
       tournament_id: tournament.id
     )
-
-    # matching purchases (ledger items that are purchased but unpaid, including discounts)
-    #  -- mark them as paid, create ledger entries
-    matching_purchases.each do |mp|
-      mp.update(
-        paid_at: Time.zone.now,
-        external_payment_id: extp.id
-      )
-      pi = mp.purchasable_item
-      if pi.early_discount? || pi.bundle_discount?
-        total_credit -= pi.value
-      else
-        total_credit += pi.value
-      end
-    end
 
     # new purchases, items, events, etc.
     #  -- create purchases and ledger entries, and mark them as paid
