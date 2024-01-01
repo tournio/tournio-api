@@ -165,7 +165,6 @@ module TournamentRegistration
   def self.amount_due(bowler)
     tournament = bowler.tournament
 
-    # (bowler.ledger_entries.sum(&:debit) - bowler.ledger_entries.sum(&:credit)).to_i
     discount = tournament.in_early_registration? ? tournament.purchasable_items.early_discount.first.value : 0
     late_fee = tournament.in_late_registration? ? tournament.purchasable_items.late_fee.first.value : 0
     entry_fee = tournament.purchasable_items.entry_fee.first&.value.to_i
