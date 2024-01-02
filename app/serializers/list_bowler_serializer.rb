@@ -1,10 +1,12 @@
 # frozen_string_literal: true
 
 class ListBowlerSerializer < BowlerSerializer
+  attributes :position
+
   #
   # @early-discount Remove this when the frontend list no longer uses ReactTable to display a list
   # ...
-  attribute :teamName do |b|
+  attribute :team_name do |b|
     b.team&.name
   end
 
