@@ -43,13 +43,11 @@ module TournamentBusiness
       ConfigItem.new(key: 'display_capacity', value: 'false', label: 'Display Capacity'),
       ConfigItem.new(key: 'publicly_listed', value: 'true', label: 'Publicly Listed'), # applies to tournaments in the "active" state
       ConfigItem.new(key: 'accept_payments', value: 'true', label: 'Accept Payments'),
-      ConfigItem.new(key: 'automatic_discount_voids', value: 'false', label: 'Automatically Void Early Discounts'),
-      ConfigItem.new(key: 'automatic_late_fees', value: 'false', label: 'Automatically Charge Unpaid Bowlers the Late Fee'),
-      ConfigItem.new(key: 'website', value: '', label: 'Website'),
+      ConfigItem.new(key: 'website', value: 'http://www.igbo.org', label: 'Website'),
       ConfigItem.new(key: 'stripe_receipts', value: 'true', label: 'Send Receipt Emails'),
       ConfigItem.new(key: 'team_size', value: 4, label: 'Team Size'),
       ConfigItem.new(key: 'tournament_type', value: IGBO_STANDARD, label: 'Tournament Type'),
-      ConfigItem.new(key: 'bowler_form_fields', value: '', label: 'Bowler Form Fields')
+      ConfigItem.new(key: 'bowler_form_fields', value: 'usbc_id', label: 'Bowler Form Fields')
     ]
 
     if Rails.env.development?
