@@ -132,32 +132,6 @@ module TournamentRegistration
     unpartnered.map(&:save)
   end
 
-  # @early-discoiunt When we move this call to the checkout session completed handler, add
-  # a current_time parameter so we can set the paid_at attribute on the purchase. (Or maybe
-  # the ExternalPayment instance instead...)
-  def self.purchase_entry_fee(bowler)
-    entry_fee_item = bowler.tournament.purchasable_items.entry_fee.first
-    return unless entry_fee_item.present?
-
-    entry_fee = entry_fee_item.value
-    bowler.ledger_entries << LedgerEntry.new(debit: entry_fee, identifier: 'entry fee') if entry_fee.positive?
-
-    bowler.purchases << Purchase.new(purchasable_item: entry_fee_item)
-  end
-
-  def self.add_late_fees_to_ledger(bowler)
-    tournament = bowler.tournament
-    return unless tournament.in_late_registration?
-
-    # tournament late fee
-    late_fee_item = tournament.purchasable_items.late_fee.where(refinement: nil).first
-    return unless late_fee_item.present?
-
-    late_fee = late_fee_item.value
-    bowler.ledger_entries << LedgerEntry.new(debit: late_fee, identifier: 'late registration')
-    bowler.purchases << Purchase.new(purchasable_item: late_fee_item)
-  end
-
   def self.amount_paid(bowler)
     (bowler.ledger_entries.stripe + bowler.ledger_entries.manual).sum(&:credit).to_i
   end
