@@ -1,5 +1,10 @@
 # frozen_string_literal: true
 
+# == Schema Information
+#
+# Table name: purchasable_items
+#
+#  id              :bigint           not null, primary key
 #  category        :string           not null
 #  configuration   :jsonb
 #  determination   :string
@@ -12,6 +17,11 @@
 #  created_at      :datetime         not null
 #  updated_at      :datetime         not null
 #  parent_id       :bigint
+#  tournament_id   :bigint
+#
+# Indexes
+#
+#  index_purchasable_items_on_tournament_id  (tournament_id)
 #
 class PurchasableItemSerializer < JsonSerializer
   attributes :identifier,
