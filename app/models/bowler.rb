@@ -35,6 +35,7 @@ class Bowler < ApplicationRecord
   has_many :ledger_entries, dependent: :destroy
   has_many :purchases, dependent: :destroy
   has_many :stripe_checkout_sessions
+  has_many :signups
 
   attr_accessor :doubles_partner_index
 
