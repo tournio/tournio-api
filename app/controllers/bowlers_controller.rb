@@ -131,15 +131,14 @@ class BowlersController < ApplicationController
       return
     end
 
-    # Excluse one-time items that are already purchased.
-    # And we use name so that other division-based things with the same name (like Scratch Masters)
-    # also get excluded.
-    excluded_item_names = bowler.purchases.one_time.collect(&:name)
-    selectable_items = tournament.purchasable_items.user_selectable.enabled.where.not(name: excluded_item_names)
+    signupables = bowler.signups.map { |s| SignupSerializer.new(s.purchasable_item, params: { signup: s }).as_json }
 
-    extra_ledger_items = tournament.purchasable_items.event_linked + tournament.purchasable_items.bundle_discount
-
-    available_items = selectable_items + extra_ledger_items
+    available_item_categories = %i(banquet product sanction raffle)
+    available_item_determinations = %i(event_linked bundle_discount)
+    available_items = tournament.purchasable_items.
+      where(category: available_item_categories).or(
+      tournament.purchasable_items.where(category: :ledger, determination: available_item_determinations)
+    )
 
     result = {
       bowler: ListBowlerSerializer.new(bowler, within: {doubles_partner: :doubles_partner}).as_json,
@@ -149,7 +148,7 @@ class BowlersController < ApplicationController
       purchases: PurchaseSerializer.new(bowler.purchases.paid).as_json,
       availableItems: PurchasableItemSerializer.new(available_items).as_json,
       automaticItems: PurchasableItemSerializer.new(automatic_items).as_json,
-      # requestedItems: [],
+      signupables: signupables,
     }
     render json: result, status: :ok
   end
@@ -233,11 +232,15 @@ class BowlersController < ApplicationController
 
   def load_bowler
     identifier = params.require(:identifier)
-    @bowler = Bowler.includes(:tournament, :person, :ledger_entries, :team, { purchases: [:purchasable_item] })
-                    .where(identifier: identifier)
-                    .first
-    @tournament = bowler&.tournament
-    @team = bowler&.team
+    @bowler = Bowler.includes(:tournament, :person, :ledger_entries, :team, {
+      purchases: [:purchasable_item],
+      signups: [:purchasable_item],
+    })
+                    .find_by(identifier: identifier)
+    unless bowler.blank?
+      @tournament = bowler.tournament
+      @team = bowler&.team
+    end
   end
 
   def load_team
