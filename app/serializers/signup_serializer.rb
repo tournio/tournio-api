@@ -16,27 +16,10 @@
 #  index_signups_on_bowler_id            (bowler_id)
 #  index_signups_on_purchasable_item_id  (purchasable_item_id)
 #
-class Signup < ApplicationRecord
-  include AASM
-
-  belongs_to :bowler
-  belongs_to :purchasable_item
-
-  aasm do
-    state :initial, initial: true
-    state :requested
-    state :paid
-
-    event :request do
-      transitions from: :initial, to: :requested
-    end
-
-    event :never_mind do
-      transitions from: :requested, to: :initial
-    end
-
-    event :pay do
-      transitions from: %i[initial requested], to: :paid
+class SignupSerializer < PurchasableItemSerializer
+  attribute :status do |item|
+    if params[:signup].present?
+      params[:signup].aasm_state
     end
   end
 end
