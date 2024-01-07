@@ -6,6 +6,7 @@
 #
 #  id                  :bigint           not null, primary key
 #  aasm_state          :string           default("initial")
+#  identifier          :string           not null
 #  created_at          :datetime         not null
 #  updated_at          :datetime         not null
 #  bowler_id           :bigint
