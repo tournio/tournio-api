@@ -6,6 +6,7 @@
 #
 #  id                  :bigint           not null, primary key
 #  aasm_state          :string           default("initial")
+#  identifier          :string           not null
 #  created_at          :datetime         not null
 #  updated_at          :datetime         not null
 #  bowler_id           :bigint
@@ -16,10 +17,10 @@
 #  index_signups_on_bowler_id            (bowler_id)
 #  index_signups_on_purchasable_item_id  (purchasable_item_id)
 #
-class SignupSerializer < PurchasableItemSerializer
-  attribute :status do |item|
-    if params[:signup].present?
-      params[:signup].aasm_state
-    end
-  end
+class SignupSerializer < JsonSerializer
+  attributes :identifier
+
+  attribute :status, &:aasm_state
+
+  one :purchasable_item, resource: PurchasableItemSerializer
 end

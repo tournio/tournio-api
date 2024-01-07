@@ -6,6 +6,7 @@
 #
 #  id                  :bigint           not null, primary key
 #  aasm_state          :string           default("initial")
+#  identifier          :string           not null
 #  created_at          :datetime         not null
 #  updated_at          :datetime         not null
 #  bowler_id           :bigint
@@ -38,5 +39,13 @@ class Signup < ApplicationRecord
     event :pay do
       transitions from: %i[initial requested], to: :paid
     end
+  end
+
+  before_create :generate_identifier
+
+  private
+
+  def generate_identifier
+    self.identifier = SecureRandom.uuid
   end
 end

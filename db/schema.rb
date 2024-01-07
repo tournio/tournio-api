@@ -326,6 +326,7 @@ ActiveRecord::Schema[7.1].define(version: 2024_01_05_163459) do
   end
 
   create_table "signups", force: :cascade do |t|
+    t.string "identifier", null: false
     t.string "aasm_state", default: "initial"
     t.bigint "bowler_id"
     t.bigint "purchasable_item_id"

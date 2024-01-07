@@ -556,7 +556,7 @@ describe BowlersController, type: :request do
       it 'includes the correct bowling items in signupables' do
         subject
 
-        json_identifiers = json['signupables'].collect { |ai| ai['identifier'] }
+        json_identifiers = json['signupables'].collect { |s| s['purchasableItem']['identifier'] }
         expect(json_identifiers).to match_array(tournament.purchasable_items.bowling.collect(&:identifier))
       end
 
@@ -572,7 +572,7 @@ describe BowlersController, type: :request do
         it 'indicates the requested status in signupables' do
           subject
 
-          json_item = json['signupables'].filter { |item| item['identifier'] == bowling_item.identifier }.first
+          json_item = json['signupables'].filter { |item| item['purchasableItem']['identifier'] == bowling_item.identifier }.first
           expect(json_item['status']).to eq('requested')
         end
       end
@@ -589,7 +589,7 @@ describe BowlersController, type: :request do
         it 'indicates the requested status in signupables' do
           subject
 
-          json_item = json['signupables'].filter { |item| item['identifier'] == bowling_item.identifier }.first
+          json_item = json['signupables'].filter { |item| item['purchasableItem']['identifier'] == bowling_item.identifier }.first
           expect(json_item['status']).to eq('paid')
         end
       end
@@ -640,6 +640,11 @@ describe BowlersController, type: :request do
         create :purchasable_item,
           :late_fee,
           tournament: tournament
+        tournament.purchasable_items.bowling.each do |pi|
+          create :signup,
+            bowler: bowler,
+            purchasable_item: pi
+        end
       end
 
       context 'when the bowler has bought nothing' do
