@@ -67,6 +67,7 @@ Rails.application.routes.draw do
         get 'commerce'
       end
       resources :purchases, only: %i(create), param: :identifier, shallow: true
+      resources :signups, only: %i(update), param: :identifier, shallow: true
     end
   end
   resources :checkout_sessions, only: %i(show), param: :identifier
