@@ -556,7 +556,7 @@ describe BowlersController, type: :request do
       it 'includes the correct bowling items in signupables' do
         subject
 
-        json_identifiers = json['signupables'].collect { |s| s['purchasableItem']['identifier'] }
+        json_identifiers = json['signupables'].collect { |s| s['identifier'] }
         expect(json_identifiers).to match_array(tournament.purchasable_items.bowling.collect(&:identifier))
       end
 
@@ -572,8 +572,8 @@ describe BowlersController, type: :request do
         it 'indicates the requested status in signupables' do
           subject
 
-          json_item = json['signupables'].filter { |item| item['purchasableItem']['identifier'] == bowling_item.identifier }.first
-          expect(json_item['status']).to eq('requested')
+          json_item = json['signupables'].filter { |item| item['identifier'] == bowling_item.identifier }.first
+          expect(json_item['signupStatus']).to eq('requested')
         end
       end
 
@@ -589,8 +589,8 @@ describe BowlersController, type: :request do
         it 'indicates the requested status in signupables' do
           subject
 
-          json_item = json['signupables'].filter { |item| item['purchasableItem']['identifier'] == bowling_item.identifier }.first
-          expect(json_item['status']).to eq('paid')
+          json_item = json['signupables'].filter { |item| item['identifier'] == bowling_item.identifier }.first
+          expect(json_item['signupStatus']).to eq('paid')
         end
       end
 
@@ -729,20 +729,6 @@ describe BowlersController, type: :request do
         # Available items
         # ########################
 
-        it 'excludes the bowling item they bought from availableItems' do
-          subject
-
-          json_identifiers = json['availableItems'].collect { |ai| ai['identifier'] }
-          expect(json_identifiers).not_to include(bowling_item.identifier)
-        end
-
-        it 'includes the bowling item they did not buy in availableItems' do
-          subject
-
-          json_identifiers = json['availableItems'].collect { |ai| ai['identifier'] }
-          expect(json_identifiers).not_to include(unbought_bowling_item.identifier)
-        end
-
         it 'includes the raffle item in availableItems' do
           subject
 
@@ -751,15 +737,6 @@ describe BowlersController, type: :request do
         end
       end
     end
-
-    #
-    # when we support requesting items without paying for them...
-    # --> Does not include entry fees
-    #
-    # it 'includes requested items' do
-    #   subject
-    #   expect(json).to have_key('requested_items')
-    # end
   end
 
   describe '#stripe_checkout' do

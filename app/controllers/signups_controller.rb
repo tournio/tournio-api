@@ -17,7 +17,7 @@ class SignupsController < ApplicationController
 
     signup.send(convert_event_name)
 
-    render json: SignupSerializer.new(signup).as_json, status: :ok
+    render json: SignupableSerializer.new(signup.purchasable_item, params: {signup: signup}).as_json, status: :ok
   rescue AASM::InvalidTransition => e
     render json: nil, status: :conflict
   rescue IllegalEventError => e
@@ -41,7 +41,7 @@ class SignupsController < ApplicationController
   end
 
   def signup_params
-    @signup_params ||= params.permit(%i(identifier event))
+    @signup_params ||= params.permit(%i(bowler_identifier identifier event))
   end
 
   def convert_event_name

@@ -131,7 +131,7 @@ class BowlersController < ApplicationController
       return
     end
 
-    signupables = bowler.signups.map { |s| SignupSerializer.new(s).as_json }
+    signupables = bowler.signups.map { |s| SignupableSerializer.new(s.purchasable_item, params: { signup: s }).as_json }
 
     available_item_categories = %i(banquet product sanction raffle)
     available_item_determinations = %i(event_linked bundle_discount)
