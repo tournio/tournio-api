@@ -41,9 +41,9 @@ describe SignupsController, type: :request do
       expect(response).to have_http_status(:ok)
     end
 
-    it 'returns an updated Signup with in the response' do
+    it 'returns an updated Signup status within the response' do
       subject
-      expect(json['status']).to eq('requested')
+      expect(json['signupStatus']).to eq('requested')
     end
 
     context 'changing their mind after requesting' do
@@ -52,7 +52,7 @@ describe SignupsController, type: :request do
 
       it 'returns the status to initial' do
         subject
-        expect(json['status']).to eq('initial')
+        expect(json['signupStatus']).to eq('initial')
       end
     end
 
