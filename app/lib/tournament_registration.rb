@@ -177,6 +177,7 @@ module TournamentRegistration
       # Minus any payments & discounts
       ledger_amount_owed -= (bowler.purchases.entry_fee + bowler.purchases.late_fee).sum(&:amount)
       ledger_amount_owed += bowler.purchases.early_discount.sum(&:amount)
+      ledger_amount_owed -= bowler.ledger_entries.manual.sum(&:credit)
     end
 
     # Here's where we can add unpaid optional items to the amount due
