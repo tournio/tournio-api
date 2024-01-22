@@ -112,7 +112,7 @@ module TournamentRegistration
     team.bowlers.each { |b| register_bowler(b) }
   end
 
-  def self.register_bowler(bowler, registration_type='new_team')
+  def self.register_bowler(bowler, registration_type = 'new_team')
     complete_doubles_link(bowler) if bowler.doubles_partner_id.present?
     try_assigning_automatic_partners(bowler.team) if bowler.team.present?
 
@@ -165,24 +165,34 @@ module TournamentRegistration
   def self.amount_due(bowler)
     tournament = bowler.tournament
 
-    discount = tournament.in_early_registration? ? tournament.purchasable_items.early_discount.first.value : 0
-    late_fee = tournament.in_late_registration? ? tournament.purchasable_items.late_fee.first.value : 0
-    entry_fee = tournament.purchasable_items.entry_fee.first&.value.to_i
+    paid = bowler.purchases.paid.entry_fee.any?
 
-    ledger_amount_owed = 0
-    unless bowler.free_entry&.confirmed?
-      # This is what they'll owe having made no payments
-      ledger_amount_owed = entry_fee + late_fee - discount
+    if paid
+      0
+    else
+      discount = if tournament.in_early_registration?
+                   tournament.purchasable_items.early_discount.first&.value.to_i
+                 else
+                   0
+                 end
+      late_fee = if tournament.in_late_registration?
+                   tournament.purchasable_items.late_fee.first&.value.to_i
+                 else
+                   0
+                 end
+      entry_fee = tournament.purchasable_items.entry_fee.first&.value.to_i
 
-      # Minus any payments & discounts
-      ledger_amount_owed -= (bowler.purchases.entry_fee + bowler.purchases.late_fee).sum(&:amount)
-      ledger_amount_owed += bowler.purchases.early_discount.sum(&:amount)
-      ledger_amount_owed -= bowler.ledger_entries.manual.sum(&:credit)
+      ledger_amount_owed = 0
+      unless bowler.free_entry&.confirmed?
+        # This is what they'll owe having made no payments
+        ledger_amount_owed = entry_fee + late_fee - discount
+
+        # Minus any manual payments
+        ledger_amount_owed -= bowler.ledger_entries.manual.sum(&:credit)
+      end
+
+      ledger_amount_owed
     end
-
-    # Here's where we can add unpaid optional items to the amount due
-
-    ledger_amount_owed
   end
 
   def self.complete_doubles_link(bowler)
@@ -292,8 +302,7 @@ module TournamentRegistration
     ].sum
   end
 
-  def self.try_confirming_bowler_shift(bowler)
-  end
+  def self.try_confirming_bowler_shift(bowler) end
 
   # Private methods
 
