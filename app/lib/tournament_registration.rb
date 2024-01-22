@@ -118,6 +118,13 @@ module TournamentRegistration
 
     DataPoint.create(key: :registration_type, value: registration_type, tournament_id: bowler.tournament_id)
 
+    bowler.tournament.purchasable_items.bowling.each do |pi|
+      Signup.create(
+        bowler: bowler,
+        purchasable_item: pi
+      )
+    end
+
     send_confirmation_email(bowler)
     notify_registration_contacts(bowler)
   end

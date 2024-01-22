@@ -171,6 +171,17 @@ RSpec.describe TournamentRegistration do
     it 'creates a data point' do
       expect { subject }.to change(DataPoint, :count).by(1)
     end
+
+    describe 'signups' do
+      before do
+        create :purchasable_item, :optional_event,
+          tournament: bowler.tournament
+      end
+
+      it 'creates a Signup for the optional bowling event' do
+        expect { subject }.to change(Signup, :count).by(1)
+      end
+    end
   end
 
   describe '#amount_due' do
