@@ -263,7 +263,7 @@ class BowlersController < ApplicationController
     end
 
     # Remove late fees if they don't apply
-    unless tournament.in_late_registration?
+    if !tournament.in_late_registration? || bowler.purchases.paid.entry_fee.any?
       # remove any late fees
       items -= tournament.purchasable_items.late_fee
     end
