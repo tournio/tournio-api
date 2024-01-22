@@ -509,6 +509,19 @@ describe BowlersController, type: :request do
           subject
           expect(json['automaticItems'].collect{ |ai| ai['identifier'] }).to include(late_fee_item.identifier)
         end
+
+        context 'but the bowler already paid' do
+          before do
+            create :purchase, :paid,
+              purchasable_item: entry_fee_item,
+              bowler: bowler
+          end
+
+          it 'does not include the late-fee item' do
+            subject
+            expect(json['automaticItems'].collect{ |ai| ai['identifier'] }).not_to include(late_fee_item.identifier)
+          end
+        end
       end
     end
 

@@ -278,7 +278,20 @@ RSpec.describe TournamentRegistration do
         expect(subject).to eq(entry_fee_amount + late_fee_amount)
       end
 
-      context 'when the bowler has paid' do
+      context 'when the bowler has already paid just the entry fee' do
+        before do
+          create :purchase, :paid,
+            purchasable_item: tournament.purchasable_items.entry_fee.first,
+            bowler: bowler,
+            amount: entry_fee_amount
+        end
+
+        it 'says they owe nothing' do
+          expect(subject).to eq(0)
+        end
+      end
+
+      context 'when the bowler has paid both' do
         before do
           create :purchase, :paid,
             purchasable_item: tournament.purchasable_items.entry_fee.first,
