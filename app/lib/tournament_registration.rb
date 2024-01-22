@@ -166,7 +166,7 @@ module TournamentRegistration
     tournament = bowler.tournament
 
     discount = tournament.in_early_registration? ? tournament.purchasable_items.early_discount.first.value : 0
-    late_fee = tournament.in_late_registration? ? tournament.purchasable_items.late_fee.first.value : 0
+    late_fee = tournament.in_late_registration? && bowler.purchases.paid.entry_fee.empty? ? tournament.purchasable_items.late_fee.first.value : 0
     entry_fee = tournament.purchasable_items.entry_fee.first&.value.to_i
 
     ledger_amount_owed = 0
