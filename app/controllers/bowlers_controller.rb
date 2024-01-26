@@ -484,6 +484,21 @@ class BowlersController < ApplicationController
         )
         total_credit += pi.value
       end
+
+      # mark any related Signups as paid
+      signup = bowler.signups.find_by(purchasable_item_id: pi.id)
+      if signup.present?
+        signup.pay!
+
+        # if it's a division item, disable the rest
+        if pi.division?
+          tournament.purchasable_items.division.where(name: pi.name).map do |div_pi|
+            unless div_pi.id == pi.id
+              bowler.signups.find_by_purchasable_item_id(div_pi.id).deactivate!
+            end
+          end
+        end
+      end
     end
 
     # applicable fees

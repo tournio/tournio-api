@@ -141,6 +141,13 @@ describe Director::PurchasableItemsController, type: :request do
       subject
     end
 
+    context 'a single-use optional bowling event', pending: true do
+
+      # it 'creates a Signup for each existing bowler' do
+      #
+      # end
+    end
+
     context 'a collection of division items' do
       let(:category) { 'bowling' }
       let(:determination) { 'single_use' }

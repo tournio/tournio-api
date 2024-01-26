@@ -27,6 +27,7 @@ class Signup < ApplicationRecord
     state :initial, initial: true
     state :requested
     state :paid
+    state :inactive
 
     event :request do
       transitions from: :initial, to: :requested
@@ -38,6 +39,10 @@ class Signup < ApplicationRecord
 
     event :pay do
       transitions from: %i[initial requested], to: :paid
+    end
+
+    event :deactivate do
+      transitions from: %i[initial requested], to: :inactive
     end
   end
 

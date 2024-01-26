@@ -297,6 +297,12 @@ RSpec.describe Stripe::CheckoutSessionCompleted, type: :job do
         end
       end
 
+      context 'with an optional bowling event', pending: true do
+        # it 'marks the associated Signup as paid' do
+        #
+        # end
+      end
+
       context 'with events' do
         # order of operations is a pain in the rear!
         let(:event_item_1) { create :purchasable_item, :bowling_event, :with_stripe_product, tournament: tournament }
