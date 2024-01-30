@@ -20,8 +20,13 @@ module Director
         tournament: bowler.tournament
       )
 
-      (bowler.purchases.unpaid.entry_fee + bowler.purchases.unpaid.early_discount).map do |p|
-        p.update(
+      # Assume the payment is for the entry fee only, until we let directors specify what a manual payment is for
+      # (The idea there is to allow arbitrary amounts, rather than assuming it's for the entry fee)
+      if bowler.purchases.entry_fee.empty?
+        entry_fee_item = bowler.tournament.purchasable_items.entry_fee.first
+        bowler.purchases << Purchase.new(
+          purchasable_item: entry_fee_item,
+          amount: entry_fee_item.value,
           paid_at: Time.zone.now,
           external_payment_id: extp.id
         )
