@@ -34,10 +34,6 @@ describe Director::LedgerEntriesController, type: :request do
       }
     end
 
-    before do
-      create :purchase, purchasable_item: entry_fee_pi, bowler: bowler
-    end
-
     ###############
 
     include_examples 'an authorized action'
@@ -70,35 +66,12 @@ describe Director::LedgerEntriesController, type: :request do
       expect { subject }.to change(bowler.ledger_entries, :count).by(1)
     end
 
-    context "a bowler with an early-registration discount" do
-      let(:discount_pi) { create :purchasable_item, :early_discount, tournament: tournament }
-      let(:new_entry_params) do
-        {
-          credit: entry_fee_pi.value - discount_pi.value,
-          identifier: 'cash payment',
-        }
-      end
+    it "creates an Entry Fee purchase" do
+      expect { subject }.to change(Purchase, :count).by(1)
+    end
 
-      before do
-        create :purchase,
-          purchasable_item: discount_pi,
-          bowler: bowler
-      end
-
-      it "creates an ExternalPayment with a source of manual" do
-        expect { subject }.to change(ExternalPayment.manual, :count).by(1)
-      end
-
-      it "links the purchases with the new ExternalPayment" do
-        subject
-        extp = ExternalPayment.last
-        expect(bowler.purchases.map(&:external_payment_id).uniq).to match_array([extp.id])
-      end
-
-      it "updates the paid_at attribute of both the entry fee and discount purchases" do
-        subject
-        expect(bowler.purchases.unpaid.count).to eq(0)
-      end
+    it "links the new purchase with the bowler" do
+      expect { subject }.to change(bowler.purchases, :count).by(1)
     end
 
     context 'as an unpermitted user' do
