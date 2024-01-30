@@ -38,7 +38,7 @@ class Signup < ApplicationRecord
     end
 
     event :pay do
-      transitions from: %i[initial requested], to: :paid
+      transitions from: %i[initial requested paid], to: :paid
     end
 
     event :deactivate do
