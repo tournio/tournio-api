@@ -297,10 +297,36 @@ RSpec.describe Stripe::CheckoutSessionCompleted, type: :job do
         end
       end
 
-      context 'with an optional bowling event', pending: true do
-        # it 'marks the associated Signup as paid' do
-        #
-        # end
+      context 'with an optional bowling event' do
+        let(:optional_event_item) do
+          create :purchasable_item,
+            :optional_event,
+            :with_stripe_product,
+            tournament: tournament
+        end
+        let(:signup) do
+          create :signup,
+            bowler: bowler,
+            purchasable_item: optional_event_item
+        end
+
+        let(:mock_checkout_session) do
+          object_for_items([
+            {
+              item: optional_event_item,
+              quantity: 1,
+            },
+          ])
+        end
+
+        before do
+          signup.request!
+        end
+
+        it 'marks the associated Signup as paid' do
+          subject
+          expect(signup.reload.paid?).to be_truthy
+        end
       end
 
       context 'with events' do
