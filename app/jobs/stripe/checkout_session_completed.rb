@@ -56,9 +56,18 @@ module Stripe
         end
 
         # mark any related Signups as paid
-        signup = bowler.signups.find_by(purchasable_item_id: pi.id)
+        signup = bowler.signups.find_by_purchasable_item_id(pi.id)
         if signup.present?
           signup.pay!
+
+          # if it's a division item, disable the rest
+          if pi.division?
+            bowler.tournament.purchasable_items.division.where(name: pi.name).map do |div_pi|
+              unless div_pi.id == pi.id
+                bowler.signups.find_by_purchasable_item_id(div_pi.id).deactivate!
+              end
+            end
+          end
         end
 
         # any discounts to apply, e.g., bundle discount for just-purchased events?
