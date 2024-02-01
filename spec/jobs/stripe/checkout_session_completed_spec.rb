@@ -329,6 +329,38 @@ RSpec.describe Stripe::CheckoutSessionCompleted, type: :job do
         end
       end
 
+      context 'with an optional multi-use bowling event' do
+        let(:optional_event_item) do
+          create :purchasable_item,
+            :multi_use_event,
+            :with_stripe_product,
+            tournament: tournament
+        end
+        let(:signup) do
+          create :signup,
+            bowler: bowler,
+            purchasable_item: optional_event_item
+        end
+
+        let(:mock_checkout_session) do
+          object_for_items([
+            {
+              item: optional_event_item,
+              quantity: 1,
+            },
+          ])
+        end
+
+        before do
+          signup.pay!
+        end
+
+        it 'does not object to marking the Signup as paid' do
+          subject
+          expect(signup.reload.paid?).to be_truthy
+        end
+      end
+
       context 'with events' do
         # order of operations is a pain in the rear!
         let(:event_item_1) { create :purchasable_item, :bowling_event, :with_stripe_product, tournament: tournament }

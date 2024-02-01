@@ -115,6 +115,17 @@ FactoryBot.define do
       end
     end
 
+    trait :multi_use_event do
+      category { :bowling }
+      determination { :multi_use }
+      name { 'An optional multi-use event' }
+      configuration do
+        {
+          order: 1,
+        }
+      end
+    end
+
     trait :banquet_entry do
       category { :banquet }
       name { 'Banquet entry for a non-bowler' }
