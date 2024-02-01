@@ -397,30 +397,57 @@ RSpec.describe DirectorUtilities do
     context 'with some optional events offered' do
       before do
         os = create :purchasable_item, :optional_event, tournament: tournament, name: 'Optional Scratch'
-        create :purchasable_item, :optional_event, tournament: tournament, name: 'Optional Handicap'
+        oh = create :purchasable_item, :optional_event, tournament: tournament, name: 'Optional Handicap'
         md = create :purchasable_item, :optional_event, tournament: tournament, name: 'Mystery Doubles'
 
         create :purchase, :paid, amount: os.value, bowler: bowler, purchasable_item: os
         create :purchase, :paid, amount: md.value, bowler: bowler, purchasable_item: md
+
+        create :signup,             bowler: bowler, purchasable_item: oh
+        create :signup, :paid,      bowler: bowler, purchasable_item: os
+        create :signup, :paid,      bowler: bowler, purchasable_item: md
       end
 
       # expect the result to have three columns, with X's in the correct ones
-      it 'has a column for each optional event' do
-        expect(subject.count).to eq(3)
+      it 'has two columns for each optional event (one for signed up, one for paid)' do
+        expect(subject.count).to eq(6)
       end
 
-      it 'contains all the optional events' do
+      it 'contains signup headers for all the optional events' do
         result = subject
-        expect(result).to include('Optional Scratch', 'Optional Handicap', 'Mystery Doubles')
+        expect(result).to include('Signed up: Optional Scratch', 'Signed up: Optional Handicap', 'Signed up: Mystery Doubles')
+      end
+
+      it 'contains paid headers for all the optional events' do
+        result = subject
+        expect(result).to include('Paid: Optional Scratch', 'Paid: Optional Handicap', 'Paid: Mystery Doubles')
       end
 
       it 'indicates the purchased optional events' do
         result = subject
         expect(result).to include(
-                            'Optional Scratch' => 'X',
-                            'Mystery Doubles' => 'X',
-                            'Optional Handicap' => '',
+                            'Signed up: Optional Scratch' => 'X',
+                            'Signed up: Mystery Doubles' => 'X',
+                            'Signed up: Optional Handicap' => '',
+                            'Paid: Optional Scratch' => 'X',
+                            'Paid: Mystery Doubles' => 'X',
+                            'Paid: Optional Handicap' => '',
                           )
+      end
+
+      context 'and one of them is signed up but not paid' do
+        let(:oh_item) { tournament.purchasable_items.find_by_name('Optional Handicap') }
+        before do
+          bowler.signups.find_by_purchasable_item_id(oh_item.id).request!
+        end
+
+        it 'indicates the purchased optional events' do
+          result = subject
+          expect(result).to include(
+            'Signed up: Optional Handicap' => 'X',
+            'Paid: Optional Handicap' => '',
+          )
+        end
       end
     end
 
