@@ -457,29 +457,73 @@ RSpec.describe DirectorUtilities do
       let(:item) { tournament.purchasable_items.division.first }
 
       before do
-        create :purchase, :paid, amount: item.value, bowler: bowler, purchasable_item: item
+        tournament.purchasable_items.division.each do |div_item|
+          create :signup, bowler: bowler, purchasable_item: div_item
+        end
       end
 
-      it 'has a column for each division in the event' do
-        expect(subject.count).to eq(tournament.purchasable_items.division.count)
+      it 'has two columns for each division in the event' do
+        expect(subject.count).to eq(tournament.purchasable_items.division.count * 2)
       end
 
-      it 'indicates which division the bowler purchased' do
+      it 'indicates that the bowler has not signed up for one' do
         result = subject
-        item_key = "#{item.name}: #{item.configuration['division']}"
-        expect(result).to include(item_key => 'X')
+        item_key = "Signed up: #{item.name}: #{item.configuration['division']}"
+        expect(result).to include(item_key => '')
+      end
+
+      it 'does not include the purchased indicator' do
+        item_key = "Paid: #{item.name}: #{item.configuration['division']}"
+        expect(subject).to include(item_key => '')
+      end
+
+      context 'and the bowler has signed up for one, but not yet paid' do
+        before do
+          bowler.signups.find_by_purchasable_item_id(item.id).request!
+        end
+
+        it 'indicates the one that the bowler has signed up for' do
+          item_key = "Signed up: #{item.name}: #{item.configuration['division']}"
+          expect(subject).to include(item_key => 'X')
+        end
+
+        it 'does not include the purchased indicator' do
+          item_key = "Paid: #{item.name}: #{item.configuration['division']}"
+          expect(subject).to include(item_key => '')
+        end
+      end
+
+      context 'and the bowler has both signed up and paid for one' do
+        before do
+          create :purchase, :paid, amount: item.value, bowler: bowler, purchasable_item: item
+          bowler.signups.find_by_purchasable_item_id(item.id).pay!
+        end
+
+        it 'indicates the one that the bowler has signed up for' do
+          item_key = "Signed up: #{item.name}: #{item.configuration['division']}"
+          expect(subject).to include(item_key => 'X')
+        end
+
+        it 'indicates the one that the bowler purchased' do
+          item_key = "Paid: #{item.name}: #{item.configuration['division']}"
+          expect(subject).to include(item_key => 'X')
+        end
       end
 
       # When the tournament offers both kinds of events
       context 'and some optional events offered' do
         before do
-          create :purchasable_item, :optional_event, tournament: tournament, name: 'Optional Scratch'
-          create :purchasable_item, :optional_event, tournament: tournament, name: 'Optional Handicap'
-          create :purchasable_item, :optional_event, tournament: tournament, name: 'Mystery Doubles'
+          os = create :purchasable_item, :optional_event, tournament: tournament, name: 'Optional Scratch'
+          oh = create :purchasable_item, :optional_event, tournament: tournament, name: 'Optional Handicap'
+          md = create :purchasable_item, :optional_event, tournament: tournament, name: 'Mystery Doubles'
+
+          create :signup, bowler: bowler, purchasable_item: os
+          create :signup, bowler: bowler, purchasable_item: oh
+          create :signup, bowler: bowler, purchasable_item: md
         end
 
-        it 'has a column for each division in the event and each optional event' do
-          expect(subject.count).to eq(tournament.purchasable_items.division.count + 3)
+        it 'has 2 columns for each division in the event and 2 for each optional event' do
+          expect(subject.count).to eq((tournament.purchasable_items.division.count + 3) * 2)
         end
       end
     end

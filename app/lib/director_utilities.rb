@@ -243,8 +243,12 @@ module DirectorUtilities
 
     # put them in a hash, marking the purchased one with X
     output = division_items.each_with_object({}) do |item, result|
-      key = "#{item.name}: #{item.configuration['division']}"
-      result[key] = purchased_item_identifiers.include?(item.identifier) ? 'X' : ''
+      signed_up_key = "Signed up: #{item.name}: #{item.configuration['division']}"
+      paid_key = "Paid: #{item.name}: #{item.configuration['division']}"
+
+      signup = bowler.signups.find_by_purchasable_item_id(item.id)
+      result[signed_up_key] = signup.requested? || signup.paid? ? 'X' : ''
+      result[paid_key] = purchased_item_identifiers.include?(item.identifier) ? 'X' : ''
     end
 
     # put the remaining optional items in alphabetical order
@@ -252,10 +256,8 @@ module DirectorUtilities
 
     # mark the purchased ones with an X in the result
     optional_items.each do |item|
-      Rails.logger.info "===== optional item: #{item.name}"
       signed_up_key = "Signed up: #{item.name}"
       signup = bowler.signups.find_by_purchasable_item_id(item.id)
-      Rails.logger.info "======== signup present? #{signup.present? ? 'yes :)' : 'no :('}"
       output[signed_up_key] = signup.requested? || signup.paid? ? 'X' : ''
       paid_key = "Paid: #{item.name}"
       output[paid_key] = if purchased_item_identifiers.include?(item.identifier)
