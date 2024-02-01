@@ -190,17 +190,31 @@ module TournamentRegistration
     # Later enhancement: do this in a transaction
 
     bowler = free_entry.bowler
-    # This includes all mandatory items: entry fee, early-registration discount, late-registration fee
-    affected_purchases = bowler.purchases.entry_fee + bowler.purchases.late_fee
-    affected_discounts = bowler.purchases.early_discount + bowler.purchases.bundle_discount
-    total_credit = affected_purchases.sum(&:value) - affected_discounts.sum(&:value)
+    entry_fee_item = free_entry.bowler.tournament.purchasable_items.entry_fee.first
+
+    # this is the credit unless we're in a legacy situation with purchases and early discount/late fee created
+    # at the time of registration
+    total_credit = entry_fee_item.value
+
+    if bowler.purchases.entry_fee.present?
+      # This includes all mandatory items: entry fee, early-registration discount, late-registration fee
+      affected_purchases = bowler.purchases.entry_fee + bowler.purchases.late_fee
+      affected_discounts = bowler.purchases.early_discount + bowler.purchases.bundle_discount
+      total_credit = affected_purchases.sum(&:value) - affected_discounts.sum(&:value)
+
+      affected_purchases.map { |p| p.update(paid_at: Time.zone.now) }
+      affected_discounts.map { |p| p.update(paid_at: Time.zone.now) }
+    else
+      bowler.purchases << Purchase.new(
+        purchasable_item: entry_fee_item,
+        amount: entry_fee_item.value,
+        paid_at: Time.zone.now
+      )
+    end
 
     identifier = confirmed_by.present? ? "Free entry confirmed by #{confirmed_by}" : 'Free entry confirmed by no one'
     free_entry.update(confirmed: true)
     bowler.ledger_entries << LedgerEntry.new(credit: total_credit, identifier: identifier, source: :free_entry)
-
-    affected_purchases.map { |p| p.update(paid_at: Time.zone.now) }
-    affected_discounts.map { |p| p.update(paid_at: Time.zone.now) }
 
     free_entry.update(confirmed: true)
   end

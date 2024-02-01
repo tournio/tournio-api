@@ -382,17 +382,11 @@ RSpec.describe TournamentRegistration do
   describe '#confirm_free_entry' do
     subject { subject_class.confirm_free_entry(free_entry) }
 
-    let(:tournament) { create :tournament, :active }
+    let(:tournament) { create :tournament, :with_entry_fee, :active }
     let(:bowler) { create(:bowler, person: create(:person), tournament: tournament) }
-    let(:entry_fee) { 100 }
     let(:confirmed) { false }
     let(:free_entry) { create :free_entry, tournament: tournament, bowler: bowler, confirmed: confirmed }
-    let(:purchasable_item) { create :purchasable_item, :entry_fee, value: entry_fee, tournament: tournament }
-    let!(:purchase) { create :purchase, purchasable_item: purchasable_item, bowler: bowler }
-
-    before do
-      create :ledger_entry, bowler: bowler, debit: entry_fee, identifier: 'entry fee'
-    end
+    let(:purchasable_item) { tournament.purchasable_items.entry_fee.first }
 
     it 'marks the free entry as confirmed' do
       subject
@@ -403,21 +397,15 @@ RSpec.describe TournamentRegistration do
       expect { subject }.to change(bowler.ledger_entries, :count).by(1)
     end
 
-    it 'updates paid_at on the entry-fee purchase' do
-      expect(purchase.paid_at).to be_nil
-      subject
-      expect(purchase.reload.paid_at).not_to be_nil
+    it 'creates an entry-fee purchase for the bowler' do
+      expect { subject }.to change(bowler.purchases.entry_fee.paid, :count).by(1)
     end
 
-    context 'when the bowler got an early registration discount' do
-      let(:early_registration_discount) { 40 }
-      let(:early_purchasable_item) do
-        create :purchasable_item, :early_discount, value: early_registration_discount, tournament: tournament
-      end
-      let!(:early_purchase) { create :purchase, purchasable_item: early_purchasable_item, bowler: bowler }
+    context 'when the entry fee purchase existed already' do
+      let!(:purchase) { create :purchase, purchasable_item: purchasable_item, bowler: bowler }
 
       before do
-        create :ledger_entry, bowler: bowler, credit: early_registration_discount, identifier: 'early registration'
+        create :ledger_entry, bowler: bowler, debit: purchasable_item.value, identifier: 'entry fee'
       end
 
       it 'updates paid_at on the entry-fee purchase' do
@@ -426,34 +414,52 @@ RSpec.describe TournamentRegistration do
         expect(purchase.reload.paid_at).not_to be_nil
       end
 
-      it 'updates paid_at on the early-discount purchase' do
-        expect(early_purchase.paid_at).to be_nil
-        subject
-        expect(early_purchase.reload.paid_at).not_to be_nil
-      end
-    end
+      context 'and the bowler got an early registration discount' do
+        let(:early_registration_discount) { 40 }
+        let(:early_purchasable_item) do
+          create :purchasable_item, :early_discount, value: early_registration_discount, tournament: tournament
+        end
+        let!(:early_purchase) { create :purchase, purchasable_item: early_purchasable_item, bowler: bowler }
 
-    context 'when the bowler has a late-registration fee' do
-      let(:late_fee) { 40 }
-      let(:late_purchasable_item) do
-        create :purchasable_item, :late_fee, value: late_fee, tournament: tournament
-      end
-      let!(:late_purchase) { create :purchase, purchasable_item: late_purchasable_item, bowler: bowler }
+        before do
+          create :ledger_entry, bowler: bowler, credit: early_registration_discount, identifier: 'early registration'
+        end
 
-      before do
-        create :ledger_entry, bowler: bowler, debit: late_fee, identifier: 'late registration'
+        it 'updates paid_at on the entry-fee purchase' do
+          expect(purchase.paid_at).to be_nil
+          subject
+          expect(purchase.reload.paid_at).not_to be_nil
+        end
+
+        it 'updates paid_at on the early-discount purchase' do
+          expect(early_purchase.paid_at).to be_nil
+          subject
+          expect(early_purchase.reload.paid_at).not_to be_nil
+        end
       end
 
-      it 'updates paid_at on the entry-fee purchase' do
-        expect(purchase.paid_at).to be_nil
-        subject
-        expect(purchase.reload.paid_at).not_to be_nil
-      end
+      context 'and the bowler has a late-registration fee' do
+        let(:late_fee) { 40 }
+        let(:late_purchasable_item) do
+          create :purchasable_item, :late_fee, value: late_fee, tournament: tournament
+        end
+        let!(:late_purchase) { create :purchase, purchasable_item: late_purchasable_item, bowler: bowler }
 
-      it 'updates paid_at on the early-discount purchase' do
-        expect(late_purchase.paid_at).to be_nil
-        subject
-        expect(late_purchase.reload.paid_at).not_to be_nil
+        before do
+          create :ledger_entry, bowler: bowler, debit: late_fee, identifier: 'late registration'
+        end
+
+        it 'updates paid_at on the entry-fee purchase' do
+          expect(purchase.paid_at).to be_nil
+          subject
+          expect(purchase.reload.paid_at).not_to be_nil
+        end
+
+        it 'updates paid_at on the early-discount purchase' do
+          expect(late_purchase.paid_at).to be_nil
+          subject
+          expect(late_purchase.reload.paid_at).not_to be_nil
+        end
       end
     end
 
