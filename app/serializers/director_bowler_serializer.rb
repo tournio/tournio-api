@@ -33,6 +33,11 @@ class DirectorBowlerSerializer < BowlerSerializer
   one :free_entry, resource: FreeEntrySerializer
   many :additional_question_responses, resource: AdditionalQuestionResponseSerializer
   many :purchases, resource: PurchaseSerializer
+  many :ledger_entries, resource: LedgerEntrySerializer
+  many :signups, resource: SignupSerializer
+  # many :signups, proc { |signups, params, bowler|
+  #   bowler.signups.requested + bowler.signups.paid
+  # }, resource: :SignupSerializer
 
   attribute :doubles_partner do |b|
     b.doubles_partner.present? ? TournamentRegistration.person_list_name(b.doubles_partner) : 'n/a'
