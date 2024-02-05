@@ -48,6 +48,9 @@ class DirectorBowlerSerializer < BowlerSerializer
   attribute :amount_due do |b|
     TournamentRegistration.amount_due(b)
   end
+  attribute :amount_outstanding do |b|
+    TournamentRegistration.amount_outstanding(b)
+  end
   attribute :team_name do |b|
     b.team.present? ? b.team.name : 'n/a'
   end

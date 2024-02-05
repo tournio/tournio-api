@@ -176,6 +176,13 @@ module TournamentRegistration
     end
   end
 
+  # Includes both automatic fees as well as Signups in the "requested" state
+  def self.amount_outstanding(bowler)
+    mandatory_due = amount_due(bowler)
+    optional_due = bowler.signups.requested.sum { |s| s.purchasable_item.value }
+    mandatory_due + optional_due
+  end
+
   def self.complete_doubles_link(bowler)
     return if bowler.doubles_partner.nil?
 

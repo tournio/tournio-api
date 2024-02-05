@@ -327,6 +327,104 @@ RSpec.describe TournamentRegistration do
     # end
   end
 
+
+  describe '#amount_outstanding' do
+    subject { subject_class.amount_outstanding(bowler) }
+
+    let(:tournament) { create :tournament, :active, :with_entry_fee }
+    let(:bowler) { create :bowler, tournament: tournament }
+    let(:entry_fee_item) { tournament.purchasable_items.entry_fee.first }
+    let(:entry_fee_amount) { entry_fee_item.value }
+
+    it 'equals the entry fee amount' do
+      expect(subject).to eq(entry_fee_amount)
+    end
+
+    context 'when the bowler has paid the entry fee' do
+      before do
+        create :purchase,
+          :paid,
+          bowler: bowler,
+          purchasable_item: entry_fee_item,
+          amount: entry_fee_item.value
+      end
+
+      it 'shows zero' do
+        expect(subject).to eq(0)
+      end
+    end
+
+    context 'when there is an optional event' do
+      let(:tournament) do
+        create :tournament,
+          :active,
+          :with_entry_fee,
+          :with_an_optional_event
+      end
+      let(:optional_item) { tournament.purchasable_items.bowling.first }
+
+      context 'and the bowler has signed up for it, but not paid for it' do
+        before do
+          create :signup,
+            :requested,
+            bowler: bowler,
+            purchasable_item: optional_item
+        end
+
+        it 'reflects both charges' do
+          expect(subject).to eq(entry_fee_amount + optional_item.value)
+        end
+
+        context 'and has also paid the entry fee' do
+          before do
+            create :purchase,
+              :paid,
+              bowler: bowler,
+              purchasable_item: entry_fee_item,
+              amount: entry_fee_item.value
+          end
+
+          it 'reflects just the optional item' do
+            expect(subject).to eq(optional_item.value)
+          end
+        end
+      end
+
+      context 'and the bowler has signed up for it, and paid for it' do
+        before do
+          create :purchase,
+            :paid,
+            bowler: bowler,
+            purchasable_item: optional_item,
+            amount: optional_item.value
+          create :signup,
+            :paid,
+            bowler: bowler,
+            purchasable_item: optional_item
+        end
+
+        # This does not reflect the usual flow, but just in case
+        it 'shows the entry fee as outstanding' do
+          expect(subject).to eq(entry_fee_amount)
+        end
+
+        context 'and has also paid the entry fee' do
+          before do
+            create :purchase,
+              :paid,
+              bowler: bowler,
+              purchasable_item: entry_fee_item,
+              amount: entry_fee_item.value
+          end
+
+          it 'shows no outstanding balance' do
+            expect(subject).to eq(0)
+          end
+        end
+      end
+    end
+  end
+
   describe '#complete_doubles_link' do
     subject { subject_class.complete_doubles_link(new_bowler) }
 
