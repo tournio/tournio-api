@@ -64,9 +64,7 @@ class Bowler < ApplicationRecord
   before_destroy :unlink_free_entry, :unlink_doubles_partner
 
   def unlink_free_entry
-    return unless free_entry.present?
-
-    free_entry.update(confirmed: false, bowler_id: nil)
+    free_entry.update(confirmed: false, bowler_id: nil) if free_entry.present?
   end
 
   def unlink_doubles_partner
