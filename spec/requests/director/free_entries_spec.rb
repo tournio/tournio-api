@@ -165,10 +165,10 @@ describe Director::FreeEntriesController, type: :request do
 
     let(:uri) { "/director/free_entries/#{free_entry_identifier}" }
 
-    let(:bowler) { create :bowler, :with_team }
-    let(:bowler_identifier) { bowler.identifier }
-    let(:tournament) { bowler.tournament }
+    let(:tournament) { create :tournament, :with_entry_fee }
     let(:tournament_identifier) { tournament.identifier }
+    let(:bowler) { create :bowler, :with_team, tournament: tournament }
+    let(:bowler_identifier) { bowler.identifier }
     let(:free_entry) { create :free_entry, tournament: tournament }
     let(:free_entry_identifier) { free_entry.identifier }
     let(:team) { bowler.team }
