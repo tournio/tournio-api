@@ -118,6 +118,13 @@ module TournamentRegistration
 
     DataPoint.create(key: :registration_type, value: registration_type, tournament_id: bowler.tournament_id)
 
+    bowler.tournament.purchasable_items.bowling.each do |pi|
+      Signup.create(
+        bowler: bowler,
+        purchasable_item: pi
+      )
+    end
+
     send_confirmation_email(bowler)
     notify_registration_contacts(bowler)
   end
@@ -130,32 +137,6 @@ module TournamentRegistration
     unpartnered[0].doubles_partner = unpartnered[1]
     unpartnered[1].doubles_partner = unpartnered[0]
     unpartnered.map(&:save)
-  end
-
-  # @early-discoiunt When we move this call to the checkout session completed handler, add
-  # a current_time parameter so we can set the paid_at attribute on the purchase. (Or maybe
-  # the ExternalPayment instance instead...)
-  def self.purchase_entry_fee(bowler)
-    entry_fee_item = bowler.tournament.purchasable_items.entry_fee.first
-    return unless entry_fee_item.present?
-
-    entry_fee = entry_fee_item.value
-    bowler.ledger_entries << LedgerEntry.new(debit: entry_fee, identifier: 'entry fee') if entry_fee.positive?
-
-    bowler.purchases << Purchase.new(purchasable_item: entry_fee_item)
-  end
-
-  def self.add_late_fees_to_ledger(bowler)
-    tournament = bowler.tournament
-    return unless tournament.in_late_registration?
-
-    # tournament late fee
-    late_fee_item = tournament.purchasable_items.late_fee.where(refinement: nil).first
-    return unless late_fee_item.present?
-
-    late_fee = late_fee_item.value
-    bowler.ledger_entries << LedgerEntry.new(debit: late_fee, identifier: 'late registration')
-    bowler.purchases << Purchase.new(purchasable_item: late_fee_item)
   end
 
   def self.amount_paid(bowler)
@@ -195,6 +176,13 @@ module TournamentRegistration
     end
   end
 
+  # Includes both automatic fees as well as Signups in the "requested" state
+  def self.amount_outstanding(bowler)
+    mandatory_due = amount_due(bowler)
+    optional_due = bowler.signups.requested.sum { |s| s.purchasable_item.value }
+    mandatory_due + optional_due
+  end
+
   def self.complete_doubles_link(bowler)
     return if bowler.doubles_partner.nil?
 
@@ -209,17 +197,31 @@ module TournamentRegistration
     # Later enhancement: do this in a transaction
 
     bowler = free_entry.bowler
-    # This includes all mandatory items: entry fee, early-registration discount, late-registration fee
-    affected_purchases = bowler.purchases.entry_fee + bowler.purchases.late_fee
-    affected_discounts = bowler.purchases.early_discount + bowler.purchases.bundle_discount
-    total_credit = affected_purchases.sum(&:value) - affected_discounts.sum(&:value)
+    entry_fee_item = free_entry.bowler.tournament.purchasable_items.entry_fee.first
+
+    # this is the credit unless we're in a legacy situation with purchases and early discount/late fee created
+    # at the time of registration
+    total_credit = entry_fee_item.value
+
+    if bowler.purchases.entry_fee.present?
+      # This includes all mandatory items: entry fee, early-registration discount, late-registration fee
+      affected_purchases = bowler.purchases.entry_fee + bowler.purchases.late_fee
+      affected_discounts = bowler.purchases.early_discount + bowler.purchases.bundle_discount
+      total_credit = affected_purchases.sum(&:value) - affected_discounts.sum(&:value)
+
+      affected_purchases.map { |p| p.update(paid_at: Time.zone.now) }
+      affected_discounts.map { |p| p.update(paid_at: Time.zone.now) }
+    else
+      bowler.purchases << Purchase.new(
+        purchasable_item: entry_fee_item,
+        amount: entry_fee_item.value,
+        paid_at: Time.zone.now
+      )
+    end
 
     identifier = confirmed_by.present? ? "Free entry confirmed by #{confirmed_by}" : 'Free entry confirmed by no one'
     free_entry.update(confirmed: true)
     bowler.ledger_entries << LedgerEntry.new(credit: total_credit, identifier: identifier, source: :free_entry)
-
-    affected_purchases.map { |p| p.update(paid_at: Time.zone.now) }
-    affected_discounts.map { |p| p.update(paid_at: Time.zone.now) }
 
     free_entry.update(confirmed: true)
   end

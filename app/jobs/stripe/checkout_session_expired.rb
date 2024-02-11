@@ -1,5 +1,6 @@
 module Stripe
   class CheckoutSessionExpired < EventHandler
+    sidekiq_options retry: false
 
     def handle_event
       # The checkout session is in event.data.object.

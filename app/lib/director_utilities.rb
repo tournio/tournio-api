@@ -243,8 +243,12 @@ module DirectorUtilities
 
     # put them in a hash, marking the purchased one with X
     output = division_items.each_with_object({}) do |item, result|
-      key = "#{item.name}: #{item.configuration['division']}"
-      result[key] = purchased_item_identifiers.include?(item.identifier) ? 'X' : ''
+      signed_up_key = "Signed up: #{item.name}: #{item.configuration['division']}"
+      paid_key = "Paid: #{item.name}: #{item.configuration['division']}"
+
+      signup = bowler.signups.find_by_purchasable_item_id(item.id)
+      result[signed_up_key] = signup.requested? || signup.paid? ? 'X' : ''
+      result[paid_key] = purchased_item_identifiers.include?(item.identifier) ? 'X' : ''
     end
 
     # put the remaining optional items in alphabetical order
@@ -252,12 +256,19 @@ module DirectorUtilities
 
     # mark the purchased ones with an X in the result
     optional_items.each do |item|
-      key = item.name
-      output[key] = purchased_item_identifiers.include?(item.identifier) ? 'X' : ''
+      signed_up_key = "Signed up: #{item.name}"
+      signup = bowler.signups.find_by_purchasable_item_id(item.id)
+      output[signed_up_key] = signup.requested? || signup.paid? ? 'X' : ''
+      paid_key = "Paid: #{item.name}"
+      output[paid_key] = if purchased_item_identifiers.include?(item.identifier)
+                           item.single_use? ? 'X' : purchased_item_identifiers.count(item.identifier)
+                         else
+                           ''
+                         end
     end
 
     # Add multi-use items, with the number of each
-    multiuse_items = t.purchasable_items - t.purchasable_items.one_time - t.purchasable_items.apparel
+    multiuse_items = t.purchasable_items - t.purchasable_items.bowling - t.purchasable_items.one_time - t.purchasable_items.apparel
     multiuse_items.each do |item|
       key = item.name
       quantity = purchased_item_identifiers.count(item.identifier)

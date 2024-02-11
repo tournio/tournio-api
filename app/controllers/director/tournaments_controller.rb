@@ -82,7 +82,12 @@ module Director
         return
       end
       authorize tournament
-      render json: TournamentBlueprint.render(tournament, view: :director_detail, director?: true, **url_options)
+
+      if params[:serializer] == 'modern'
+        render json: DirectorTournamentSerializer.new(tournament, params: url_options).serialize
+      else
+        render json: TournamentBlueprint.render(tournament, view: :director_detail, director?: true, **url_options)
+      end
     end
 
     def clear_test_data

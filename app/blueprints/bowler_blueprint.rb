@@ -150,6 +150,10 @@ class BowlerBlueprint < Blueprinter::Base
       sorted = b.purchases.to_a.sort_by! { |p| TournamentRegistration.purchasable_item_sort(p) }
       PurchaseBlueprint.render_as_hash(sorted)
     end
+
+    field :signups do |b, _|
+      b.signups.map { |s| SignupSerializer.new(s).as_json }
+    end
   end
 end
 

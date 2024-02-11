@@ -10,7 +10,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema[7.0].define(version: 2023_11_16_164853) do
+ActiveRecord::Schema[7.1].define(version: 2024_01_05_163459) do
   # These are extensions that must be enabled in order to support this database
   enable_extension "plpgsql"
 
@@ -323,6 +323,17 @@ ActiveRecord::Schema[7.0].define(version: 2023_11_16_164853) do
     t.bigint "team_id", null: false
     t.index ["shift_id"], name: "index_shifts_teams_on_shift_id"
     t.index ["team_id"], name: "index_shifts_teams_on_team_id"
+  end
+
+  create_table "signups", force: :cascade do |t|
+    t.string "identifier", null: false
+    t.string "aasm_state", default: "initial"
+    t.bigint "bowler_id"
+    t.bigint "purchasable_item_id"
+    t.datetime "created_at", null: false
+    t.datetime "updated_at", null: false
+    t.index ["bowler_id"], name: "index_signups_on_bowler_id"
+    t.index ["purchasable_item_id"], name: "index_signups_on_purchasable_item_id"
   end
 
   create_table "stripe_accounts", primary_key: "identifier", id: :string, force: :cascade do |t|

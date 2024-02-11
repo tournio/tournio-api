@@ -284,3 +284,12 @@ ExtendedFormField.create(
   helper_url: '',
 ) unless ExtendedFormField.find_by(name: 'nonparticipant_names').present?
 
+ExtendedFormField.create(
+  name: 'igbo_league_and_state',
+  label: 'Name and state of IGBO league, if any',
+  html_element_type: 'input',
+  html_element_config: { type: 'text', value: '' },
+  validation_rules: { required: false },
+  helper_text: '',
+  helper_url: '',
+) unless ExtendedFormField.find_by(name: 'igbo_league_and_state').present?
