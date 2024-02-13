@@ -10,7 +10,7 @@ class CreateEventSignups < ActiveRecord::Migration[7.1]
           Signup.create(
             bowler: b,
             purchasable_item: pi
-          )
+          ) unless Signup.exists?(bowler_id: b.id, purchasable_item_id: pi.id)
         end
 
         # for everything a bowler has bought, sign them up and mark it as paid
