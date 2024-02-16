@@ -19,6 +19,7 @@ Rails.application.routes.draw do
   get '/files/blobs/redirect/:signed_id/*filename(.:format)', to: 'redirect#show'
 
   namespace :director do
+    resources :tournament_orgs, param: :identifier
     resources :users, only: %i(show index create update destroy), param: :identifier
     resources :tournaments, only: %i(index show update destroy create), param: :identifier do
       member do
