@@ -26,7 +26,11 @@ module StripeUtilities
       business_type: 'non_profit'
     )
     Rails.logger.debug "Stripe account creation result: #{result.inspect}"
-    StripeAccount.create(tournament_id: tournament.id, identifier: result.id)
+    StripeAccount.create(
+      tournament_id: tournament.id,
+      identifier: result.id,
+      tournament_org_id: tournament.tournament_org&.id
+    )
   rescue Stripe::StripeError => e
     Rails.logger.info "Stripe error: #{e}"
     Bugsnag.notify(e)

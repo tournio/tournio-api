@@ -5,5 +5,6 @@ class TournamentOrgSerializer < JsonSerializer
     :name
 
   one :stripe_account
+  many :tournaments
   many :users
 end
