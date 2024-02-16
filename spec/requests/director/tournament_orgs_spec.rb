@@ -57,4 +57,29 @@ describe Director::TournamentOrgsController, type: :request do
       expect(json[0]).to have_key('stripeAccount')
     end
   end
+
+  describe '#show' do
+    subject { get uri, headers: auth_headers }
+
+    let(:uri) { "/director/tournament_orgs/#{org.identifier}" }
+
+    let(:org) { create :tournament_org }
+
+    include_examples 'an authorized action'
+
+    it 'returns a JSON representation of the org' do
+      subject
+      expect(json['identifier']).to eq(org.identifier)
+    end
+
+    context 'When I am an unpermitted user' do
+      let(:requesting_user) { create(:user, :unpermitted) }
+
+      it 'yields a 401 Unauthorized' do
+        subject
+        expect(response).to have_http_status(:unauthorized)
+      end
+    end
+
+  end
 end

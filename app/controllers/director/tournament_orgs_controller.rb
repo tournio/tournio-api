@@ -25,22 +25,19 @@ module Director
     end
 
     def show
+      unless tournament_org.present?
+        skip_authorization
+        render json: nil, status: 404
+        return
+      end
+      authorize tournament_org
 
-    end
-
-    def create
-
-    end
-
-    def destroy
-
-    end
-
-    def update
-
+      render json: TournamentOrgSerializer.new(tournament_org).serialize
     end
 
     private
+
+    attr_accessor :tournament_org
 
     def load_tournament_org
       params.require(:identifier)
