@@ -7,4 +7,6 @@ class UserSerializer < JsonSerializer
     :last_name,
     :last_sign_in_at,
     :role
+
+  many :tournament_orgs, resource: BasicTournamentOrgSerializer
 end

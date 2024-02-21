@@ -20,9 +20,10 @@ module Director
     ].freeze
 
     def index
-      @users = policy_scope(User)
+      users = policy_scope(User)
       authorize(User)
-      render json: UserBlueprint.render(@users, director?: true), status: :ok
+      # render json: UserBlueprint.render(@users, director?: true), status: :ok
+      render json: UserSerializer.new(users).serialize, status: :ok
     end
 
     def show

@@ -52,6 +52,37 @@ describe Director::UsersController, type: :request do
 
     include_examples 'an authorized action'
     include_examples 'for superusers only', :ok
+
+    context 'when there is just a superuser' do
+      let(:requesting_user) { create :user, :superuser }
+
+      it 'includes one row' do
+        subject
+        expect(json.count).to eq(1)
+      end
+
+      it 'indicates the superuser role' do
+        subject
+        expect(json[0]['role']).to eq('superuser')
+      end
+    end
+
+    context 'when there is a superuser and a tournament org user' do
+      let!(:org) { create :tournament_org }
+      let!(:org_user) { create :user, tournament_orgs: [org] }
+
+      before do
+        create :user
+      end
+
+      it 'includes two rows' do
+        subject
+        puts json
+        expect(json.count).to eq(2)
+      end
+
+    end
+
   end
 
   describe '#create' do

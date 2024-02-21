@@ -1,8 +1,6 @@
 # frozen_string_literal: true
 
-class TournamentOrgSerializer < JsonSerializer
-  attributes :identifier,
-    :name
+class TournamentOrgSerializer < BasicTournamentOrgSerializer
 
   one :stripe_account
   many :tournaments
