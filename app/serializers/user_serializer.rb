@@ -9,4 +9,5 @@ class UserSerializer < JsonSerializer
     :role
 
   many :tournament_orgs, resource: BasicTournamentOrgSerializer
+  many :tournaments, resource: TournamentSerializer
 end

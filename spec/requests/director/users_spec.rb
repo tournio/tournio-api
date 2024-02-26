@@ -53,7 +53,7 @@ describe Director::UsersController, type: :request do
     include_examples 'an authorized action'
     include_examples 'for superusers only', :ok
 
-    context 'when there is just a superuser' do
+    context 'when there is just the requesting superuser' do
       let(:requesting_user) { create :user, :superuser }
 
       it 'includes one row' do
@@ -68,21 +68,29 @@ describe Director::UsersController, type: :request do
     end
 
     context 'when there is a superuser and a tournament org user' do
-      let!(:org) { create :tournament_org }
-      let!(:org_user) { create :user, tournament_orgs: [org] }
+      let(:requesting_user) { create :user, :superuser }
 
       before do
-        create :user
+        create :user_with_orgs
       end
 
       it 'includes two rows' do
         subject
-        puts json
         expect(json.count).to eq(2)
       end
 
-    end
+      it 'includes an orgs attribute for each' do
+        subject
+        expect(json[0]).to have_key('tournamentOrgs')
+        expect(json[1]).to have_key('tournamentOrgs')
+      end
 
+      it 'includes the org for the director' do
+        subject
+        user = json.filter { |row| row['tournamentOrgs'].present? }.first
+        expect(user['tournamentOrgs'][0]['name']).to eq(TournamentOrg.last.name)
+      end
+    end
   end
 
   describe '#create' do
