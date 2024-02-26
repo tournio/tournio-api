@@ -8,7 +8,7 @@ module Director
       :role,
       :first_name,
       :last_name,
-      tournament_ids: [],
+      tournament_org_identifiers: [],
     ].freeze
     UPDATE_USER_PARAMS = [
       :email,
@@ -16,7 +16,7 @@ module Director
       :password,
       :first_name,
       :last_name,
-      tournament_ids: [],
+      tournament_org_identifiers: [],
     ].freeze
 
     def index
@@ -28,7 +28,7 @@ module Director
     def show
       find_user
       authorize @user
-      render json: UserBlueprint.render(@user, director?: true), status: :ok
+      render json: UserSerializer.new(@user).serialize, status: :ok
     end
 
     def create

@@ -31,10 +31,30 @@ describe Director::UsersController, type: :request do
     end
 
     context "When they want to fetch someone else's details" do
-      let(:requested_user) { create(:user) }
+      let(:requested_user) { create :user_with_orgs }
       let(:desired_user_identifier) { requested_user.identifier }
 
       include_examples 'for superusers only', :ok
+
+      context "and they are a superuser" do
+        let(:requesting_user) { create(:user, :superuser) }
+
+        it 'includes an orgs attribute' do
+          subject
+          expect(json).to have_key('tournamentOrgs')
+        end
+
+        it 'has at least one org' do
+          subject
+          expect(json['tournamentOrgs'].count).to be > 0
+        end
+
+        it 'includes the pertinent org info' do
+          subject
+          expect(json['tournamentOrgs'][0]['name']).to eq(TournamentOrg.last.name)
+          expect(json['tournamentOrgs'][0]['identifier']).to eq(TournamentOrg.last.identifier)
+        end
+      end
     end
 
     context 'When the requested user does not exist' do
