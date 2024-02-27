@@ -50,7 +50,7 @@ class TournamentSerializer < JsonSerializer
   end
 
   attribute :entry_deadline do |t|
-    t.entry_deadline.strftime('%FT%R%:z')
+    t.entry_deadline&.strftime('%FT%R%:z') || nil
   end
 
   attribute :config do |t|

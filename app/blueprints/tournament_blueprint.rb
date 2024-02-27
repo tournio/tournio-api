@@ -108,6 +108,8 @@ class TournamentBlueprint < Blueprinter::Base
     association :events, blueprint: EventBlueprint
     association :users, blueprint: UserBlueprint
 
+    fields :tournament_org_id
+
     field :available_conditions do |t, _|
       output = {}
       TestingConditions.available_conditions.each_pair do |key, options|

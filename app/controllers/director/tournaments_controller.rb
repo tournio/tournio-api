@@ -21,6 +21,7 @@ module Director
       :entry_deadline,
       :location,
       :timezone,
+      :tournament_org_id,
       details: {
         enabled_registration_options: [],
       },

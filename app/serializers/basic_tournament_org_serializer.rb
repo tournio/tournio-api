@@ -1,6 +1,7 @@
 # frozen_string_literal: true
 
 class BasicTournamentOrgSerializer < JsonSerializer
-  attributes :identifier,
+  attributes :id,
+    :identifier,
     :name
 end
