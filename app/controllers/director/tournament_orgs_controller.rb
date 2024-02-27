@@ -35,6 +35,21 @@ module Director
       render json: TournamentOrgSerializer.new(tournament_org).serialize
     end
 
+    def create
+      authorize TournamentOrg
+
+      org = TournamentOrg.new(create_params)
+
+      if org.valid?
+        org.save
+      else
+        render json: { error: org.errors.full_messages.join(' ') }, status: :unprocessable_entity
+        return
+      end
+
+      render json: TournamentOrgSerializer.new(org).serialize, status: :created
+    end
+
     private
 
     attr_accessor :tournament_org
@@ -48,5 +63,10 @@ module Director
                                 :users)
                               .find_by_identifier(id)
     end
+
+    def create_params
+      params.require(:tournament_org).permit(ORG_PARAMS)
+    end
+
   end
 end
