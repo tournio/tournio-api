@@ -5,9 +5,9 @@ class UserSerializer < JsonSerializer
     :email,
     :first_name,
     :last_name,
-    :last_sign_in_at,
-    :role
+    :role,
+    last_sign_in_at: [String, ->(object) { object.present? ? object.strftime('%F %r') : nil }]
 
   many :tournament_orgs, resource: BasicTournamentOrgSerializer
-  many :tournaments, resource: TournamentSerializer
+  # many :tournaments, resource: TournamentSerializer
 end

@@ -8,7 +8,7 @@ module Director
       :role,
       :first_name,
       :last_name,
-      tournament_org_identifiers: [],
+      tournament_org_ids: [],
     ].freeze
     UPDATE_USER_PARAMS = [
       :email,
@@ -16,7 +16,7 @@ module Director
       :password,
       :first_name,
       :last_name,
-      tournament_org_identifiers: [],
+      tournament_org_ids: [],
     ].freeze
 
     def index
@@ -35,7 +35,7 @@ module Director
       authorize(User)
       user = User.new(new_user_params.merge(password: NEW_ACCOUNT_PASSWORD))
       if (user.save)
-        render json: UserBlueprint.render(user.reload, director?: true), status: :created
+        render json: UserSerializer.new(user.reload).serialize, status: :created
       else
         render json: user.errors.full_messages, status: :unprocessable_entity
       end
@@ -51,7 +51,7 @@ module Director
         render json: nil, status: :unprocessable_entity and return if updates.has_key?(:tournament_ids) || updates.has_key?(:role)
       end
       if (@user.update(updates))
-        render json: UserBlueprint.render(@user.reload, director?: true), status: :ok
+        render json: UserSerializer.new(@user.reload).serialize, status: :ok
       else
         render json: @user.errors.full_messages, status: :unprocessable_entity
       end

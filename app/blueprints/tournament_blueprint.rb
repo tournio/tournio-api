@@ -103,12 +103,15 @@ class TournamentBlueprint < Blueprinter::Base
 
     # throw everything in here
     association :testing_environment, blueprint: TestingEnvironmentBlueprint
-    association :stripe_account, blueprint: StripeAccountBlueprint
     association :scratch_divisions, blueprint: ScratchDivisionBlueprint
     association :events, blueprint: EventBlueprint
     association :users, blueprint: UserBlueprint
 
     fields :tournament_org_id
+
+    field :stripe_account do |t, _|
+      t.tournament_org.stripe_account.present? ? StripeAccountBlueprint.render_as_hash(t.tournament_org.stripe_account) : nil
+    end
 
     field :available_conditions do |t, _|
       output = {}

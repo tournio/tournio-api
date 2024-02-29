@@ -192,6 +192,31 @@ describe Director::UsersController, type: :request do
         expect(json['email']).to eq(new_email)
       end
 
+      context 'attempting to update their name' do
+        let(:first) { 'Joe' }
+        let(:last) { 'Schmoe' }
+        let(:params) do
+          {
+            user: {
+              email: new_email,
+              first_name: first,
+              last_name: last,
+            }
+          }
+        end
+
+        it 'returns a 200 OK' do
+          subject
+          expect(response).to have_http_status(:ok)
+        end
+
+        it 'reflects the updated details' do
+          subject
+          expect(json['firstName']).to eq(first)
+          expect(json['lastName']).to eq(last)
+        end
+      end
+
       context 'attempting to update something they are not permitted to' do
         let(:params) do
           {
