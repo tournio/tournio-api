@@ -40,6 +40,7 @@ class User < ApplicationRecord
   enum role: %i[unpermitted director superuser]
 
   has_and_belongs_to_many :tournament_orgs
+  has_many :tournaments, through: :tournament_orgs
 
   before_create :generate_identifier
 
