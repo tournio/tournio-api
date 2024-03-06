@@ -50,7 +50,7 @@ class Tournament < ApplicationRecord
   has_one :registration_summary_send
   has_one :payment_summary_send
   has_one :stripe_account
-  has_and_belongs_to_many :users
+  has_many :users, through: :tournament_org
 
   has_one_attached :logo_image
 
