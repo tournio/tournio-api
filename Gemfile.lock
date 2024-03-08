@@ -101,7 +101,7 @@ GEM
     base64 (0.2.0)
     bcrypt (3.1.20)
     bigdecimal (3.1.6)
-    blueprinter (0.30.0)
+    blueprinter (1.0.2)
     bootsnap (1.17.0)
       msgpack (~> 1.2)
     bugsnag (6.26.0)
