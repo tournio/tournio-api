@@ -359,6 +359,7 @@ describe Director::TournamentsController, type: :request do
   describe '#create' do
     subject { post uri, headers: auth_headers, params: params, as: :json }
 
+    let(:org) { create :tournament_org }
     let(:uri) { "/director/tournaments" }
     let(:params) do
       {
@@ -366,6 +367,7 @@ describe Director::TournamentsController, type: :request do
           name: 'Fingers In Holes In Balls',
           abbreviation: 'FIHIB',
           year: 2024,
+          tournament_org_id: org.id,
         }
       }
     end

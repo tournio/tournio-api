@@ -21,6 +21,7 @@ module Director
       :entry_deadline,
       :location,
       :timezone,
+      :tournament_org_id,
       details: {
         enabled_registration_options: [],
       },
@@ -306,8 +307,8 @@ module Director
         if tournament.config['skip_stripe']
           Rails.logger.debug "Skipping actual integration with Stripe and faking it"
           self.stripe_account = StripeAccount.create(
-            tournament_id: tournament.id,
-            identifier: "pretend_stripe_account_#{tournament.identifier}",
+            tournament_org_id: tournament.tournament_org.id,
+            identifier: "pretend_stripe_account_#{tournament.tournament_org.identifier}",
             onboarding_completed_at: Time.zone.now
           )
         else

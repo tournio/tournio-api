@@ -7,7 +7,7 @@ class Users::SessionsController < Devise::SessionsController
 
   def respond_with(resource, _opts={})
     if resource.persisted?
-      render json: UserBlueprint.render(resource), status: :ok
+      render json: UserSerializer.new(resource).serialize, status: :ok
     end
   end
 

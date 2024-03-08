@@ -3,7 +3,7 @@
 class TournamentPolicy < DirectorPolicy
   class Scope < ScopeBase
     def resolve
-      user.superuser? ? scope.all : scope.where(id: user.tournament_ids)
+      user.superuser? ? scope.all : user.tournaments
     end
   end
 

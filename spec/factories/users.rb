@@ -30,17 +30,25 @@ FactoryBot.define do
   factory :user do
     sequence(:email) { |n| "test_user_#{n}@example.com" }
     password { 'qwertyuiop' }
-  end
-
-  trait :superuser do
-    role { :superuser }
-  end
-
-  trait :director do
     role { :director }
-  end
 
-  trait :unpermitted do
-    role { :unpermitted }
+    trait :superuser do
+      role { :superuser }
+    end
+
+    trait :unpermitted do
+      role { :unpermitted }
+    end
+
+    factory :user_with_orgs do
+      transient do
+        org_count { 1 }
+      end
+
+      after(:create) do |user, context|
+        create_list(:tournament_org, context.org_count, users: [user])
+        user.reload
+      end
+    end
   end
 end
