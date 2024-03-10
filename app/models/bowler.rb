@@ -74,6 +74,8 @@ class Bowler < ApplicationRecord
   private
 
   def generate_identifier
-    self.identifier = SecureRandom.uuid
+    require 'slugify'
+
+    self.identifier = "#{person.last_name} #{SecureRandom.alphanumeric(6)}".slugify
   end
 end
