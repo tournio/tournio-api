@@ -307,7 +307,7 @@ module DirectorUtilities
   end
 
   def self.bowler_identifier(bowler)
-    bowler.id
+    bowler.identifier
   end
 
   def self.csv_additional_questions(bowler:)
