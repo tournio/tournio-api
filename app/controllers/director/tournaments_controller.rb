@@ -166,10 +166,6 @@ module Director
         return
       end
 
-      if current_user.director?
-        current_user.tournaments << tournament
-      end
-
       render json: TournamentBlueprint.render(tournament, view: :director_detail, director?: true, **url_options), status: :created
     end
 

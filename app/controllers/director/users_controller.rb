@@ -48,7 +48,7 @@ module Director
 
       # Prevent someone from updating their own role or list of associated tournaments
       if @user.identifier == current_user.identifier
-        render json: nil, status: :unprocessable_entity and return if updates.has_key?(:tournament_ids) || updates.has_key?(:role)
+        render json: nil, status: :unprocessable_entity and return if updates.has_key?(:tournament_org_ids) || updates.has_key?(:role)
       end
       if (@user.update(updates))
         render json: UserSerializer.new(@user.reload).serialize, status: :ok

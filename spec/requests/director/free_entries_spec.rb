@@ -71,7 +71,7 @@ describe Director::FreeEntriesController, type: :request do
       end
 
       context 'associated with this tournament' do
-        let(:requesting_user) { create :user, :director, tournaments: [tournament] }
+        let(:requesting_user) { create :user, :director, tournament_orgs: [tournament.tournament_org] }
 
         it 'shall pass' do
           subject
@@ -139,7 +139,7 @@ describe Director::FreeEntriesController, type: :request do
       end
 
       context 'associated with this tournament' do
-        let(:requesting_user) { create :user, :director, tournaments: [tournament] }
+        let(:requesting_user) { create :user, :director, tournament_orgs: [tournament.tournament_org] }
 
         it 'shall pass' do
           subject
@@ -315,7 +315,7 @@ describe Director::FreeEntriesController, type: :request do
         end
 
         context 'associated with this tournament' do
-          let(:requesting_user) { create :user, :director, tournaments: [tournament] }
+          let(:requesting_user) { create :user, :director, tournament_orgs: [tournament.tournament_org] }
 
           it 'shall pass' do
             subject
@@ -362,7 +362,7 @@ describe Director::FreeEntriesController, type: :request do
       end
 
       context 'associated with this tournament' do
-        let(:requesting_user) { create :user, :director, tournaments: [tournament] }
+        let(:requesting_user) { create :user, :director, tournament_orgs: [tournament.tournament_org] }
 
         it 'shall pass' do
           subject

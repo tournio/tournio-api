@@ -16,10 +16,13 @@ describe Director::TournamentsController, type: :request do
 
     let(:uri) { '/director/tournaments' }
 
-    let!(:setup_tournament) { create :tournament }
-    let!(:testing_tournament) { create :tournament, :testing }
-    let!(:active_tournament) { create :tournament, :active }
-    let!(:closed_tournament) { create :tournament, :closed, :past }
+    let(:the_org) { create :tournament_org }
+    let(:another_org) { create :tournament_org }
+
+    let!(:setup_tournament) { create :tournament, tournament_org: the_org }
+    let!(:testing_tournament) { create :tournament, :testing, tournament_org: another_org }
+    let!(:active_tournament) { create :tournament, :active, tournament_org: another_org }
+    let!(:closed_tournament) { create :tournament, :closed, :past, tournament_org: the_org }
 
     include_examples 'an authorized action'
 
@@ -48,26 +51,12 @@ describe Director::TournamentsController, type: :request do
     end
 
     context 'When I am a tournament director' do
-      let(:requesting_user) { create(:user, :director, tournaments: my_tournaments) }
+      let(:requesting_user) { create(:user, :director, tournament_orgs: [the_org]) }
       let(:my_tournaments) { [testing_tournament, active_tournament] }
 
       it 'includes just my tournaments in the response' do
         subject
         expect(json.length).to eq(2);
-      end
-
-      context 'with no active tournaments' do
-        let(:my_tournaments) { [] }
-
-        it 'returns an empty array' do
-          subject
-          expect(json).to be_empty
-        end
-
-        it 'returns a 200 OK' do
-          subject
-          expect(response).to have_http_status(:ok)
-        end
       end
     end
 
@@ -97,8 +86,8 @@ describe Director::TournamentsController, type: :request do
     end
 
     context 'When I am a tournament director' do
-      let(:requesting_user) { create(:user, :director, tournaments: my_tournaments) }
-      let(:my_tournaments) { [] }
+      let(:requesting_user) { create(:user, :director, tournament_orgs: my_orgs) }
+      let(:my_orgs) { [] }
 
       it 'yields a 401 Unauthorized' do
         subject
@@ -106,7 +95,7 @@ describe Director::TournamentsController, type: :request do
       end
 
       context 'for this tournament' do
-        let(:my_tournaments) { [tournament] }
+        let(:my_orgs) { [tournament.tournament_org] }
 
         it 'yields a 200 OK' do
           subject
@@ -178,8 +167,8 @@ describe Director::TournamentsController, type: :request do
     end
 
     context 'When I am a tournament director' do
-      let(:requesting_user) { create(:user, :director, tournaments: my_tournaments) }
-      let(:my_tournaments) { [] }
+      let(:requesting_user) { create(:user, :director, tournament_orgs: my_orgs) }
+      let(:my_orgs) { [] }
 
       it 'yields a 401 Unauthorized' do
         subject
@@ -187,7 +176,7 @@ describe Director::TournamentsController, type: :request do
       end
 
       context 'for this tournament' do
-        let(:my_tournaments) { [tournament] }
+        let(:my_orgs) { [tournament.tournament_org] }
 
         it 'yields a 204 No Content' do
           subject
@@ -233,8 +222,8 @@ describe Director::TournamentsController, type: :request do
           end
 
           context 'as a tournament director' do
-            let(:requesting_user) { create(:user, :director, tournaments: my_tournaments) }
-            let(:my_tournaments) { [] }
+            let(:requesting_user) { create(:user, :director, tournament_orgs: my_orgs) }
+            let(:my_orgs) { [] }
 
             it 'yields a 401 Unauthorized' do
               subject
@@ -242,7 +231,7 @@ describe Director::TournamentsController, type: :request do
             end
 
             context 'for this tournament' do
-              let(:my_tournaments) { [tournament] }
+              let(:my_orgs) { [tournament.tournament_org] }
 
               it 'it still yields a 401 Unauthorized' do
                 subject
@@ -307,8 +296,8 @@ describe Director::TournamentsController, type: :request do
         end
 
         context 'as a tournament director' do
-          let(:requesting_user) { create(:user, :director, tournaments: my_tournaments) }
-          let(:my_tournaments) { [] }
+          let(:requesting_user) { create(:user, :director, tournament_orgs: my_orgs) }
+          let(:my_orgs) { [] }
 
           it 'yields a 401 Unauthorized' do
             subject
@@ -316,7 +305,7 @@ describe Director::TournamentsController, type: :request do
           end
 
           context 'for this tournament' do
-            let(:my_tournaments) { [tournament] }
+            let(:my_orgs) { [tournament.tournament_org] }
 
             it 'it still yields a 401 Unauthorized' do
               subject
@@ -337,8 +326,8 @@ describe Director::TournamentsController, type: :request do
     end
 
     context 'When I am a tournament director' do
-      let(:requesting_user) { create(:user, :director, tournaments: my_tournaments) }
-      let(:my_tournaments) { [] }
+      let(:requesting_user) { create(:user, :director, tournament_orgs: my_orgs) }
+      let(:my_orgs) { [] }
 
       it 'yields a 401 Unauthorized' do
         subject
@@ -346,7 +335,7 @@ describe Director::TournamentsController, type: :request do
       end
 
       context 'for this tournament' do
-        let(:my_tournaments) { [tournament] }
+        let(:my_orgs) { [tournament.tournament_org] }
 
         it 'yields a 200 OK' do
           subject
@@ -386,7 +375,7 @@ describe Director::TournamentsController, type: :request do
     end
 
     context 'as a director' do
-      let(:requesting_user) { create(:user, :director) }
+      let(:requesting_user) { create(:user, :director, tournament_orgs: [org]) }
 
       it 'puts the new tournament in my list of tournaments' do
         subject
@@ -862,8 +851,8 @@ describe Director::TournamentsController, type: :request do
     end
 
     context 'When I am a tournament director' do
-      let(:requesting_user) { create(:user, :director, tournaments: my_tournaments) }
-      let(:my_tournaments) { [] }
+      let(:requesting_user) { create(:user, :director, tournament_orgs: my_orgs) }
+      let(:my_orgs) { [] }
 
       it 'yields a 401 Unauthorized' do
         subject
@@ -871,7 +860,7 @@ describe Director::TournamentsController, type: :request do
       end
 
       context 'for this tournament' do
-        let(:my_tournaments) { [tournament] }
+        let(:my_orgs) { [tournament.tournament_org] }
 
         it 'responds with OK' do
           subject

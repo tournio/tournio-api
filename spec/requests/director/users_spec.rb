@@ -121,7 +121,7 @@ describe Director::UsersController, type: :request do
     let(:role) { 'director' }
     let(:first_name) { 'Kylie' }
     let(:last_name) { 'Minogue' }
-    let(:tournament) { create(:tournament) }
+    let(:tournament_org) { create(:tournament_org) }
     let(:params) do
       {
         user: {
@@ -129,7 +129,7 @@ describe Director::UsersController, type: :request do
           role: role,
           first_name: first_name,
           last_name: last_name,
-          tournament_ids: [tournament.id],
+          tournament_org_ids: [tournament_org.id],
         }
       }
     end
@@ -146,9 +146,9 @@ describe Director::UsersController, type: :request do
 
     it 'associates the new user with the desired tournaments' do
       subject
-      expect(json).to have_key('tournaments')
-      expect(json['tournaments'].length).to eq(1)
-      expect(json['tournaments'].first['identifier']).to eq(tournament.identifier)
+      expect(json).to have_key('tournamentOrgs')
+      expect(json['tournamentOrgs'].length).to eq(1)
+      expect(json['tournamentOrgs'].first['identifier']).to eq(tournament_org.identifier)
     end
   end
 
@@ -237,7 +237,7 @@ describe Director::UsersController, type: :request do
       let(:requesting_user) { create(:user, :superuser) }
       let(:requested_user) { create(:user) }
       let(:desired_user_identifier) { requested_user.identifier }
-      let(:tournament) { create :tournament }
+      let(:tournament_org) { create :tournament_org }
 
       include_examples 'for superusers only', :ok
 
@@ -247,7 +247,7 @@ describe Director::UsersController, type: :request do
             user: {
               role: 'director',
               first_name: 'Robyn',
-              tournament_ids: [tournament.id],
+              tournament_org_ids: [tournament_org.id],
             }
           }
         end
@@ -261,8 +261,8 @@ describe Director::UsersController, type: :request do
           subject
           expect(json['email']).to eq(requested_user.email)
           expect(json['role']).to eq('director')
-          expect(json['tournaments']).to be_instance_of(Array)
-          expect(json['tournaments'][0]['identifier']).to eq(tournament.identifier)
+          expect(json['tournamentOrgs']).to be_instance_of(Array)
+          expect(json['tournamentOrgs'][0]['identifier']).to eq(tournament_org.identifier)
         end
       end
     end
