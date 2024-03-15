@@ -10,7 +10,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema[7.1].define(version: 2024_01_05_163459) do
+ActiveRecord::Schema[7.1].define(version: 2024_03_14_150711) do
   # These are extensions that must be enabled in order to support this database
   enable_extension "plpgsql"
 
@@ -469,6 +469,19 @@ ActiveRecord::Schema[7.1].define(version: 2024_01_05_163459) do
     t.index ["email"], name: "index_users_on_email", unique: true
     t.index ["identifier"], name: "index_users_on_identifier", unique: true
     t.index ["reset_password_token"], name: "index_users_on_reset_password_token", unique: true
+  end
+
+  create_table "waivers", force: :cascade do |t|
+    t.string "identifier"
+    t.string "name"
+    t.integer "amount"
+    t.string "created_by"
+    t.bigint "bowler_id"
+    t.bigint "purchasable_item_id"
+    t.datetime "created_at", null: false
+    t.datetime "updated_at", null: false
+    t.index ["bowler_id"], name: "index_waivers_on_bowler_id"
+    t.index ["purchasable_item_id"], name: "index_waivers_on_purchasable_item_id"
   end
 
   add_foreign_key "active_storage_attachments", "active_storage_blobs", column: "blob_id"
