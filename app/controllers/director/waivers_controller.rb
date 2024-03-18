@@ -25,7 +25,18 @@ module Director
     end
 
     def destroy
+      params.permit(:identifier)
 
+      waiver = Waiver.includes(bowler: :tournament).find_by_identifier! params[:identifier]
+
+      authorize waiver.bowler, :update?
+
+      waiver.destroy
+
+      render json: nil, status: :no_content
+    rescue ActiveRecord::RecordNotFound
+      skip_authorization
+      render json: {}, status: :not_found
     end
 
     private

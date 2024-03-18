@@ -19,6 +19,12 @@
 #
 FactoryBot.define do
   factory :waiver do
-    
+    amount { 15 }
+    created_by { 'director@tournament.domain' }
+    name { 'Late Fee' }
+    identifier { SecureRandom.alphanumeric(6) }
+
+    bowler
+    purchasable_item
   end
 end
