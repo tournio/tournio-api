@@ -24,19 +24,7 @@ describe Director::WaiversController, type: :request do
 
     let(:uri) { "/director/bowlers/#{bowler_identifier}/waivers" }
 
-    let(:item_identifier) { late_fee_item.identifier }
-
-    let(:params) do
-      {
-        waiver: new_waiver_params,
-      }
-    end
-
-    let(:new_waiver_params) do
-      {
-        purchasable_item_identifier: item_identifier,
-      }
-    end
+    let(:params) { {} }
 
     ###############
 
@@ -107,8 +95,8 @@ describe Director::WaiversController, type: :request do
         end
       end
 
-      context 'an unrecognized item identifier' do
-        let(:item_identifier) { 'whats-that-you-say' }
+      context 'a tournament with no late fee to waive' do
+        let(:tournament) { create :tournament, :with_entry_fee }
 
         it 'yields a 404 Not Found' do
           subject

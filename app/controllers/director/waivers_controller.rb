@@ -9,7 +9,7 @@ module Director
 
       authorize bowler.tournament, :update?
 
-      self.waiver_params = filtered_waiver_params
+      # self.waiver_params = filtered_waiver_params
       load_purchasable_item
 
       waiver = Waiver.create(
@@ -49,7 +49,9 @@ module Director
     end
 
     def load_purchasable_item
-      self.purchasable_item = PurchasableItem.find_by_identifier! waiver_params[:purchasable_item_identifier]
+      # self.purchasable_item = PurchasableItem.find_by_identifier! waiver_params[:purchasable_item_identifier]
+      self.purchasable_item = bowler.tournament.purchasable_items.late_fee.first
+      raise ActiveRecord::RecordNotFound unless purchasable_item.present?
     end
 
     def filtered_waiver_params
