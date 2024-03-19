@@ -340,12 +340,31 @@ module DirectorUtilities
     csv_data = purchases.map do |purchase|
       {
         'Bowler': TournamentRegistration.person_list_name(purchase.bowler.person),
+        'ID': purchase.bowler.identifier,
         'USBC ID': purchase.bowler.usbc_id,
         'Item Name': purchase.name,
         'Division': purchase.purchasable_item.division? ? purchase.configuration['division'] : '',
         'Size': purchase.purchasable_item.apparel? ? ApparelDetails.humanize_size(purchase.configuration['size']) : '',
         'Amount': "$#{purchase.amount}",
         'Payment Identifier': purchase.external_payment&.identifier,
+        'Note': '',
+      }
+    end
+
+    waivers = Waiver.includes(:purchasable_item, bowler: [:person])
+                    .where(bowler: { tournament_id: tournament_id})
+                    .order('people.last_name ASC')
+    csv_data += waivers.map do |waiver|
+      {
+        'Bowler': TournamentRegistration.person_list_name(waiver.bowler.person),
+        'ID': waiver.bowler.identifier,
+        'USBC ID': waiver.bowler.usbc_id,
+        'Waived Item': "Waived #{waiver.name}",
+        'Division': '',
+        'Size': '',
+        'Amount': "$#{waiver.amount}",
+        'Payment Identifier': "#{waiver.created_at.strftime('%F')} (#{waiver.identifier})",
+        'Note': "Waived by #{waiver.created_by}",
       }
     end
 

@@ -163,10 +163,12 @@ module TournamentRegistration
                  end
       entry_fee = tournament.purchasable_items.entry_fee.first&.value.to_i
 
+      waived_amount = bowler.waivers.sum(&:amount)
+
       ledger_amount_owed = 0
       unless bowler.free_entry&.confirmed?
         # This is what they'll owe having made no payments
-        ledger_amount_owed = entry_fee + late_fee - discount
+        ledger_amount_owed = entry_fee + late_fee - discount - waived_amount
 
         # Minus any manual payments
         ledger_amount_owed -= bowler.ledger_entries.manual.sum(&:credit)
