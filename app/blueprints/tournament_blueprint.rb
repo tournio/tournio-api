@@ -168,6 +168,10 @@ class TournamentBlueprint < Blueprinter::Base
       }
     end
 
+    field :waivable_fees do |t, _|
+      PurchasableItemSerializer.new(t.purchasable_items.late_fee).as_json
+    end
+
     # field :direct_upload_url do |t, options|
     #   if options[:host].present?
     #     Rails.application.routes.url_helpers.rails_direct_uploads_url(options)
