@@ -320,6 +320,18 @@ RSpec.describe TournamentRegistration do
           expect(subject).to eq(0)
         end
       end
+
+      context 'when the fee is waived' do
+        before do
+          create :waiver,
+            bowler: bowler,
+            purchasable_item: tournament.purchasable_items.late_fee.first
+        end
+
+        it 'shows the reduced amount owed' do
+          expect(subject).to eq(entry_fee_amount)
+        end
+      end
     end
 
     # context 'when the bowler has signed up for extras' do
