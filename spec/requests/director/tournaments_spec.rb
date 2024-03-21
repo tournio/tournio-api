@@ -389,7 +389,7 @@ describe Director::TournamentsController, type: :request do
 
     let(:uri) { "/director/tournaments/#{tournament.identifier}" }
 
-    let!(:tournament) { create :tournament }
+    let!(:tournament) { create :tournament, :with_standard_events }
     let(:eff) { create :extended_form_field }
     let(:params) do
       {
@@ -760,6 +760,69 @@ describe Director::TournamentsController, type: :request do
 
         it 'links them with the tournament' do
           expect { subject }.to change { tournament.shifts.count }.by(2)
+        end
+      end
+
+      context 'creating mix-and-match shifts' do
+        let(:singles) { tournament.events.single.first }
+        let(:doubles) { tournament.events.double.first }
+        let(:team_event) { tournament.events.team.first }
+
+        let(:params) do
+          {
+            tournament: {
+              shifts_attributes: [
+                {
+                  name: 'SD1',
+                  description: '',
+                  capacity: 40,
+                  display_order: 1,
+                  event_ids: [singles.id, doubles.id],
+                },
+                {
+                  name: 'SD2',
+                  description: '',
+                  capacity: 40,
+                  display_order: 2,
+                  event_ids: [singles.id, doubles.id],
+                },
+                {
+                  name: 'T1',
+                  description: '',
+                  capacity: 40,
+                  display_order: 3,
+                  event_ids: [team_event.id],
+                },
+                {
+                  name: 'T2',
+                  description: '',
+                  capacity: 40,
+                  display_order: 4,
+                  event_ids: [team_event.id],
+                },
+              ],
+            },
+          }
+        end
+
+        it 'creates 4 shifts' do
+          expect { subject }.to change(Shift, :count).by(4)
+        end
+
+        it 'links them with the tournament' do
+          expect { subject }.to change { tournament.shifts.count }.by(4)
+        end
+
+        it 'links a singles & doubles shift with those events' do
+          subject
+          shift = tournament.shifts.find_by_name 'SD1'
+          expect(shift.events).to match_array([singles, doubles])
+        end
+
+        it 'links a team shift with that event' do
+          subject
+          shift = tournament.shifts.find_by_name 'T2'
+          expect(shift.events).to match_array([team_event])
         end
       end
     end

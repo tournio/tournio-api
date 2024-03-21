@@ -63,6 +63,7 @@ module Director
         :description,
         :capacity,
         :display_order,
+        event_ids: [],
       ],
     ]
 
