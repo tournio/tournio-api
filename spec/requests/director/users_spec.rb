@@ -31,10 +31,30 @@ describe Director::UsersController, type: :request do
     end
 
     context "When they want to fetch someone else's details" do
-      let(:requested_user) { create(:user) }
+      let(:requested_user) { create :user_with_orgs }
       let(:desired_user_identifier) { requested_user.identifier }
 
       include_examples 'for superusers only', :ok
+
+      context "and they are a superuser" do
+        let(:requesting_user) { create(:user, :superuser) }
+
+        it 'includes an orgs attribute' do
+          subject
+          expect(json).to have_key('tournamentOrgs')
+        end
+
+        it 'has at least one org' do
+          subject
+          expect(json['tournamentOrgs'].count).to be > 0
+        end
+
+        it 'includes the pertinent org info' do
+          subject
+          expect(json['tournamentOrgs'][0]['name']).to eq(TournamentOrg.last.name)
+          expect(json['tournamentOrgs'][0]['identifier']).to eq(TournamentOrg.last.identifier)
+        end
+      end
     end
 
     context 'When the requested user does not exist' do
@@ -52,6 +72,45 @@ describe Director::UsersController, type: :request do
 
     include_examples 'an authorized action'
     include_examples 'for superusers only', :ok
+
+    context 'when there is just the requesting superuser' do
+      let(:requesting_user) { create :user, :superuser }
+
+      it 'includes one row' do
+        subject
+        expect(json.count).to eq(1)
+      end
+
+      it 'indicates the superuser role' do
+        subject
+        expect(json[0]['role']).to eq('superuser')
+      end
+    end
+
+    context 'when there is a superuser and a tournament org user' do
+      let(:requesting_user) { create :user, :superuser }
+
+      before do
+        create :user_with_orgs
+      end
+
+      it 'includes two rows' do
+        subject
+        expect(json.count).to eq(2)
+      end
+
+      it 'includes an orgs attribute for each' do
+        subject
+        expect(json[0]).to have_key('tournamentOrgs')
+        expect(json[1]).to have_key('tournamentOrgs')
+      end
+
+      it 'includes the org for the director' do
+        subject
+        user = json.filter { |row| row['tournamentOrgs'].present? }.first
+        expect(user['tournamentOrgs'][0]['name']).to eq(TournamentOrg.last.name)
+      end
+    end
   end
 
   describe '#create' do
@@ -62,7 +121,7 @@ describe Director::UsersController, type: :request do
     let(:role) { 'director' }
     let(:first_name) { 'Kylie' }
     let(:last_name) { 'Minogue' }
-    let(:tournament) { create(:tournament) }
+    let(:tournament_org) { create(:tournament_org) }
     let(:params) do
       {
         user: {
@@ -70,7 +129,7 @@ describe Director::UsersController, type: :request do
           role: role,
           first_name: first_name,
           last_name: last_name,
-          tournament_ids: [tournament.id],
+          tournament_org_ids: [tournament_org.id],
         }
       }
     end
@@ -87,9 +146,9 @@ describe Director::UsersController, type: :request do
 
     it 'associates the new user with the desired tournaments' do
       subject
-      expect(json).to have_key('tournaments')
-      expect(json['tournaments'].length).to eq(1)
-      expect(json['tournaments'].first['identifier']).to eq(tournament.identifier)
+      expect(json).to have_key('tournamentOrgs')
+      expect(json['tournamentOrgs'].length).to eq(1)
+      expect(json['tournamentOrgs'].first['identifier']).to eq(tournament_org.identifier)
     end
   end
 
@@ -133,6 +192,31 @@ describe Director::UsersController, type: :request do
         expect(json['email']).to eq(new_email)
       end
 
+      context 'attempting to update their name' do
+        let(:first) { 'Joe' }
+        let(:last) { 'Schmoe' }
+        let(:params) do
+          {
+            user: {
+              email: new_email,
+              first_name: first,
+              last_name: last,
+            }
+          }
+        end
+
+        it 'returns a 200 OK' do
+          subject
+          expect(response).to have_http_status(:ok)
+        end
+
+        it 'reflects the updated details' do
+          subject
+          expect(json['firstName']).to eq(first)
+          expect(json['lastName']).to eq(last)
+        end
+      end
+
       context 'attempting to update something they are not permitted to' do
         let(:params) do
           {
@@ -153,7 +237,7 @@ describe Director::UsersController, type: :request do
       let(:requesting_user) { create(:user, :superuser) }
       let(:requested_user) { create(:user) }
       let(:desired_user_identifier) { requested_user.identifier }
-      let(:tournament) { create :tournament }
+      let(:tournament_org) { create :tournament_org }
 
       include_examples 'for superusers only', :ok
 
@@ -163,7 +247,7 @@ describe Director::UsersController, type: :request do
             user: {
               role: 'director',
               first_name: 'Robyn',
-              tournament_ids: [tournament.id],
+              tournament_org_ids: [tournament_org.id],
             }
           }
         end
@@ -177,8 +261,8 @@ describe Director::UsersController, type: :request do
           subject
           expect(json['email']).to eq(requested_user.email)
           expect(json['role']).to eq('director')
-          expect(json['tournaments']).to be_instance_of(Array)
-          expect(json['tournaments'][0]['identifier']).to eq(tournament.identifier)
+          expect(json['tournamentOrgs']).to be_instance_of(Array)
+          expect(json['tournamentOrgs'][0]['identifier']).to eq(tournament_org.identifier)
         end
       end
     end

@@ -1,3 +1,5 @@
+# frozen_string_literal: true
+
 # == Schema Information
 #
 # Table name: users
@@ -26,29 +28,14 @@
 #  index_users_on_identifier            (identifier) UNIQUE
 #  index_users_on_reset_password_token  (reset_password_token) UNIQUE
 #
-FactoryBot.define do
-  factory :user do
-    sequence(:email) { |n| "test_user_#{n}@example.com" }
-    password { 'qwertyuiop' }
-    role { :director }
+class UserSerializer < JsonSerializer
+  attributes :identifier,
+    :email,
+    :first_name,
+    :last_name,
+    :role,
+    last_sign_in_at: [String, ->(object) { object.present? ? object.strftime('%F %r') : nil }]
 
-    trait :superuser do
-      role { :superuser }
-    end
-
-    trait :unpermitted do
-      role { :unpermitted }
-    end
-
-    factory :user_with_orgs do
-      transient do
-        org_count { 1 }
-      end
-
-      after(:create) do |user, context|
-        create_list(:tournament_org, context.org_count, users: [user])
-        user.reload
-      end
-    end
-  end
+  many :tournament_orgs, resource: BasicTournamentOrgSerializer
+  # many :tournaments, resource: TournamentSerializer
 end

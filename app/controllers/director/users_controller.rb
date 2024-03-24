@@ -8,7 +8,7 @@ module Director
       :role,
       :first_name,
       :last_name,
-      tournament_ids: [],
+      tournament_org_ids: [],
     ].freeze
     UPDATE_USER_PARAMS = [
       :email,
@@ -16,26 +16,26 @@ module Director
       :password,
       :first_name,
       :last_name,
-      tournament_ids: [],
+      tournament_org_ids: [],
     ].freeze
 
     def index
-      @users = policy_scope(User)
+      users = policy_scope(User)
       authorize(User)
-      render json: UserBlueprint.render(@users, director?: true), status: :ok
+      render json: UserSerializer.new(users).serialize, status: :ok
     end
 
     def show
       find_user
       authorize @user
-      render json: UserBlueprint.render(@user, director?: true), status: :ok
+      render json: UserSerializer.new(@user).serialize, status: :ok
     end
 
     def create
       authorize(User)
       user = User.new(new_user_params.merge(password: NEW_ACCOUNT_PASSWORD))
       if (user.save)
-        render json: UserBlueprint.render(user.reload, director?: true), status: :created
+        render json: UserSerializer.new(user.reload).serialize, status: :created
       else
         render json: user.errors.full_messages, status: :unprocessable_entity
       end
@@ -48,10 +48,10 @@ module Director
 
       # Prevent someone from updating their own role or list of associated tournaments
       if @user.identifier == current_user.identifier
-        render json: nil, status: :unprocessable_entity and return if updates.has_key?(:tournament_ids) || updates.has_key?(:role)
+        render json: nil, status: :unprocessable_entity and return if updates.has_key?(:tournament_org_ids) || updates.has_key?(:role)
       end
       if (@user.update(updates))
-        render json: UserBlueprint.render(@user.reload, director?: true), status: :ok
+        render json: UserSerializer.new(@user.reload).serialize, status: :ok
       else
         render json: @user.errors.full_messages, status: :unprocessable_entity
       end

@@ -39,8 +39,8 @@ class User < ApplicationRecord
 
   enum role: %i[unpermitted director superuser]
 
-  has_and_belongs_to_many :tournaments
   has_and_belongs_to_many :tournament_orgs
+  has_many :tournaments, through: :tournament_orgs
 
   before_create :generate_identifier
 
@@ -48,7 +48,7 @@ class User < ApplicationRecord
     {
       'identifier' => identifier,
       'role' => role.to_s,
-      'tournaments' => tournaments.pluck(:identifier)
+      'tournament_org_ids' => tournament_orgs.pluck(:id)
     }
   end
 

@@ -271,6 +271,10 @@ class BowlersController < ApplicationController
       items -= tournament.purchasable_items.late_fee
     end
 
+    # Remove any waived items
+    waived_items = bowler.waivers.collect(&:purchasable_item)
+    items -= waived_items
+
     # event-linked fees and discounts will be here, if applicable, but that's ok. We want them
     # there, and will handle their addition appropriately. This implies that "automatic" means
     # "every time" only for standard tournaments.

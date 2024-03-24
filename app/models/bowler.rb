@@ -36,6 +36,7 @@ class Bowler < ApplicationRecord
   has_many :purchases, dependent: :destroy
   has_many :stripe_checkout_sessions
   has_many :signups
+  has_many :waivers, dependent: :destroy
 
   attr_accessor :doubles_partner_index
 
@@ -74,6 +75,8 @@ class Bowler < ApplicationRecord
   private
 
   def generate_identifier
-    self.identifier = SecureRandom.uuid
+    require 'slugify'
+
+    self.identifier = "#{person.last_name} #{SecureRandom.alphanumeric(6)}".slugify
   end
 end

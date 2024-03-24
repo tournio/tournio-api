@@ -2,7 +2,7 @@ module StripeUtilities
   attr_accessor :tournament, :stripe_account
 
   def load_stripe_account
-    self.stripe_account = tournament.stripe_account
+    self.stripe_account = tournament.tournament_org.stripe_account
   end
 
   def client_host
@@ -26,7 +26,10 @@ module StripeUtilities
       business_type: 'non_profit'
     )
     Rails.logger.debug "Stripe account creation result: #{result.inspect}"
-    StripeAccount.create(tournament_id: tournament.id, identifier: result.id)
+    StripeAccount.create(
+      tournament_org_id: tournament.tournament_org_id,
+      identifier: result.id,
+    )
   rescue Stripe::StripeError => e
     Rails.logger.info "Stripe error: #{e}"
     Bugsnag.notify(e)

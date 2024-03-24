@@ -76,7 +76,7 @@ describe Director::BowlersController, type: :request do
       end
 
       context 'associated with this tournament' do
-        let(:requesting_user) { create :user, :director, tournaments: [tournament] }
+        let(:requesting_user) { create :user, :director, tournament_orgs: [tournament.tournament_org] }
 
         it 'shall pass' do
           subject
@@ -128,8 +128,8 @@ describe Director::BowlersController, type: :request do
     end
 
     context 'When I am a tournament director' do
-      let(:requesting_user) { create(:user, :director, tournaments: my_tournaments) }
-      let(:my_tournaments) { [] }
+      let(:requesting_user) { create(:user, :director, tournament_orgs: my_orgs) }
+      let(:my_orgs) { [] }
 
       it 'yields a 401 Unauthorized' do
         subject
@@ -137,7 +137,7 @@ describe Director::BowlersController, type: :request do
       end
 
       context 'for this tournament' do
-        let(:my_tournaments) { [tournament] }
+        let(:my_orgs) { [tournament.tournament_org] }
 
         it 'yields a 200 OK' do
           subject
@@ -186,7 +186,7 @@ describe Director::BowlersController, type: :request do
       end
 
       context 'associated with this tournament' do
-        let(:requesting_user) { create :user, :director, tournaments: [tournament] }
+        let(:requesting_user) { create :user, :director, tournament_orgs: [tournament.tournament_org] }
 
         it 'shall pass' do
           subject
@@ -274,7 +274,7 @@ describe Director::BowlersController, type: :request do
       end
 
       context 'associated with this tournament' do
-        let(:requesting_user) { create :user, :director, tournaments: [tournament] }
+        let(:requesting_user) { create :user, :director, tournament_orgs: [tournament.tournament_org] }
 
         it 'shall pass' do
           subject
@@ -569,7 +569,7 @@ describe Director::BowlersController, type: :request do
       end
 
       context 'associated with this tournament' do
-        let(:requesting_user) { create :user, :director, tournaments: [tournament] }
+        let(:requesting_user) { create :user, :director, tournament_orgs: [tournament.tournament_org] }
 
         it 'shall pass' do
           subject

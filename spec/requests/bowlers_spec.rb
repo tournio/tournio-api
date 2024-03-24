@@ -537,6 +537,19 @@ describe BowlersController, type: :request do
           end
         end
       end
+
+      context 'but it has been waived' do
+        before do
+          create :waiver,
+            bowler: bowler,
+            purchasable_item: late_fee_item
+        end
+
+        it 'excludes the late fee item from the list' do
+          subject
+          expect(json['automaticItems'].collect{ |ai| ai['identifier'] }).not_to include(late_fee_item.identifier)
+        end
+      end
     end
 
     context 'when there are user-selectable purchasable items' do
