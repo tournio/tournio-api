@@ -86,6 +86,14 @@ FactoryBot.define do
       end
     end
 
+    trait :with_standard_events do
+      after(:create) do |t, _|
+        create :event, :singles, tournament: t
+        create :event, :doubles, tournament: t
+        create :event, :team, tournament: t
+      end
+    end
+
     trait :mix_and_match_shifts do
       after(:create) do |t, _|
         singles = create :event, :singles, tournament: t

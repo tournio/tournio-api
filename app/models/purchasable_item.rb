@@ -32,6 +32,7 @@ class PurchasableItem < ApplicationRecord
   belongs_to :parent, class_name: 'PurchasableItem', inverse_of: :children, optional: true
   has_many :children, inverse_of: :parent, class_name: 'PurchasableItem', foreign_key: 'parent_id', dependent: :destroy
   has_many :signups
+  has_many :waivers
 
   has_one :stripe_product, dependent: :destroy
   has_one :stripe_coupon, dependent: :destroy

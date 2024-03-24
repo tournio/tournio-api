@@ -22,7 +22,7 @@ describe Director::TournamentsController, type: :controller do
     let(:expires_at) { Time.zone.now + 10.minutes }
     let(:stripe_account) do
       create :stripe_account,
-        tournament: tournament,
+        tournament_org: tournament.tournament_org,
         link_url: link_url,
         link_expires_at: expires_at
     end
@@ -131,16 +131,16 @@ describe Director::TournamentsController, type: :controller do
     end
 
     context 'When I am a tournament director' do
-      let(:requesting_user) { create(:user, :director, tournaments: my_tournaments) }
-      let(:my_tournaments) { [] }
+      let(:requesting_user) { create(:user, :director, tournament_orgs: my_orgs) }
+      let(:my_orgs) { [] }
 
       it 'yields a 401 Unauthorized' do
         subject
         expect(response).to have_http_status(:unauthorized)
       end
 
-      context 'for this tournament' do
-        let(:my_tournaments) { [tournament] }
+      context 'for the org that owns this tournament' do
+        let(:my_orgs) { [tournament.tournament_org] }
 
         it 'responds with OK' do
           subject
@@ -156,8 +156,9 @@ describe Director::TournamentsController, type: :controller do
       get :stripe_status, params: { identifier: tournament.identifier }
     end
 
-    let(:tournament) { create :tournament }
-    let(:stripe_account) { tournament.stripe_account }
+    let(:tournament_org) { create :tournament_org }
+    let(:stripe_account) { create :stripe_account, tournament_org: tournament_org }
+    let(:tournament) { create :tournament, tournament_org: tournament_org }
     let(:stripe_response_obj) do
       {
         id: stripe_account.identifier,
@@ -237,7 +238,9 @@ describe Director::TournamentsController, type: :controller do
 
     context 'when we are no longer able to make charges' do
       let(:stripe_account) do
-        build :stripe_account, onboarding_completed_at: 2.weeks.ago
+        create :stripe_account,
+          tournament_org: tournament_org,
+          onboarding_completed_at: 2.weeks.ago
       end
 
       let(:stripe_response_obj) do
@@ -247,8 +250,6 @@ describe Director::TournamentsController, type: :controller do
           details_submitted: true,
         }
       end
-
-      before { tournament.update(stripe_account: stripe_account) }
 
       it 'clears out the onboarding_completed_at time' do
         expect { subject }.to change { stripe_account.reload.onboarding_completed_at }.to(nil)
@@ -307,8 +308,8 @@ describe Director::TournamentsController, type: :controller do
     end
 
     context 'When I am a tournament director' do
-      let(:requesting_user) { create(:user, :director, tournaments: my_tournaments) }
-      let(:my_tournaments) { [] }
+      let(:requesting_user) { create(:user, :director, tournament_orgs: my_orgs) }
+      let(:my_orgs) { [] }
 
       it 'yields a 401 Unauthorized' do
         subject
@@ -316,7 +317,7 @@ describe Director::TournamentsController, type: :controller do
       end
 
       context 'for this tournament' do
-        let(:my_tournaments) { [tournament] }
+        let(:my_orgs) { [tournament_org] }
 
         it 'responds with OK' do
           subject

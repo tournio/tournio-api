@@ -1,7 +1,9 @@
+# frozen_string_literal: true
+
 require 'rails_helper'
 require 'devise/jwt/test_helpers'
 
-describe Director::ContactsController, type: :request do
+describe Director::WaiversController, type: :request do
   let(:requesting_user) { create(:user, :superuser) }
   let(:headers) do
     {
@@ -11,29 +13,18 @@ describe Director::ContactsController, type: :request do
   end
   let(:auth_headers) { Devise::JWT::TestHelpers.auth_headers(headers, requesting_user) }
 
+  # Things common to both request paths
+  let(:tournament) { create :tournament, :with_entry_fee, :with_late_fee }
+  let(:bowler) { create :bowler, tournament: tournament }
+  let(:bowler_identifier) { bowler.identifier }
+  let(:late_fee_item) { tournament.purchasable_items.late_fee.first }
+
   describe '#create' do
     subject { post uri, headers: auth_headers, params: params, as: :json }
 
-    let(:uri) { "/director/tournaments/#{tournament_identifier}/contacts" }
+    let(:uri) { "/director/bowlers/#{bowler_identifier}/waivers" }
 
-    let(:tournament) { create :tournament }
-    let(:tournament_identifier) { tournament.identifier }
-
-    let(:params) do
-      {
-        contact: new_contact_params,
-      }
-    end
-    let(:new_contact_params) do
-      {
-        name: 'Contacty McContact',
-        email: 'foo@foo.foo',
-        role: 'director',
-        notify_on_payment: false,
-        notify_on_registration: true,
-        notification_preference: 'daily_summary',
-      }
-    end
+    let(:params) { {} }
 
     ###############
 
@@ -44,14 +35,27 @@ describe Director::ContactsController, type: :request do
       expect(response).to have_http_status(:created)
     end
 
-    it 'return the created contact' do
+    it 'returns the created item' do
       subject
-      expect(json).to have_key('identifier')
+      expect(json).to have_key('amount')
     end
 
-    it 'includes the new item in the response' do
+    it 'creates a waiver' do
+      expect { subject }.to change(Waiver, :count).by(1)
+    end
+
+    it 'has an amount equal to the PI value' do
       subject
-      expect(json['name']).to eq('Contacty McContact')
+      expect(json['amount']).to eq(late_fee_item.value)
+    end
+
+    it 'puts the logged-in user as created_by' do
+      subject
+      expect(json['createdBy']).to eq(requesting_user.email)
+    end
+
+    it 'links the new waiver with the bowler' do
+      expect { subject }.to change(bowler.waivers, :count).by(1)
     end
 
     context 'as an unpermitted user' do
@@ -82,8 +86,17 @@ describe Director::ContactsController, type: :request do
     end
 
     context 'error scenarios' do
-      context 'an unrecognized tournament identifier' do
-        let(:tournament_identifier) { 'say-what-now' }
+      context 'an unrecognized bowler identifier' do
+        let(:bowler_identifier) { 'say-what-now' }
+
+        it 'yields a 404 Not Found' do
+          subject
+          expect(response).to have_http_status(:not_found)
+        end
+      end
+
+      context 'a tournament with no late fee to waive' do
+        let(:tournament) { create :tournament, :with_entry_fee }
 
         it 'yields a 404 Not Found' do
           subject
@@ -93,55 +106,29 @@ describe Director::ContactsController, type: :request do
     end
   end
 
-  describe '#update' do
-    subject { patch uri, headers: auth_headers, params: params, as: :json }
+  describe '#destroy' do
+    subject { delete uri, headers: auth_headers, as: :json }
 
-    let(:uri) { "/director/contacts/#{contact_id}" }
+    let(:uri) { "/director/waivers/#{waiver_identifier}" }
 
-    let(:tournament) { create :tournament }
-    let(:contact) { create :contact, tournament: tournament, name: 'JoJo Rabbit', email: 'jojo@rabbit.org', role: :director }
-    let(:contact_id) { contact.identifier }
-
-    let(:params) do
-      {
-        contact: contact_params,
-      }
+    let(:waiver) do
+      create :waiver,
+        amount: late_fee_item.value,
+        bowler: bowler,
+        purchasable_item: late_fee_item
     end
-    let(:contact_params) do
-      {
-        notify_on_payment: false,
-        notify_on_registration: true,
-        notification_preference: 'individually',
-      }
-    end
-
-    ###############
+    let(:waiver_identifier) { waiver.identifier }
 
     include_examples 'an authorized action'
 
-    it 'succeeds with a 200 OK' do
+    it 'succeeds with a 204 No Content' do
       subject
-      expect(response).to have_http_status(:ok)
+      expect(response).to have_http_status(:no_content)
     end
 
-    it 'return the created contact' do
+    it 'removes the waiver' do
       subject
-      expect(json).to have_key('identifier')
-    end
-
-    it 'updates the contact correctly' do
-      subject
-      expect(contact.reload.notify_on_registration).to be_truthy
-    end
-
-    it 'updates the notification preference correctly' do
-      subject
-      expect(contact.reload.individually?).to be_truthy
-    end
-
-    it 'includes the contact in the response' do
-      subject
-      expect(json['name']).to eq('JoJo Rabbit')
+      expect(Waiver.find_by_identifier(waiver_identifier)).to be_nil
     end
 
     context 'as an unpermitted user' do
@@ -166,14 +153,14 @@ describe Director::ContactsController, type: :request do
 
         it 'shall pass' do
           subject
-          expect(response).to have_http_status(:ok)
+          expect(response).to have_http_status(:no_content)
         end
       end
     end
 
     context 'error scenarios' do
-      context 'an unrecognized contact identifier' do
-        let(:contact_id) { 'say-what-now' }
+      context 'an unrecognized waiver identifier' do
+        let(:waiver_identifier) { 'say-what-now' }
 
         it 'yields a 404 Not Found' do
           subject
@@ -182,5 +169,4 @@ describe Director::ContactsController, type: :request do
       end
     end
   end
-
 end

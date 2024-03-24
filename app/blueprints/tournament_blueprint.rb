@@ -103,10 +103,15 @@ class TournamentBlueprint < Blueprinter::Base
 
     # throw everything in here
     association :testing_environment, blueprint: TestingEnvironmentBlueprint
-    association :stripe_account, blueprint: StripeAccountBlueprint
     association :scratch_divisions, blueprint: ScratchDivisionBlueprint
     association :events, blueprint: EventBlueprint
     association :users, blueprint: UserBlueprint
+
+    fields :tournament_org_id
+
+    field :stripe_account do |t, _|
+      t.tournament_org.stripe_account.present? ? StripeAccountBlueprint.render_as_hash(t.tournament_org.stripe_account) : nil
+    end
 
     field :available_conditions do |t, _|
       output = {}
@@ -161,6 +166,10 @@ class TournamentBlueprint < Blueprinter::Base
         last_week_registration_types: ChartDataQueries.last_week_registration_types_by_day(t),
         last_week_purchases_by_day: ChartDataQueries.last_week_item_purchases_by_day(t),
       }
+    end
+
+    field :waivable_fees do |t, _|
+      PurchasableItemSerializer.new(t.purchasable_items.late_fee).as_json
     end
 
     # field :direct_upload_url do |t, options|

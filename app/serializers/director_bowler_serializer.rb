@@ -35,6 +35,7 @@ class DirectorBowlerSerializer < BowlerSerializer
   many :purchases, resource: PurchaseSerializer
   many :ledger_entries, resource: LedgerEntrySerializer
   many :signups, resource: SignupSerializer
+  many :waivers, resource: WaiverSerializer
   # many :signups, proc { |signups, params, bowler|
   #   bowler.signups.requested + bowler.signups.paid
   # }, resource: :SignupSerializer

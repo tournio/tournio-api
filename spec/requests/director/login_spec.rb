@@ -31,22 +31,22 @@ describe Users::SessionsController, type: :request do
       expect(token).to have_key(:role)
     end
 
-    it 'has a role of "unpermitted"' do
+    it 'has a role of "director"' do
       token = HttpAuth.jwt_from_auth_header(response.headers['Authorization'])
 
-      expect(token[:role]).to eq('unpermitted')
+      expect(token[:role]).to eq('director')
     end
 
     it 'includes a tournaments attribute in the token payload' do
       token = HttpAuth.jwt_from_auth_header(response.headers['Authorization'])
 
-      expect(token).to have_key(:tournaments)
+      expect(token).to have_key(:tournament_org_ids)
     end
 
-    it 'has an empty array for the tournaments attribute' do
+    it 'has an empty array for the tournament_orgs attribute' do
       token = HttpAuth.jwt_from_auth_header(response.headers['Authorization'])
 
-      expect(token[:tournaments]).to eq([])
+      expect(token[:tournament_org_ids]).to eq([])
     end
 
     context 'and the user is a superuser' do
@@ -60,8 +60,8 @@ describe Users::SessionsController, type: :request do
     end
 
     context 'and the user is a director of a tournament' do
-      let(:tournament) { create(:tournament) }
-      let(:user) { create(:user, :director, tournaments: [tournament]) }
+      let(:org) { create(:tournament_org) }
+      let(:user) { create(:user, :director, tournament_orgs: [org]) }
 
       it 'includes the director role in the returned token' do
         token = HttpAuth.jwt_from_auth_header(response.headers['Authorization'])
@@ -72,13 +72,13 @@ describe Users::SessionsController, type: :request do
       it 'includes a non-empty tournaments array' do
         token = HttpAuth.jwt_from_auth_header(response.headers['Authorization'])
 
-        expect(token[:tournaments].length).to eq(1)
+        expect(token[:tournament_org_ids].length).to eq(1)
       end
 
-      it 'includes the correct tournament identifier in the array' do
+      it 'includes the correct tournament org identifier in the array' do
         token = HttpAuth.jwt_from_auth_header(response.headers['Authorization'])
 
-        expect(token[:tournaments][0]).to eq(tournament.identifier)
+        expect(token[:tournament_org_ids][0]).to eq(org.id)
       end
     end
   end

@@ -21,6 +21,7 @@ module Director
       :entry_deadline,
       :location,
       :timezone,
+      :tournament_org_id,
       details: {
         enabled_registration_options: [],
       },
@@ -62,6 +63,7 @@ module Director
         :description,
         :capacity,
         :display_order,
+        event_ids: [],
       ],
     ]
 
@@ -163,10 +165,6 @@ module Director
       else
         render json: { error: tournament.errors.full_messages.join(' ') }, status: :unprocessable_entity
         return
-      end
-
-      if current_user.director?
-        current_user.tournaments << tournament
       end
 
       render json: TournamentBlueprint.render(tournament, view: :director_detail, director?: true, **url_options), status: :created
@@ -306,8 +304,8 @@ module Director
         if tournament.config['skip_stripe']
           Rails.logger.debug "Skipping actual integration with Stripe and faking it"
           self.stripe_account = StripeAccount.create(
-            tournament_id: tournament.id,
-            identifier: "pretend_stripe_account_#{tournament.identifier}",
+            tournament_org_id: tournament.tournament_org.id,
+            identifier: "pretend_stripe_account_#{tournament.tournament_org.identifier}",
             onboarding_completed_at: Time.zone.now
           )
         else
