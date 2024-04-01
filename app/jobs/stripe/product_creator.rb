@@ -33,7 +33,7 @@ module Stripe
 
     def set_attributes(purchasable_item_id)
       self.purchasable_item = PurchasableItem.includes(tournament: { tournament_org: :stripe_account}).find(purchasable_item_id)
-      self.tournament = purchasable_item.tournament.tournament
+      self.tournament = purchasable_item.tournament
       self.stripe_account = tournament.tournament_org.stripe_account
     end
 
