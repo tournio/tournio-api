@@ -32,9 +32,9 @@ module Stripe
     end
 
     def set_attributes(purchasable_item_id)
-      self.purchasable_item = PurchasableItem.includes(tournament: :stripe_account).find(purchasable_item_id)
-      self.tournament = purchasable_item.tournament
-      self.stripe_account = tournament.stripe_account
+      self.purchasable_item = PurchasableItem.includes(tournament: { tournament_org: :stripe_account}).find(purchasable_item_id)
+      self.tournament = purchasable_item.tournament.tournament
+      self.stripe_account = tournament.tournament_org.stripe_account
     end
 
     def create_product
