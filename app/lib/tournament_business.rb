@@ -8,7 +8,8 @@ module TournamentBusiness
   IGBO_STANDARD = 'igbo_standard'
   IGBO_MULTI_SHIFT = 'igbo_multi_shift'
   IGBO_MIX_AND_MATCH = 'igbo_mix_and_match'
-  IGBO_NON_STANDARD = 'igbo_non_standard'
+  IGBO_NON_STANDARD = 'igbo_non_standard' # things like DAMIT
+  SINGLE_EVENT_OCCASION = 'single_event' # things like fundraisers, bowling clinics, etc. May have multiple shift times
 
   def entry_fee
     purchasable_items.entry_fee.first.value
