@@ -76,6 +76,7 @@ group :development do
 
   # adds model schema definition annotations to each model file
   gem 'annotate'
+  gem 'rubocop'
 end
 
 group :test do

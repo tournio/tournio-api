@@ -152,6 +152,7 @@ module DirectorUtilities
       usbc_number: bowler.usbc_id,
       average: bowler.verified_data['verified_average'] || '',
       handicap: bowler.verified_data['handicap'],
+      igbo_member: bowler.verified_data['igbo_member'],
     }
   end
 
