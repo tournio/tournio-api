@@ -306,9 +306,15 @@ module Director
 
         aqr = bowler.additional_question_responses.joins(:extended_form_field).where(extended_form_field: { name: aqr_data[:name] }).first
 
+        # is the name one that the tournament supports? if so, let's create one instead of barking about it
         unless aqr.present?
-          self.error = "Unrecognized additional question: #{aqr_data[:name]}"
-          return
+          eff = tournament.extended_form_fields.find_by_name(aqr_data[:name])
+          unless eff.present?
+            # ok, NOW we can bark about it.
+            self.error = "Unrecognized additional question: #{aqr_data[:name]}"
+            return
+          end
+          aqr = AdditionalQuestionResponse.create(bowler: bowler, extended_form_field: eff)
         end
 
         unless aqr.update(response: aqr_data[:response])

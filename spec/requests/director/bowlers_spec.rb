@@ -381,6 +381,38 @@ describe Director::BowlersController, type: :request do
       end
     end
 
+    context 'creating an additional question response' do
+      let(:aq) do
+        create(:additional_question,
+          extended_form_field: create(:extended_form_field, :comment),
+          tournament: tournament)
+      end
+      let(:additional_question_response_params) do
+        [
+          {
+            name: aq.name,
+            response: 'info provided by a director about the bowler',
+          }
+        ]
+      end
+
+      it 'succeeds with a 200 OK' do
+        subject
+        expect(response).to have_http_status(:ok)
+      end
+
+      it 'includes the updated bowler in the response' do
+        subject
+        expect(json).to have_key('identifier')
+      end
+
+      it 'reflects the response' do
+        subject
+        expect(json).to have_key('additional_question_responses')
+        expect(json['additional_question_responses'][aq.name]['response']).to eq('info provided by a director about the bowler')
+      end
+    end
+
     context 'updating verified data' do
       let(:verified_data_params) do
         {
