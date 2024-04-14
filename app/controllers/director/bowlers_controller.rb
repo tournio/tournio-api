@@ -302,8 +302,6 @@ module Director
       return false unless bowler_data[:additional_question_responses].present?
 
       bowler_data[:additional_question_responses].each do |aqr_data|
-        next unless aqr_data[:response].present?
-
         aqr = bowler.additional_question_responses.joins(:extended_form_field).where(extended_form_field: { name: aqr_data[:name] }).first
 
         # is the name one that the tournament supports? if so, let's create one instead of barking about it
