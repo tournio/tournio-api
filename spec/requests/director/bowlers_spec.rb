@@ -379,6 +379,23 @@ describe Director::BowlersController, type: :request do
         expect(json).to have_key('additional_question_responses')
         expect(json['additional_question_responses'][aq.name]['response']).to eq('my updated response')
       end
+
+      context 'to an empty response' do
+        let(:additional_question_response_params) do
+          [
+            {
+              name: aq.name,
+              response: '',
+            }
+          ]
+        end
+
+        it 'reflects the response' do
+          subject
+          expect(json).to have_key('additional_question_responses')
+          expect(json['additional_question_responses'][aq.name]['response']).to eq('')
+        end
+      end
     end
 
     context 'creating an additional question response' do
