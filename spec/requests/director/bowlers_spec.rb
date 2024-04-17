@@ -43,6 +43,15 @@ describe Director::BowlersController, type: :request do
       expect(json.length).to eq(10);
     end
 
+    context 'when requesting the modern serializer' do
+      let(:uri) { "/director/tournaments/#{tournament_identifier}/bowlers?serializer=modern" }
+
+      it 'includes a field used on the modern serializer' do
+        subject
+        expect(json[0]).to have_key('createdAt')
+      end
+    end
+
     context 'retrieving only unpartnered bowlers' do
       let(:uri) { "/director/tournaments/#{tournament_identifier}/bowlers?unpartnered=true" }
 

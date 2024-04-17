@@ -76,6 +76,15 @@ describe Director::TournamentsController, type: :request do
       expect(json['identifier']).to eq(tournament.identifier)
     end
 
+    context 'When I want to use the modern serializer' do
+      let(:uri) { "/director/tournaments/#{tournament.identifier}?serializer=modern" }
+
+      it 'works as expected' do
+        subject
+        expect(json['startDate']).to eq(tournament.start_date.strftime('%F'))
+      end
+    end
+
     context 'When I am an unpermitted user' do
       let(:requesting_user) { create(:user, :unpermitted) }
 

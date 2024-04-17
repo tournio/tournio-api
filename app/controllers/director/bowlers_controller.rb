@@ -32,26 +32,32 @@ module Director
         return
       end
       authorize tournament, :show?
-      include_details = params[:include_details].present?
-      bowlers = include_details ? policy_scope(tournament.bowlers).includes(
-        :ledger_entries,
-        :additional_question_responses,
-        :team,
-        :person,
-        :free_entry,
-        purchases: :purchasable_item,
-        doubles_partner: :person,
-      )
-                  : policy_scope(tournament.bowlers).includes(:person, :free_entry, :team)
 
-      if params[:unpartnered]
-        bowlers = bowlers.where(doubles_partner_id: nil)
+      # do we need to use the "modern" serializer?
+      if params[:serializer] == 'modern'
+        # load bowlers with all the associations. (probably want more)
+        bowlers = policy_scope(tournament.bowlers).includes(
+            :ledger_entries,
+            :additional_question_responses,
+            :team,
+            :person,
+            :free_entry,
+            purchases: :purchasable_item,
+            doubles_partner: :person,
+          )
+        render json: DirectorBowlerSerializer.new(bowlers).serialize, status: :ok
+      else
+        # if not:
+        bowlers = policy_scope(tournament.bowlers).includes(:person, :free_entry, :team)
+
+        if params[:unpartnered]
+          bowlers = bowlers.where(doubles_partner_id: nil)
+        end
+
+        hashed_bowlers = bowlers.map { |b| BowlerBlueprint.render_as_hash(b, view: :director_list, **url_options) }
+        hashed_bowlers.sort_by! { |h| h[:full_name].downcase }
+        render json: hashed_bowlers, status: :ok
       end
-
-      blueprint_view = include_details ? :director_detail : :director_list
-      hashed_bowlers = bowlers.map { |b| BowlerBlueprint.render_as_hash(b, view: blueprint_view, **url_options) }
-      hashed_bowlers.sort_by! { |h| h[:full_name].downcase }
-      render json: hashed_bowlers, status: :ok
     end
 
     def show
