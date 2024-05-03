@@ -54,7 +54,7 @@ class TournamentSerializer < JsonSerializer
   end
 
   attribute :config do |t|
-    %i(display_capacity publicly_listed email_in_dev website enable_unpaid_signups).each_with_object({}) do |key, hash|
+    %i(display_capacity publicly_listed email_in_dev website enable_unpaid_signups tournament_type).each_with_object({}) do |key, hash|
       hash[key] = t.config[key]
     end
   end

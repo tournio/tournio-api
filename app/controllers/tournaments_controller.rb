@@ -14,7 +14,11 @@ class TournamentsController < ApplicationController
       return
     end
     set_time_zone
-    render json: TournamentBlueprint.render(tournament, view: :detail, **url_options)
+    if params[:serializer] == 'modern'
+      render json: TournamentDetailSerializer.new(tournament, params: url_options)
+    else
+      render json: TournamentBlueprint.render(tournament, view: :detail, **url_options)
+    end
   end
 
   private
