@@ -337,7 +337,8 @@ RSpec.describe DirectorUtilities do
 
     require 'csv'
 
-    let(:csv_headers) { %w[id last_name first_name nickname birth_day birth_month birth_year address1 address2 city state country postal_code phone email usbc_number team_id team_name team_order entry_fee_paid registered_at doubles_last_name doubles_first_name average handicap preferred_shift igbo_member] }
+    let(:shift_headers) { [] }
+    let(:csv_headers) { %w[id last_name first_name nickname birth_day birth_month birth_year address1 address2 city state country postal_code phone email usbc_number team_id team_name team_order entry_fee_paid registered_at doubles_last_name doubles_first_name average handicap igbo_member] + shift_headers }
 
     let(:tournament) { create :tournament, :one_shift }
     let(:team) { create :team, tournament: tournament }
@@ -377,6 +378,51 @@ RSpec.describe DirectorUtilities do
     it 'has the right headers' do
       headers = CSV.parse_line(subject)
       expect(headers).to match_array(csv_headers)
+    end
+
+    context 'in a multi-shift tournament' do
+      let(:tournament) { create :tournament, :two_shifts}
+      let(:shift) { tournament.shifts.first }
+
+      let(:shift_headers) { ['shift preference'] }
+
+      before do
+        team.update(shifts: [shift]);
+      end
+
+      it 'has the right headers' do
+        headers = CSV.parse_line(subject)
+        expect(headers).to match_array(csv_headers)
+      end
+
+      it 'has the right shift' do
+        parsed = CSV.parse(subject)
+        shift_name = parsed[1][-1]
+        expect(shift_name).to eq(shift.name)
+      end
+    end
+
+    context 'in a mix-and-match tournament' do
+      let(:tournament) { create :tournament, :mix_and_match_shifts}
+      let(:sd_shift) { tournament.shifts.find_by(event_string: 'double_single') }
+      let(:t_shift) { tournament.shifts.find_by(event_string: 'team') }
+
+      let(:shift_headers) { ['shift preference: double_single', 'shift preference: team'] }
+
+      before do
+        team.update(shifts: [sd_shift, t_shift]);
+      end
+
+      it 'has the right headers' do
+        headers = CSV.parse_line(subject)
+        expect(headers).to match_array(csv_headers)
+      end
+
+      it 'has the right shifts' do
+        parsed = CSV.parse(subject)
+        cells = parsed[1][-2..-1]
+        expect(cells).to eq([sd_shift.name, t_shift.name])
+      end
     end
   end
 
