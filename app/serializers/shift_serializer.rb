@@ -27,5 +27,12 @@ class ShiftSerializer < JsonSerializer
     :name,
     :description,
     :capacity,
-    :display_order
+    :display_order,
+    :is_full,
+    :group_title,
+    :event_string
+
+  attribute :tally do |shift|
+    shift.teams.count
+  end
 end

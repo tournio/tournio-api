@@ -10,6 +10,7 @@ class TournamentDetailSerializer < TournamentSerializer
     },
     key: 'fees_and_discounts',
     resource: PurchasableItemSerializer
+  many :shifts, resource: ShiftSerializer
 
   attribute :registration_options do |tournament|
     types = {}
