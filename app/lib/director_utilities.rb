@@ -193,6 +193,8 @@ module DirectorUtilities
 
     csv_data = csv_bowlers(tournament: tournament)
 
+    return '' unless csv_data.present?
+
     headers = csv_data.first.keys
     people = csv_data.map(&:values)
 
