@@ -178,14 +178,12 @@ module DirectorUtilities
         team_id: team.id, # team.identifier,
         team_name: team.name,
         team_order: bowler.position,
-        preferred_shift: team.shifts.collect(&:name).join(', '),
       }
     else
       {
         team_id: 'n/a',
         team_name: 'n/a',
         team_order: 'n/a',
-        preferred_shift: 'n/a',
       }
     end
   end
@@ -194,6 +192,8 @@ module DirectorUtilities
     require 'csv'
 
     csv_data = csv_bowlers(tournament: tournament)
+
+    return '' unless csv_data.present?
 
     headers = csv_data.first.keys
     people = csv_data.map(&:values)
@@ -210,12 +210,35 @@ module DirectorUtilities
       d = bowler.doubles_partner
       doubles_deets = doubles_partner_info(partner: d, name_only: true)
       bowler_data = bowler_export(bowler: bowler)
+      shift_data = shift_data(bowler: bowler)
 
       # CSV wants phone, not phone1, which is what the IGBOTS export wants
       bowler_data[:phone] = bowler_data.delete(:phone1)
 
-      bowler_data.merge(team_deets).merge(doubles_deets).merge(csv_specific_data(bowler: bowler))
+      bowler_data.merge(team_deets).merge(doubles_deets).merge(csv_specific_data(bowler: bowler)).merge(shift_data)
     end
+  end
+
+  def self.shift_data(bowler:)
+    data = {}
+    team = bowler.team
+    tournament = bowler.tournament
+
+    if tournament.config['tournament_type'] == Tournament::IGBO_MIX_AND_MATCH
+      tournament.shifts.collect(&:event_string).each do |event_string|
+        data["shift preference: #{event_string}"] = 'n/a'
+      end
+
+      if team.present?
+        team.shifts.each do |shift|
+          data["shift preference: #{shift.event_string}"] = shift.name
+        end
+      end
+    elsif tournament.config['tournament_type'] == Tournament::IGBO_MULTI_SHIFT
+      data['shift preference'] = team.present? ? team.shifts.first.name : 'n/a'
+    end
+
+    data
   end
 
   def self.csv_specific_data(bowler:)

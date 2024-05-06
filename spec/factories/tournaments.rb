@@ -82,6 +82,7 @@ FactoryBot.define do
 
     trait :two_shifts do
       after(:create) do |t, _|
+        t.config_items.find_by(key: 'tournament_type').update(value: Tournament::IGBO_MULTI_SHIFT)
         create :shift, tournament: t, name: 'Second Shift', display_order: 2
       end
     end
@@ -96,6 +97,7 @@ FactoryBot.define do
 
     trait :mix_and_match_shifts do
       after(:create) do |t, _|
+        t.config_items.find_by(key: 'tournament_type').update(value: Tournament::IGBO_MIX_AND_MATCH)
         singles = create :event, :singles, tournament: t
         doubles = create :event, :doubles, tournament: t
         team = create :event, :team, tournament: t
