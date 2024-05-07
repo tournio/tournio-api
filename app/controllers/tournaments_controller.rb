@@ -3,8 +3,9 @@ class TournamentsController < ApplicationController
   attr_accessor :tournament
 
   def index
-    tournaments = Tournament.includes(:config_items).available.order(start_date: :asc)
-    render json: TournamentBlueprint.render(tournaments, view: :list, **url_options)
+    tournaments = Rails.env.development? ? Tournament.all.order(start_date: :asc)
+                    :  Tournament.includes(:config_items).available.order(start_date: :asc)
+    render json: TournamentSerializer.new(tournaments, params: url_options)
   end
 
   def show
