@@ -3,6 +3,7 @@
 class TournamentDetailSerializer < TournamentSerializer
   # attributes :testing_environment
 
+
   many :contacts, resource: ContactSerializer
   many :purchasable_items,
     proc { |purchasable_items, params, tournament|

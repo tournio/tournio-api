@@ -37,6 +37,8 @@ class TournamentSerializer < JsonSerializer
     :timezone,
     :team_size
 
+  many :events, resource: EventSerializer
+
   # Seems silly to use a block for this, but oh well. Implementation via DSL would wind up
   # doing the same thing, I suppose.
   attribute :state do |t|
@@ -54,7 +56,7 @@ class TournamentSerializer < JsonSerializer
   end
 
   attribute :config do |t|
-    %i(accept_payments display_capacity publicly_listed email_in_dev website enable_unpaid_signups tournament_type).each_with_object({}) do |key, hash|
+    %i(accept_payments bowler_form_fields display_capacity email_in_dev enable_unpaid_signups publicly_listed tournament_type website).each_with_object({}) do |key, hash|
       hash[key] = t.config[key]
     end
   end
