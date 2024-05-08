@@ -33,7 +33,7 @@ class Tournament < ApplicationRecord
 
   belongs_to :tournament_org
 
-  has_many :additional_questions, dependent: :destroy
+  has_many :additional_questions, -> {order(order: :asc)}, dependent: :destroy
   has_many :bowlers, dependent: :destroy
   has_many :config_items, dependent: :destroy
   has_many :contacts, -> { order(role: :asc)}, dependent: :destroy
