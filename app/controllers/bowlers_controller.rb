@@ -58,7 +58,7 @@ class BowlersController < ApplicationController
     render json: ListBowlerSerializer.new(list, within: {
       doubles_partner: :doubles_partner,
       team: :team,
-    }).as_json, status: :ok
+    }), status: :ok
   end
 
   def create
