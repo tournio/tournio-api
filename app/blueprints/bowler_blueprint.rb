@@ -60,6 +60,8 @@ class BowlerBlueprint < Blueprinter::Base
     association :paid_purchases, blueprint: PurchaseBlueprint do |bowler, _|
       bowler.purchases.includes(:purchasable_item).paid.order(paid_at: :asc)
     end
+
+    association :shifts, blueprint: ShiftBlueprint
   end
 
   view :director_list do

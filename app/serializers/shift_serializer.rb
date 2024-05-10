@@ -33,6 +33,7 @@ class ShiftSerializer < JsonSerializer
     :event_string
 
   attribute :tally do |shift|
+    # We'll need to figure out how to incorporate bowlers into this, if at all.
     shift.teams.count
   end
 end

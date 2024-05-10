@@ -42,6 +42,13 @@ FactoryBot.define do
 
     tournament_org
 
+    # @single-event This seems like it'll break things by accident. Let's see if we can get rid of it.
+    #
+    # Every tournament needs at least one shift now, if only to specify capacity
+    after(:create) do |t, _|
+      create :shift, tournament: t
+    end
+
     trait :demo do
       aasm_state { :demo }
     end
@@ -65,13 +72,26 @@ FactoryBot.define do
       entry_deadline { Date.today - 20.days }
     end
 
-    # Every tournament needs at least one shift now, if only to specify capacity
-    after(:create) do |t, _|
-      create :shift, tournament: t
+    trait :with_standard_events do
+      after(:create) do |t, _|
+        create :event, :singles, tournament: t
+        create :event, :doubles, tournament: t
+        create :event, :team, tournament: t
+      end
+    end
+
+    trait :single_event_single_roster do
+      after(:create) do |t, _|
+        create :event, :singles, tournament: t
+        t.shifts.map { |s| s.update(events: t.events) }
+      end
     end
 
     trait :one_shift do
       # nothing more to do
+      after(:create) do |t, _|
+        t.config_items << ConfigItem.new(key: 'tournament_type', value: Tournament::IGBO_MULTI_SHIFT)
+      end
     end
 
     trait :one_small_shift do
@@ -82,16 +102,8 @@ FactoryBot.define do
 
     trait :two_shifts do
       after(:create) do |t, _|
-        t.config_items.find_by(key: 'tournament_type').update(value: Tournament::IGBO_MULTI_SHIFT)
+        t.config_items << ConfigItem.new(key: 'tournament_type', value: Tournament::IGBO_MULTI_SHIFT)
         create :shift, tournament: t, name: 'Second Shift', display_order: 2
-      end
-    end
-
-    trait :with_standard_events do
-      after(:create) do |t, _|
-        create :event, :singles, tournament: t
-        create :event, :doubles, tournament: t
-        create :event, :team, tournament: t
       end
     end
 

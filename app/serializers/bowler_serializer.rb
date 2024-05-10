@@ -34,6 +34,9 @@ class BowlerSerializer < JsonSerializer
     :preferred_name,
     :usbc_id
 
+  many :shifts, resource: ShiftSerializer
+  one :team, resource: TeamSerializer
+
   attribute :registered_on do |b|
     b.created_at.strftime('%F')
   end

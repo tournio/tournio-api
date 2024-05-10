@@ -50,7 +50,7 @@ describe BowlersController, type: :request do
     subject { post uri, params: bowler_params, as: :json }
 
     let(:uri) { "/tournaments/#{tournament.identifier}/bowlers" }
-    let(:tournament) { create :tournament, :active, :with_entry_fee, :with_additional_questions }
+    let(:tournament) { create :tournament, :active, :with_entry_fee, :one_shift, :with_additional_questions }
 
     context 'adding a bowler to a team' do
       let!(:team) { create :team, :standard_three_bowlers, tournament: tournament }
@@ -201,10 +201,11 @@ describe BowlersController, type: :request do
     end
 
     context 'registering as an individual' do
+      let(:shift_params) { {} }
       let(:bowler_params) do
         {
           bowlers: [
-            create_bowler_test_data
+            create_bowler_test_data.merge(shift_params)
           ],
         }
       end
@@ -236,7 +237,6 @@ describe BowlersController, type: :request do
         subject
         expect(DataPoint.last.value).to eq('solo')
       end
-
 
       context 'sneaking some trailing whitespace in on the email address' do
         before do
@@ -272,6 +272,40 @@ describe BowlersController, type: :request do
 
         it 'does not create any entry-fee purchases' do
           expect { subject }.not_to change(Purchase, :count)
+        end
+      end
+
+      context 'a tournament with just a single-roster event' do
+        let(:tournament) { create :tournament, :active, :with_entry_fee, :with_additional_questions, :single_event_single_roster }
+        let(:shift_params) do
+          {
+            shift_identifiers: tournament.shifts.collect(&:identifier),
+          }
+        end
+
+        it 'includes a shifts key' do
+          subject
+          expect(json[0]).to have_key('shifts')
+        end
+
+        it 'associates the bowler with the indicated shift' do
+          subject
+          returned_identifiers = json[0]['shifts'].collect { |arr| arr['identifier'] }
+          expect(returned_identifiers).to match_array(tournament.shifts.collect(&:identifier))
+        end
+
+        context 'and multiple shifts' do
+          let(:tournament) { create :tournament, :active, :with_entry_fee, :two_shifts, :with_additional_questions, :single_event_single_roster }
+          let(:shift_params) do
+            {
+              shift_identifiers: [tournament.shifts.first.identifier],
+            }
+          end
+
+          it 'associates the bowler with the indicated shift' do
+            subject
+            expect(json[0]['shifts'][0]['identifier']).to eq(tournament.shifts.first.identifier)
+          end
         end
       end
     end

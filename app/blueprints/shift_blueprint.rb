@@ -7,4 +7,8 @@ class ShiftBlueprint < Blueprinter::Base
   field :team_count do |shift, _|
     shift.teams.count
   end
+
+  field :bowler_count do |shift, _|
+    shift.bowlers.count
+  end
 end
