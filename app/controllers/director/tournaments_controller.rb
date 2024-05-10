@@ -204,50 +204,53 @@ module Director
         end
       end if updates[:additional_questions_attributes].present?
 
-      purchasable_items_to_create = []
-      updates[:events_attributes].each do |ea|
-        if !ea[:required].nil? && (ea[:required] == 'false' || !ea[:required])
-          if ea[:scratch_division_entry_fees].present?
-            ea[:scratch_division_entry_fees].each do |sdef|
-              division = tournament.scratch_divisions.find(sdef[:id])
-              note = "Averages "
-              if division.low_average == 0
-                note += "#{division.high_average} and under"
-              elsif division.high_average == 300
-                note += "#{division.low_average} and up"
-              else
-                note += "#{division.low_average} - #{division.high_average}"
-              end
-              purchasable_items_to_create << PurchasableItem.new(
-                tournament: tournament,
-                category: :bowling,
-                determination: :single_use,
-                refinement: :division,
-                name: ea[:name],
-                value: sdef[:fee],
-                configuration: {
-                  division: division.key,
-                  note: note,
-                }
-              )
-            end
-            ea.delete :scratch_division_entry_fees
-          else
-            purchasable_items_to_create << PurchasableItem.new(
-              tournament: tournament,
-              category: :bowling,
-              determination: :single_use,
-              refinement: ea[:roster_type],
-              name: ea[:name],
-              value: ea[:entry_fee]
-            )
-            ea.delete :entry_fee
-          end
-        end
-      end if updates[:events_attributes].present?
+      # I was getting ahead of myself here. I might revisit this if I ever come around
+      # to supporting the running of a tournament, rather than simply registration.
+      #
+      # purchasable_items_to_create = []
+      # updates[:events_attributes].each do |ea|
+      #   if !ea[:required].nil? && (ea[:required] == 'false' || !ea[:required])
+      #     if ea[:scratch_division_entry_fees].present?
+      #       ea[:scratch_division_entry_fees].each do |sdef|
+      #         division = tournament.scratch_divisions.find(sdef[:id])
+      #         note = "Averages "
+      #         if division.low_average == 0
+      #           note += "#{division.high_average} and under"
+      #         elsif division.high_average == 300
+      #           note += "#{division.low_average} and up"
+      #         else
+      #           note += "#{division.low_average} - #{division.high_average}"
+      #         end
+      #         purchasable_items_to_create << PurchasableItem.new(
+      #           tournament: tournament,
+      #           category: :bowling,
+      #           determination: :single_use,
+      #           refinement: :division,
+      #           name: ea[:name],
+      #           value: sdef[:fee],
+      #           configuration: {
+      #             division: division.key,
+      #             note: note,
+      #           }
+      #         )
+      #       end
+      #       ea.delete :scratch_division_entry_fees
+      #     else
+      #       purchasable_items_to_create << PurchasableItem.new(
+      #         tournament: tournament,
+      #         category: :bowling,
+      #         determination: :single_use,
+      #         refinement: ea[:roster_type],
+      #         name: ea[:name],
+      #         value: ea[:entry_fee]
+      #       )
+      #       ea.delete :entry_fee
+      #     end
+      #   end
+      # end if updates[:events_attributes].present?
 
       tournament.update(updates)
-      purchasable_items_to_create.map(&:save!)
+      # purchasable_items_to_create.map(&:save!)
 
       render json: TournamentBlueprint.render(tournament.reload, view: :director_detail, director?: true, **url_options)
     end
