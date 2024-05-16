@@ -18,6 +18,6 @@
 #
 FactoryBot.define do
   factory :stripe_account do
-    tournament_org
+    identifier { 'herpaderp' }
   end
 end

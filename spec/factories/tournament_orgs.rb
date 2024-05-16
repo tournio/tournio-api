@@ -15,5 +15,7 @@
 FactoryBot.define do
   factory :tournament_org do
     name { 'An All-Powerful Tournament Organization' }
+
+    association :stripe_account, strategy: :create
   end
 end

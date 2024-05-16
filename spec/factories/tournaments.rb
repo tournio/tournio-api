@@ -38,9 +38,9 @@ FactoryBot.define do
     entry_deadline { Date.today + 80.days }
 
     # to be removed
-    association :stripe_account, strategy: :build
+    # association :stripe_account, strategy: :build
 
-    tournament_org
+    association :tournament_org, strategy: :create
 
     trait :demo do
       aasm_state { :demo }
