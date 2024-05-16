@@ -40,7 +40,7 @@ FactoryBot.define do
     # to be removed
     # association :stripe_account, strategy: :build
 
-    association :tournament_org, strategy: :create
+    tournament_org
 
     trait :demo do
       aasm_state { :demo }

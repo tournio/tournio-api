@@ -18,6 +18,6 @@
 #
 FactoryBot.define do
   factory :stripe_account do
-    identifier { 'herpaderp' }
+    sequence(:identifier) { |n| "herpaderp-#{n}" }
   end
 end
