@@ -15,5 +15,7 @@
 FactoryBot.define do
   factory :tournament_org do
     name { 'An All-Powerful Tournament Organization' }
+
+    stripe_account
   end
 end

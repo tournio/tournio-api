@@ -38,7 +38,7 @@ FactoryBot.define do
     entry_deadline { Date.today + 80.days }
 
     # to be removed
-    association :stripe_account, strategy: :build
+    # association :stripe_account, strategy: :build
 
     tournament_org
 
