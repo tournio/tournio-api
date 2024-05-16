@@ -156,9 +156,9 @@ describe Director::TournamentsController, type: :controller do
       get :stripe_status, params: { identifier: tournament.identifier }
     end
 
-    let(:tournament_org) { create :tournament_org }
-    let(:stripe_account) { create :stripe_account, tournament_org: tournament_org }
-    let(:tournament) { create :tournament, tournament_org: tournament_org }
+    let(:tournament) { create :tournament }
+    let(:tournament_org) { tournament.tournament_org }
+    let(:stripe_account) { tournament_org.stripe_account }
     let(:stripe_response_obj) do
       {
         id: stripe_account.identifier,
@@ -237,18 +237,16 @@ describe Director::TournamentsController, type: :controller do
     end
 
     context 'when we are no longer able to make charges' do
-      let(:stripe_account) do
-        create :stripe_account,
-          tournament_org: tournament_org,
-          onboarding_completed_at: 2.weeks.ago
-      end
-
       let(:stripe_response_obj) do
         {
           id: stripe_account.identifier,
           charges_enabled: false,
           details_submitted: true,
         }
+      end
+
+      before do
+        tournament_org.stripe_account.update(onboarding_completed_at: 2.weeks.ago)
       end
 
       it 'clears out the onboarding_completed_at time' do

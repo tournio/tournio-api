@@ -86,7 +86,7 @@ module Director
       # Deal with the item's Stripe products. (Parent of children won't have one.)
       if item.bundle_discount? || item.early_discount?
         if item.stripe_coupon.present?
-          Stripe::CouponDestroyer.perform_async(item.stripe_coupon.coupon_id, tournament.stripe_account.identifier)
+          Stripe::CouponDestroyer.perform_async(item.stripe_coupon.coupon_id, tournament.tournament_org.stripe_account.identifier)
           item.stripe_coupon.destroy
         end
         Stripe::CouponCreator.perform_async(item.id) unless tournament.config['skip_stripe']
@@ -128,12 +128,12 @@ module Director
       unless tournament.active? || tournament.closed?
         if pi.bundle_discount? || pi.early_discount?
           if pi.stripe_coupon.present?
-            Stripe::CouponDestroyer.perform_in(Rails.configuration.sidekiq_async_delay, pi.stripe_coupon.coupon_id, tournament.stripe_account.identifier)
+            Stripe::CouponDestroyer.perform_in(Rails.configuration.sidekiq_async_delay, pi.stripe_coupon.coupon_id, tournament.tournament_org.stripe_account.identifier)
             pi.stripe_coupon.destroy
           end
         else
           if pi.stripe_product.present?
-            Stripe::ProductDeactivator.perform_in(Rails.configuration.sidekiq_async_delay, pi.stripe_product.id, tournament.stripe_account.identifier)
+            Stripe::ProductDeactivator.perform_in(Rails.configuration.sidekiq_async_delay, pi.stripe_product.id, tournament.tournament_org.stripe_account.identifier)
           end
         end
 
@@ -250,7 +250,7 @@ module Director
       # delete children (and clean up Stripe products)
       item.children.each do |pi|
         if pi.stripe_product.present?
-          Stripe::ProductDeactivator.perform_in(Rails.configuration.sidekiq_async_delay, pi.stripe_product.id, tournament.stripe_account.identifier)
+          Stripe::ProductDeactivator.perform_in(Rails.configuration.sidekiq_async_delay, pi.stripe_product.id, tournament.tournament_org.stripe_account.identifier)
         end
       end
       item.children.destroy_all

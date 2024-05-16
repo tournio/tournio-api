@@ -18,6 +18,6 @@
 #
 FactoryBot.define do
   factory :stripe_account do
-    tournament_org
+    sequence(:identifier) { |n| "herpaderp-#{n}" }
   end
 end
