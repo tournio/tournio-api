@@ -33,11 +33,11 @@ class ShiftSerializer < JsonSerializer
     :event_string
 
   attribute :tally do |shift|
-    # We'll need to figure out how to incorporate bowlers into this, if at all.
-    # Maybe the tally will vary by tournament type:
-    #  - use teams for standard & single-event tournaments where the roster type is teams
-    #  - use bowlers for single-event tournaments where the roster type is singles
-    #  - use pairs for ... you get it.
-    shift.teams.count + shift.bowlers.count
+    # @doubles Do we want to handle doubles-only events differently?
+    if shift.events.team.any?
+      shift.teams.count
+    else
+      shift.bowlers.count
+    end
   end
 end
