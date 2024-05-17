@@ -37,6 +37,7 @@ class TournamentSerializer < JsonSerializer
     :timezone,
     :team_size
 
+  many :additional_questions, resource: AdditionalQuestionSerializer
   many :events, resource: EventSerializer
 
   # Seems silly to use a block for this, but oh well. Implementation via DSL would wind up
