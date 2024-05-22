@@ -398,7 +398,7 @@ describe Director::TournamentsController, type: :request do
 
     let(:uri) { "/director/tournaments/#{tournament.identifier}" }
 
-    let!(:tournament) { create :tournament, :with_standard_events }
+    let!(:tournament) { create :tournament, :with_standard_events, :one_shift, :with_entry_fee }
     let(:eff) { create :extended_form_field }
     let(:params) do
       {
@@ -654,65 +654,67 @@ describe Director::TournamentsController, type: :request do
       end
     end
 
-    context 'creating additional events' do
-      let(:divA) { create :scratch_division, key: 'A', tournament: tournament }
-      let(:divB) { create :scratch_division, key: 'B', tournament: tournament }
-      let(:divC) { create :scratch_division, key: 'C', tournament: tournament }
-      let(:params) do
-        {
-          tournament: {
-            events_attributes: [
-              {
-                roster_type: 'single',
-                name: '9-pin No-Tap Mixer',
-                required: false,
-                entry_fee: 25, # this is not a model attribute
-              },
-              {
-                roster_type: 'single',
-                name: 'Scratch Masters',
-                required: false,
-                scratch: true,
-                scratch_division_entry_fees: [ # this is also not a model attribute
-                  {
-                    id: divA.id,
-                    fee: 50,
-                  },
-                  {
-                    id: divB.id,
-                    fee: 40,
-                  },
-                  {
-                    id: divC.id,
-                    fee: 30,
-                  },
-                ],
-              },
-            ],
-          },
-        }
-      end
-
-      it 'creates 2 events' do
-        expect { subject }.to change(Event, :count).by(2)
-      end
-
-      it 'links them with the tournament' do
-        expect { subject }.to change { tournament.events.count }.by(2)
-      end
-
-      it 'marks them as optional' do
-        expect { subject }.to change { tournament.events.optional.count }.by(2)
-      end
-
-      it 'creates PurchasableItems for each event' do
-        expect { subject }.to change(PurchasableItem, :count).by(4)
-      end
-
-      it 'creates a PurchasableItems for each event division' do
-        expect { subject }.to change { tournament.purchasable_items.division.count }.by(3)
-      end
-    end
+    # I was getting ahead of myself here. I might revisit this if I ever come around
+    # to supporting the running of a tournament, rather than simply registration.
+    # context 'creating additional events' do
+    #   let(:divA) { create :scratch_division, key: 'A', tournament: tournament }
+    #   let(:divB) { create :scratch_division, key: 'B', tournament: tournament }
+    #   let(:divC) { create :scratch_division, key: 'C', tournament: tournament }
+    #   let(:params) do
+    #     {
+    #       tournament: {
+    #         events_attributes: [
+    #           {
+    #             roster_type: 'single',
+    #             name: '9-pin No-Tap Mixer',
+    #             required: false,
+    #             entry_fee: 25, # this is not a model attribute
+    #           },
+    #           {
+    #             roster_type: 'single',
+    #             name: 'Scratch Masters',
+    #             required: false,
+    #             scratch: true,
+    #             scratch_division_entry_fees: [ # this is also not a model attribute
+    #               {
+    #                 id: divA.id,
+    #                 fee: 50,
+    #               },
+    #               {
+    #                 id: divB.id,
+    #                 fee: 40,
+    #               },
+    #               {
+    #                 id: divC.id,
+    #                 fee: 30,
+    #               },
+    #             ],
+    #           },
+    #         ],
+    #       },
+    #     }
+    #   end
+    #
+    #   it 'creates 2 events' do
+    #     expect { subject }.to change(Event, :count).by(2)
+    #   end
+    #
+    #   it 'links them with the tournament' do
+    #     expect { subject }.to change { tournament.events.count }.by(2)
+    #   end
+    #
+    #   it 'marks them as optional' do
+    #     expect { subject }.to change { tournament.events.optional.count }.by(2)
+    #   end
+    #
+    #   it 'creates PurchasableItems for each event' do
+    #     expect { subject }.to change(PurchasableItem, :count).by(4)
+    #   end
+    #
+    #   it 'creates a PurchasableItems for each event division' do
+    #     expect { subject }.to change { tournament.purchasable_items.division.count }.by(3)
+    #   end
+    # end
 
     context 'creating shifts' do
       context 'just one more' do
