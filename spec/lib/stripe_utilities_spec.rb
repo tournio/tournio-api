@@ -10,7 +10,7 @@ RSpec.describe StripeUtilities do
   end
   let(:dummy_obj) { dummy_class.new }
 
-  let(:tournament) { create :tournament }
+  let(:tournament) { create :one_shift_standard_tournament }
 
   describe '#build_checkout_session_items' do
     subject do
@@ -177,7 +177,6 @@ RSpec.describe StripeUtilities do
           ],
         })
       end
-
     end
   end
 end

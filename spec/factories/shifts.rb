@@ -26,6 +26,8 @@ FactoryBot.define do
     description { 'One event on Friday, the other two on Saturday' }
     name { 'Main' }
 
+    tournament
+
     trait :full do
       is_full { true }
     end

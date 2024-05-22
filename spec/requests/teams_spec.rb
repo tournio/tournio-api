@@ -12,8 +12,8 @@ describe TeamsController, type: :request do
     subject { post uri, params: new_team_params, as: :json }
 
     let(:uri) { "/tournaments/#{tournament.identifier}/teams" }
-    let(:tournament) { create :tournament, :active }
-    let!(:shift) { tournament.shifts.first }
+    let(:tournament) { create :one_shift_standard_tournament, :active }
+    let(:shift) { tournament.shifts.first }
 
     before do
       comment = create(:extended_form_field, :comment)
@@ -152,7 +152,11 @@ describe TeamsController, type: :request do
     end
 
     context 'a tournament with multiple inclusive shifts' do
-      let(:tournament) { create :tournament, :active, :two_shifts }
+      let(:tournament) { create :multi_shift_standard_tournament, :active, :two_shifts }
+
+      before do
+        tournament.shifts.map { |s| s.update(events: tournament.events) }
+      end
 
       context 'when a shift is full' do
         before do
@@ -272,7 +276,7 @@ describe TeamsController, type: :request do
     subject { get uri, headers: headers, as: :json }
 
     let(:uri) { "/teams/#{team.identifier}" }
-    let(:tournament) { create :tournament, :active }
+    let(:tournament) { create :one_shift_standard_tournament, :active }
     let!(:team) { create :team, :standard_full_team, tournament: tournament }
     let(:expected_keys) { %w(identifier name initial_size bowlers) }
 
@@ -315,10 +319,11 @@ describe TeamsController, type: :request do
     end
 
     context 'in a tournament with a shift preference for all events' do
-      let(:tournament) { create :tournament, :active, :two_shifts }
+      let(:tournament) { create :multi_shift_standard_tournament, :active, :two_shifts }
       let(:shift) { tournament.shifts.last }
 
       before do
+        tournament.shifts.map { |s| s.update(events: tournament.events) }
         team.shifts << shift
       end
 

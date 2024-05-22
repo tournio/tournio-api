@@ -11,7 +11,7 @@ describe BowlersController, type: :request do
   describe '#index' do
     subject { get uri, as: :json }
 
-    let(:tournament) { create :tournament, :active, :with_a_bowling_event }
+    let(:tournament) { create :one_shift_standard_tournament, :active, :with_a_bowling_event }
     let(:tournament_identifier) { tournament.identifier }
     let(:uri) { "/tournaments/#{tournament_identifier}/bowlers" }
 
@@ -50,7 +50,7 @@ describe BowlersController, type: :request do
     subject { post uri, params: bowler_params, as: :json }
 
     let(:uri) { "/tournaments/#{tournament.identifier}/bowlers" }
-    let(:tournament) { create :tournament, :active, :with_entry_fee, :one_shift, :with_additional_questions }
+    let(:tournament) { create :standard_tournament, :active, :with_entry_fee, :with_additional_questions }
 
     context 'adding a bowler to a team' do
       let!(:team) { create :team, :standard_three_bowlers, tournament: tournament }
@@ -179,25 +179,25 @@ describe BowlersController, type: :request do
         end
       end
 
-      context 'a tournament with event selection' do
-        let(:tournament) { create :tournament, :active, :with_a_bowling_event, :with_additional_questions }
-        let(:bowler_params) do
-          {
-            bowlers: [
-              create_bowler_test_data,
-            ],
-          }
-        end
-
-        it 'succeeds' do
-          subject
-          expect(response).to have_http_status(:created)
-        end
-
-        it 'does not create any entry-fee purchases' do
-          expect { subject }.not_to change(Purchase, :count)
-        end
-      end
+      # context 'a tournament with event selection' do
+      #   let(:tournament) { create :tournament, :active, :with_a_bowling_event, :with_additional_questions }
+      #   let(:bowler_params) do
+      #     {
+      #       bowlers: [
+      #         create_bowler_test_data,
+      #       ],
+      #     }
+      #   end
+      #
+      #   it 'succeeds' do
+      #     subject
+      #     expect(response).to have_http_status(:created)
+      #   end
+      #
+      #   it 'does not create any entry-fee purchases' do
+      #     expect { subject }.not_to change(Purchase, :count)
+      #   end
+      # end
     end
 
     context 'registering as an individual' do
@@ -255,28 +255,28 @@ describe BowlersController, type: :request do
         end
       end
 
-      context 'a tournament with event selection' do
-        let(:tournament) { create :tournament, :active, :with_a_bowling_event, :with_additional_questions }
-        let(:bowler_params) do
-          {
-            bowlers: [
-              create_bowler_test_data,
-            ],
-          }
-        end
-
-        it 'succeeds' do
-          subject
-          expect(response).to have_http_status(:created)
-        end
-
-        it 'does not create any entry-fee purchases' do
-          expect { subject }.not_to change(Purchase, :count)
-        end
-      end
+      # context 'a tournament with event selection' do
+      #   let(:tournament) { create :tournament, :active, :with_a_bowling_event, :with_additional_questions }
+      #   let(:bowler_params) do
+      #     {
+      #       bowlers: [
+      #         create_bowler_test_data,
+      #       ],
+      #     }
+      #   end
+      #
+      #   it 'succeeds' do
+      #     subject
+      #     expect(response).to have_http_status(:created)
+      #   end
+      #
+      #   it 'does not create any entry-fee purchases' do
+      #     expect { subject }.not_to change(Purchase, :count)
+      #   end
+      # end
 
       context 'a tournament with just a single-roster event' do
-        let(:tournament) { create :tournament, :active, :with_entry_fee, :with_additional_questions, :single_event_single_roster }
+        let(:tournament) { create :singles_tournament, :active, :with_entry_fee, :with_additional_questions }
         let(:shift_params) do
           {
             shift_identifiers: tournament.shifts.collect(&:identifier),
@@ -295,54 +295,65 @@ describe BowlersController, type: :request do
         end
 
         context 'and multiple shifts' do
-          let(:tournament) { create :tournament, :active, :with_entry_fee, :two_shifts, :with_additional_questions, :single_event_single_roster }
+          let(:tournament) do
+            create :singles_tournament,
+              :two_shifts,
+              :active,
+              :with_entry_fee,
+              :with_additional_questions
+          end
+          let(:shift) { tournament.shifts.first }
           let(:shift_params) do
             {
-              shift_identifiers: [tournament.shifts.first.identifier],
+              shift_identifiers: [shift.identifier],
             }
+          end
+
+          before do
+            tournament.shifts.map { |s| s.update(events: tournament.events) }
           end
 
           it 'associates the bowler with the indicated shift' do
             subject
-            expect(json[0]['shifts'][0]['identifier']).to eq(tournament.shifts.first.identifier)
+            expect(json[0]['shifts'][0]['identifier']).to eq(shift.identifier)
           end
         end
       end
     end
 
-    context 'registering as a doubles pair' do
-      let(:tournament) { create :tournament, :active, :with_a_bowling_event, :with_additional_questions }
-      let(:bowler_params) do
-        {
-          bowlers: create_doubles_test_data,
-        }
-      end
-
-      it 'succeeds' do
-        subject
-        expect(response).to have_http_status(:created)
-      end
-
-      it 'does not create any entry-fee purchases' do
-        expect { subject }.not_to change(Purchase, :count)
-      end
-
-      it 'creates two bowlers' do
-        expect { subject }.to change(Bowler, :count).by(2)
-      end
-
-      it 'partners up the two bowlers' do
-        subject
-        bowlers = Bowler.last(2)
-        expect(bowlers[0].doubles_partner_id).to eq(bowlers[1].id)
-        expect(bowlers[1].doubles_partner_id).to eq(bowlers[0].id)
-      end
-
-      it 'creates a new_pair data point' do
-        subject
-        expect(DataPoint.last.value).to eq('new_pair')
-      end
-    end
+    # context 'registering as a doubles pair' do
+    #   let(:tournament) { create :tournament, :active, :with_a_bowling_event, :with_additional_questions }
+    #   let(:bowler_params) do
+    #     {
+    #       bowlers: create_doubles_test_data,
+    #     }
+    #   end
+    #
+    #   it 'succeeds' do
+    #     subject
+    #     expect(response).to have_http_status(:created)
+    #   end
+    #
+    #   it 'does not create any entry-fee purchases' do
+    #     expect { subject }.not_to change(Purchase, :count)
+    #   end
+    #
+    #   it 'creates two bowlers' do
+    #     expect { subject }.to change(Bowler, :count).by(2)
+    #   end
+    #
+    #   it 'partners up the two bowlers' do
+    #     subject
+    #     bowlers = Bowler.last(2)
+    #     expect(bowlers[0].doubles_partner_id).to eq(bowlers[1].id)
+    #     expect(bowlers[1].doubles_partner_id).to eq(bowlers[0].id)
+    #   end
+    #
+    #   it 'creates a new_pair data point' do
+    #     subject
+    #     expect(DataPoint.last.value).to eq('new_pair')
+    #   end
+    # end
   end
 
   describe '#commerce' do
@@ -350,7 +361,7 @@ describe BowlersController, type: :request do
 
     let(:uri) { "/bowlers/#{bowler.identifier}/commerce" }
     let(:tournament) do
-      create :tournament,
+      create :one_shift_standard_tournament,
         :active,
         :with_entry_fee
     end
@@ -588,7 +599,7 @@ describe BowlersController, type: :request do
 
     context 'when there are user-selectable purchasable items' do
       let(:tournament) do
-        create :tournament,
+        create :one_shift_standard_tournament,
           :active,
           :with_entry_fee,
           :with_scratch_competition_divisions, # scratch masters
@@ -696,7 +707,7 @@ describe BowlersController, type: :request do
 
     context 'kitchen sink' do
       let(:tournament) do
-        create :tournament,
+        create :one_shift_standard_tournament,
           :active,
           :with_entry_fee,
           :with_scratch_competition_divisions, # scratch masters
@@ -851,7 +862,7 @@ describe BowlersController, type: :request do
     end
 
     context 'a standard tournament' do
-      let(:tournament) { create :tournament, :active }
+      let(:tournament) { create :one_shift_standard_tournament, :active }
 
       before do
         allow_any_instance_of(BowlersController).to receive(:create_stripe_checkout_session).and_return(

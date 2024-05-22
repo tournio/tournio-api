@@ -126,7 +126,7 @@ RSpec.describe TournamentRegistration do
 
     # cleaned_up_form_data is defined in api_team_spec_helper.rb
     let(:form_data) { full_team_cleaned_up_form_data }
-    let(:tournament) { create :tournament, :active }
+    let(:tournament) { create :one_shift_standard_tournament, :active }
     let(:team) { Team.new(form_data.merge(tournament: tournament, shift_id: tournament.shifts.first.id)) }
 
     before do
@@ -440,7 +440,7 @@ RSpec.describe TournamentRegistration do
   describe '#complete_doubles_link' do
     subject { subject_class.complete_doubles_link(new_bowler) }
 
-    let(:tournament) { create :tournament, :active }
+    let(:tournament) { create :one_shift_standard_tournament, :active }
     let(:team) { create :team, tournament: tournament, shifts: [tournament.shifts.first] }
 
     context 'when no partner is available' do
@@ -762,7 +762,7 @@ RSpec.describe TournamentRegistration do
   describe '#try_assigning_automatic_partners' do
     subject { subject_class.try_assigning_automatic_partners(team) }
 
-    let(:tournament) { create :tournament, :active }
+    let(:tournament) { create :one_shift_standard_tournament, :active }
     let(:team) { create :team, tournament: tournament, shifts: [tournament.shifts.first] }
 
     context 'when the team is not yet full' do

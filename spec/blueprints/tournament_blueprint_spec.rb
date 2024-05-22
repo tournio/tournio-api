@@ -4,7 +4,7 @@ describe TournamentBlueprint do
   describe 'configuration items exposed as top-level properties' do
     let(:config_keys) { %i(abbreviation display_capacity email_in_dev end_date entry_deadline location start_date team_size timezone website) }
 
-    let(:tournament) { create(:tournament, :active, :one_small_shift) }
+    let(:tournament) { create(:one_shift_standard_tournament, :active, :one_small_shift) }
     let(:start_date) { (Date.today + 30.days).iso8601 }
     let(:end_date) { (Date.today + 32.days).iso8601 }
     let(:entry_deadline) { (Time.zone.today + 20.days).iso8601 }

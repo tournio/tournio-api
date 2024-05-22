@@ -2,7 +2,7 @@ require 'rails_helper'
 
 describe ShiftBlueprint do
   describe 'non-attribute fields' do
-    let(:tournament) { create(:tournament, :active) }
+    let(:tournament) { create(:one_shift_standard_tournament, :active) }
     let(:shift) { tournament.shifts.first }
 
     let(:team_count) { 16 }

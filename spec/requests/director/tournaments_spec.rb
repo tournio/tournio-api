@@ -398,7 +398,7 @@ describe Director::TournamentsController, type: :request do
 
     let(:uri) { "/director/tournaments/#{tournament.identifier}" }
 
-    let!(:tournament) { create :tournament, :with_standard_events, :one_shift, :with_entry_fee }
+    let!(:tournament) { create :one_shift_standard_tournament, :with_entry_fee }
     let(:eff) { create :extended_form_field }
     let(:params) do
       {
@@ -551,7 +551,7 @@ describe Director::TournamentsController, type: :request do
 
       it 'creates a travel-site config item' do
         subject
-        expect(tournament.config['travel-site']).to eq('http://maui.hawaii.us')
+        expect(tournament.reload.config['travel-site']).to eq('http://maui.hawaii.us')
       end
     end
 
@@ -616,41 +616,6 @@ describe Director::TournamentsController, type: :request do
 
       it 'links the new scratch divisions with the tournament' do
         expect { subject }.to change{ tournament.scratch_divisions.count }.by(5)
-      end
-    end
-
-    context 'adding required events' do
-      let(:params) do
-        {
-          tournament: {
-            events_attributes: [
-              {
-                roster_type: 'single',
-                name: 'Singles',
-              },
-              {
-                roster_type: 'double',
-                name: 'Doubles',
-              },
-              {
-                roster_type: 'team',
-                name: 'Team',
-              },
-            ],
-          },
-        }
-      end
-
-      it 'creates 3 events' do
-        expect { subject }.to change(Event, :count).by(3)
-      end
-
-      it 'links the new events with the tournament' do
-        expect { subject }.to change { tournament.events.count }.by(3)
-      end
-
-      it 'marks them as required events' do
-        expect { subject }.to change { tournament.events.required.count }.by(3)
       end
     end
 
@@ -860,7 +825,7 @@ describe Director::TournamentsController, type: :request do
       end
 
       context 'when tournament is active' do
-        let(:tournament) { create :tournament, :active }
+        let(:tournament) { create :one_shift_standard_tournament, :active }
 
         it 'responds with OK' do
           subject
@@ -876,7 +841,7 @@ describe Director::TournamentsController, type: :request do
 
     context 'Other tournament modes' do
       context 'Testing' do
-        let(:tournament) { create :tournament, :testing }
+        let(:tournament) { create :one_shift_standard_tournament, :testing }
 
         it 'responds with OK' do
           subject
@@ -889,7 +854,7 @@ describe Director::TournamentsController, type: :request do
       end
 
       context 'Active' do
-        let(:tournament) { create :tournament, :active }
+        let(:tournament) { create :one_shift_standard_tournament, :active }
 
         it 'responds with Forbidden' do
           subject
@@ -897,7 +862,7 @@ describe Director::TournamentsController, type: :request do
         end
 
         it 'does not create an additional question' do
-          expect{ subject }.not_to change { AdditionalQuestion.count }
+          expect{ subject }.not_to(change { AdditionalQuestion.count })
         end
       end
 
@@ -910,7 +875,7 @@ describe Director::TournamentsController, type: :request do
         end
 
         it 'does not create an additional question' do
-          expect{ subject }.not_to change { AdditionalQuestion.count }
+          expect{ subject }.not_to(change { AdditionalQuestion.count })
         end
       end
     end

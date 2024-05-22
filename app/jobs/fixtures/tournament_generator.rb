@@ -65,8 +65,12 @@ module Fixtures
       abbr = name.scan(/[[:upper:]]/).join unless name.nil?
       self.tournament = FactoryBot.create :tournament,
         :active,
-        :one_shift,
+        :standard,
+        :with_standard_events,
         # :one_small_shift,
+        # :standard_multi_shift,
+        # :two_shifts
+        # :mix_and_match_shifts,
         :with_entry_fee,
         :with_scratch_competition_divisions,
         :with_extra_stuff,
@@ -74,7 +78,8 @@ module Fixtures
         abbreviation: abbr,
         identifier: "#{abbr.downcase}-#{(Date.today + 90.days).year}",
         location: location[:location],
-        timezone: location[:timezone]
+        timezone: location[:timezone],
+        tournament_org: TournamentOrg.all.sample
 
       FactoryBot.create :config_item, tournament: tournament, key: 'team_size', value: 4, label: 'Team Size'
       FactoryBot.create :config_item, tournament: tournament, key: 'website', value: 'http://www.tourn.io', label: 'Website'

@@ -9,9 +9,8 @@ RSpec.describe SchedulePurchaseVoidsJob, type: :job do
     let(:wall_clock_time) { Time.zone.parse('2022-12-28T18:37:00-04:00') }
     let(:valid_until) { '2022-12-28T12:37:00-04:00' }
     let(:tournament) do
-      create :tournament,
+      create :one_shift_standard_tournament,
         :active,
-        :one_shift,
         :with_entry_fee
     end
     let(:item_to_void) { tournament.purchasable_items.entry_fee.first }
