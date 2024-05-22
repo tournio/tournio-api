@@ -13,7 +13,7 @@ describe TournamentsController, type: :request do
 
     let(:uri) { '/tournaments' }
 
-    let(:expected_keys) { %w(identifier name state status start_date location) }
+    let(:expected_keys) { %w(identifier name state startDate location) }
 
     let!(:setup_tournament) { create :tournament }
     let!(:testing_tournament) { create :tournament, :testing }
