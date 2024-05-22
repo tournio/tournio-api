@@ -132,6 +132,7 @@ class BowlerBlueprint < Blueprinter::Base
     association :free_entry, blueprint: FreeEntryBlueprint
     association :ledger_entries, blueprint: LedgerEntryBlueprint
     association :waivers, blueprint: WaiverBlueprint
+    association :shifts, blueprint: ShiftBlueprint
 
     field :additional_question_responses do |b, _|
       b.additional_question_responses.each_with_object({}) { |aqr, obj| obj[aqr.name] = AdditionalQuestionResponseBlueprint.render_as_hash(aqr) }

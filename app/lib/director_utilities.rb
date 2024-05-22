@@ -233,9 +233,17 @@ module DirectorUtilities
         team.shifts.each do |shift|
           data["shift preference: #{shift.event_string}"] = shift.name
         end
+      else
+        bowler.shifts.each do |shift|
+          data["shift preference: #{shift.event_string}"] = shift.name
+        end
       end
     elsif tournament.config['tournament_type'] == Tournament::IGBO_MULTI_SHIFT
-      data['shift preference'] = team.present? ? team.shifts.first.name : 'n/a'
+      if team.present?
+        data['shift preference'] = team.shifts.first.name
+      else
+        data['shift preference'] = bowler.shifts.first.name
+      end
     end
 
     data

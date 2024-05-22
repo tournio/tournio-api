@@ -90,12 +90,13 @@ FactoryBot.define do
     trait :one_shift do
       # nothing more to do
       after(:create) do |t, _|
-        t.config_items << ConfigItem.new(key: 'tournament_type', value: Tournament::IGBO_MULTI_SHIFT)
+        t.config_items << ConfigItem.new(key: 'tournament_type', value: Tournament::IGBO_STANDARD)
       end
     end
 
     trait :one_small_shift do
       after(:create) do |t, _|
+        t.config_items << ConfigItem.new(key: 'tournament_type', value: Tournament::IGBO_STANDARD)
         t.shifts.first.update(capacity: 10)
       end
     end
@@ -109,7 +110,7 @@ FactoryBot.define do
 
     trait :mix_and_match_shifts do
       after(:create) do |t, _|
-        t.config_items.find_by(key: 'tournament_type').update(value: Tournament::IGBO_MIX_AND_MATCH)
+        t.config_items << ConfigItem.new(key: 'tournament_type', value: Tournament::IGBO_MIX_AND_MATCH)
         singles = create :event, :singles, tournament: t
         doubles = create :event, :doubles, tournament: t
         team = create :event, :team, tournament: t
