@@ -37,17 +37,7 @@ FactoryBot.define do
     end_date { Date.today + 92.days }
     entry_deadline { Date.today + 80.days }
 
-    # to be removed
-    # association :stripe_account, strategy: :build
-
     tournament_org
-
-    # @single-event This seems like it'll break things by accident. Let's see if we can get rid of it.
-    #
-    # Every tournament needs at least one shift now, if only to specify capacity
-    # after(:create) do |t, _|
-    #   create :shift, tournament: t
-    # end
 
     trait :demo do
       aasm_state { :demo }
@@ -86,9 +76,28 @@ FactoryBot.define do
         end
       end
 
-      factory :multi_shift_standard_tournament do
+      factory :two_shift_standard_tournament do
         after(:create) do |t, _|
           t.config_items << ConfigItem.new(key: 'tournament_type', value: Tournament::IGBO_MULTI_SHIFT)
+          2.times do
+            t.shifts << build(:shift, events: t.events)
+          end
+        end
+      end
+
+      factory :mix_and_match_standard_tournament do
+        after(:create) do |t, _|
+          t.config_items << ConfigItem.new(key: 'tournament_type', value: Tournament::IGBO_MIX_AND_MATCH)
+
+          singles_event = t.events.single.first
+          doubles_event = t.events.double.first
+          team_event = t.events.team.first
+          t.shifts = [
+            build(:shift, name: 'SD1', description: 'S&D early', events: [singles_event, doubles_event]),
+            build(:shift, name: 'SD2', description: 'S&D late', events: [singles_event, doubles_event]),
+            build(:shift, name: 'T1', description: 'T early', events: [team_event]),
+            build(:shift, name: 'T2', description: 'T late', events: [team_event]),
+          ]
         end
       end
     end
@@ -101,7 +110,20 @@ FactoryBot.define do
       factory :singles_tournament do
         after(:create) do |t, _|
           create :event, :singles, tournament: t
-          t.shifts.map { |s| s.update(events: t.events) }
+        end
+
+        factory :one_shift_singles_tournament do
+          after(:create) do |t, _|
+            t.shifts << build(:shift, events: t.events)
+          end
+        end
+
+        factory :two_shift_singles_tournament do
+          after(:create) do |t, _|
+            2.times do
+              t.shifts << build(:shift, events: t.events)
+            end
+          end
         end
       end
 
@@ -114,53 +136,20 @@ FactoryBot.define do
       factory :team_tournament do
         after(:create) do |t, _|
           create :event, :team, tournament: t
-          t.shifts.map { |s| s.update(events: t.events) }
         end
-      end
-    end
 
-    # @single-event kill this
-    trait :single_event_single_roster do
-      after(:create) do |t, _|
-        create :event, :singles, tournament: t
-        t.shifts.map { |s| s.update(events: t.events) }
-      end
-    end
+        factory :one_shift_team_tournament do
+          after(:create) do |t, _|
+            t.shifts << build(:shift, events: t.events)
+          end
+        end
 
-    # @single-event rename this and turn it into a factory
-    trait :mix_and_match_shifts do
-      after(:create) do |t, _|
-        t.config_items << ConfigItem.new(key: 'tournament_type', value: Tournament::IGBO_MIX_AND_MATCH)
-        singles = create :event, :singles, tournament: t
-        doubles = create :event, :doubles, tournament: t
-        team = create :event, :team, tournament: t
-
-        t.shifts = [
-          build(:shift, name: 'SD1', description: 'S&D early', events: [singles, doubles]),
-          build(:shift, name: 'SD2', description: 'S&D late', events: [singles, doubles]),
-          build(:shift, name: 'T1', description: 'T early', events: [team]),
-          build(:shift, name: 'T2', description: 'T late', events: [team]),
-        ]
-      end
-    end
-
-
-
-    # @single-event update this to update a tournament's shift, rather than create it
-    trait :one_small_shift do
-      after(:create) do |t, _|
-        create :shift,
-          tournament: t,
-          capacity: 10
-      end
-    end
-
-    # @single-event kill this, and move shift creation up into
-    # the multi-standard tournament factory
-    trait :two_shifts do
-      after(:create) do |t, _|
-        2.times do
-          t.shifts << build(:shift)
+        factory :two_shift_team_tournament do
+          after(:create) do |t, _|
+            2.times do
+              t.shifts << build(:shift, events: t.events)
+            end
+          end
         end
       end
     end
@@ -249,13 +238,6 @@ FactoryBot.define do
       after(:create) do |t, _|
         t.shifts.first.update(capacity: 80)
         create(:purchasable_item, :bowling_event, tournament: t)
-      end
-    end
-
-    trait :with_a_doubles_event do
-      after(:create) do |t, _|
-        t.shifts.first.update(capacity: 80)
-        create(:purchasable_item, :doubles_event, tournament: t)
       end
     end
 

@@ -136,7 +136,7 @@ RSpec.describe DirectorUtilities do
   describe '#reassign_bowler' do
     subject { described_class.reassign_bowler(bowler: moving_bowler, to_team: destination_team) }
 
-    let(:tournament) { create :multi_shift_standard_tournament, :two_shifts }
+    let(:tournament) { create :two_shift_standard_tournament }
     let(:source_team_shift) { tournament.shifts.first }
     let(:destination_team_shift) { tournament.shifts.last }
     let(:b1) { create(:bowler, tournament: tournament, position: 1, person: create(:person)) }
@@ -389,7 +389,7 @@ RSpec.describe DirectorUtilities do
         end
 
         context 'in a multi-shift tournament' do
-          let(:tournament) { create :multi_shift_standard_tournament, :two_shifts}
+          let(:tournament) { create :two_shift_standard_tournament }
           let(:shift) { tournament.shifts.first }
 
           let(:shift_headers) { ['shift preference'] }
@@ -411,7 +411,7 @@ RSpec.describe DirectorUtilities do
         end
 
         context 'in a mix-and-match tournament' do
-          let(:tournament) { create :tournament, :mix_and_match_shifts}
+          let(:tournament) { create :mix_and_match_standard_tournament }
           let(:sd_shift) { tournament.shifts.find_by(event_string: 'double_single') }
           let(:t_shift) { tournament.shifts.find_by(event_string: 'team') }
 
@@ -463,7 +463,7 @@ RSpec.describe DirectorUtilities do
         end
 
         context 'in a multi-shift tournament' do
-          let(:tournament) { create :multi_shift_standard_tournament, :two_shifts}
+          let(:tournament) { create :two_shift_standard_tournament }
           let(:bowler_shifts) { [tournament.shifts.first] }
 
           let(:shift_headers) { ['shift preference'] }
@@ -481,7 +481,7 @@ RSpec.describe DirectorUtilities do
         end
 
         context 'in a mix-and-match tournament' do
-          let(:tournament) { create :tournament, :mix_and_match_shifts}
+          let(:tournament) { create :mix_and_match_standard_tournament }
           let(:sd_shift) { tournament.shifts.find_by(event_string: 'double_single') }
           let(:t_shift) { tournament.shifts.find_by(event_string: 'team') }
           let(:bowler_shifts) { [sd_shift, t_shift] }

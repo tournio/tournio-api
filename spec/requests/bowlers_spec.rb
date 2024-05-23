@@ -276,7 +276,7 @@ describe BowlersController, type: :request do
       # end
 
       context 'a tournament with just a single-roster event' do
-        let(:tournament) { create :singles_tournament, :active, :with_entry_fee, :with_additional_questions }
+        let(:tournament) { create :one_shift_singles_tournament, :active, :with_entry_fee, :with_additional_questions }
         let(:shift_params) do
           {
             shift_identifiers: tournament.shifts.collect(&:identifier),
@@ -296,8 +296,7 @@ describe BowlersController, type: :request do
 
         context 'and multiple shifts' do
           let(:tournament) do
-            create :singles_tournament,
-              :two_shifts,
+            create :two_shift_singles_tournament,
               :active,
               :with_entry_fee,
               :with_additional_questions
@@ -310,6 +309,7 @@ describe BowlersController, type: :request do
           end
 
           before do
+            ap tournament.shifts.count
             tournament.shifts.map { |s| s.update(events: tournament.events) }
           end
 

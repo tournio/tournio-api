@@ -65,11 +65,8 @@ module Fixtures
       abbr = name.scan(/[[:upper:]]/).join unless name.nil?
       self.tournament = FactoryBot.create :tournament,
         :active,
-        :standard,
-        :with_standard_events,
-        # :one_small_shift,
-        # :standard_multi_shift,
-        # :two_shifts
+        :one_shift_standard_tournament,
+        # :two_shift_standard_tournament,
         # :mix_and_match_shifts,
         :with_entry_fee,
         :with_scratch_competition_divisions,

@@ -138,7 +138,7 @@ describe Director::TeamsController, type: :request do
     end
 
     context 'when the tournament has 2 inclusive shifts' do
-      let(:tournament) { create :multi_shift_standard_tournament, :active, :two_shifts }
+      let(:tournament) { create :two_shift_standard_tournament, :active }
       let(:shift) { tournament.shifts.last }
 
       it 'succeeds with a 201 Created' do
@@ -154,7 +154,7 @@ describe Director::TeamsController, type: :request do
     end
 
     context 'when the tournament has mix-and-match shifts' do
-      let(:tournament) { create :tournament, :active, :mix_and_match_shifts }
+      let(:tournament) { create :mix_and_match_standard_tournament, :active }
       let(:shifts) do
         [
           tournament.events.team.first.shifts.first,
@@ -322,7 +322,7 @@ describe Director::TeamsController, type: :request do
     end
 
     context 'moving to a different shift' do
-      let(:tournament) { create :multi_shift_standard_tournament, :active, :two_shifts }
+      let(:tournament) { create :two_shift_standard_tournament, :active }
       let(:old_shift) { tournament.shifts.first }
       let(:new_shift) { tournament.shifts.second }
       let(:team) { create :team, :standard_full_team, tournament: tournament, shifts: [old_shift] }
@@ -375,7 +375,7 @@ describe Director::TeamsController, type: :request do
     end
 
     context 'moving around a mix-and-match tournament' do
-      let(:tournament) { create :tournament, :active, :mix_and_match_shifts }
+      let(:tournament) { create :mix_and_match_standard_tournament, :active }
       let(:old_shifts) do
         [
           tournament.events.team.first.shifts.first,

@@ -137,7 +137,7 @@ describe TeamsController, type: :request do
       # end
       #
       context "but we need one, because this is a mix-and-match tournament" do
-        let(:tournament) { create :tournament, :active, :mix_and_match_shifts }
+        let(:tournament) { create :mix_and_match_standard_tournament, :active }
 
         it 'fails' do
           subject
@@ -152,7 +152,7 @@ describe TeamsController, type: :request do
     end
 
     context 'a tournament with multiple inclusive shifts' do
-      let(:tournament) { create :multi_shift_standard_tournament, :active, :two_shifts }
+      let(:tournament) { create :two_shift_standard_tournament, :active }
 
       before do
         tournament.shifts.map { |s| s.update(events: tournament.events) }
@@ -184,7 +184,7 @@ describe TeamsController, type: :request do
     end
 
     context 'a tournament with mix-and-match shifts' do
-      let(:tournament) { create :tournament, :active, :mix_and_match_shifts }
+      let(:tournament) { create :mix_and_match_standard_tournament, :active }
       let(:shift_params) do
         {
           shift_identifiers: [
@@ -319,7 +319,7 @@ describe TeamsController, type: :request do
     end
 
     context 'in a tournament with a shift preference for all events' do
-      let(:tournament) { create :multi_shift_standard_tournament, :active, :two_shifts }
+      let(:tournament) { create :two_shift_standard_tournament, :active }
       let(:shift) { tournament.shifts.last }
 
       before do
@@ -334,15 +334,10 @@ describe TeamsController, type: :request do
     end
 
     context 'with mix-and-match shift preferences' do
-      let(:tournament) { create :tournament, :active, :mix_and_match_shifts }
+      let(:tournament) { create :mix_and_match_standard_tournament, :active }
 
-      # Assumption: knowledge of how the events are distributed among the shifts.
-      #
-      # Future enhancement: it might be useful to add some kind of identifier
-      # to each shift that's a hash or shorthand indicating which events it
-      # includes, for the ability to easily query them, e.g., give me the shifts
-      # that cover X and Y events, knowing how "X and Y events" gets hashed and
-      # using that in the where, rather than building a complicated query with joins.
+      # Future enhancement: it might be useful to add a wrapper for "where: events: [singles, doubles]" kinds of queries.
+      # It could take advantage of the event_string property, perhaps.
       before do
         team.shifts = [
           tournament.events.team.first.shifts.first,
