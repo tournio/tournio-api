@@ -29,10 +29,12 @@ module Fixtures
       create_contacts
       create_purchasable_items
 
+      # Need to limit these based on tournanent type
       create_teams
       create_solo_bowlers
 
-      add_purchases_to_bowlers
+      # add_purchases_to_bowlers
+      # How about creating unpaid signups?
       create_payments
     end
 
@@ -51,6 +53,8 @@ module Fixtures
         'Gathering of Avid Geeks',
         'The Quest for 300',
         'ABBA ABBA Do!',
+        'Totally Invitational Tournament of Scotland',
+        'Big Old Online Bowling Seminar',
       ]
       name = nil
       begin
@@ -63,38 +67,30 @@ module Fixtures
       location = locations_and_time_zones.sample
       name = random_name
       abbr = name.scan(/[[:upper:]]/).join unless name.nil?
-      self.tournament = FactoryBot.create :tournament,
+      org = TournamentOrg.all.sample
+
+      self.tournament = FactoryBot.create :one_shift_standard_tournament,
+      # self.tournament = FactoryBot.create :two_shift_standard_tournament,
+      # self.tournament = FactoryBot.create :mix_and_match_standard_tournament,
+      # self.tournament = FactoryBot.create :one_shift_singles_tournament,
+      # self.tournament = FactoryBot.create :two_shift_singles_tournament,
         :active,
-        :one_shift_standard_tournament,
-        # :two_shift_standard_tournament,
-        # :mix_and_match_shifts,
         :with_entry_fee,
         :with_scratch_competition_divisions,
         :with_extra_stuff,
         name: name,
         abbreviation: abbr,
-        identifier: "#{abbr.downcase}-#{(Date.today + 90.days).year}",
+        start_date: Date.today + 120.days,
+        end_date: Date.today + 122.days,
+        entry_deadline: Date.today + 110.days,
+        year: (Date.today + 120.days).year,
+        identifier: "#{abbr.downcase}-#{(Date.today + 120.days).year}",
         location: location[:location],
         timezone: location[:timezone],
-        tournament_org: TournamentOrg.all.sample
-
-      FactoryBot.create :config_item, tournament: tournament, key: 'team_size', value: 4, label: 'Team Size'
-      FactoryBot.create :config_item, tournament: tournament, key: 'website', value: 'http://www.tourn.io', label: 'Website'
-      FactoryBot.create :stripe_account, tournament: tournament, onboarding_completed_at: 2.months.ago
+        tournament_org: org
 
       image_path = Rails.root.join('spec', 'support', 'images').children.sample
       tournament.logo_image.attach(io: File.open(image_path), filename: 'digital.jpg')
-
-      FactoryBot.create :purchasable_item,
-        :early_discount,
-        tournament: tournament,
-        value: Random.rand(10) + 5,
-        configuration: {
-          valid_until: 3.days.ago,
-        }
-      # tournament.purchasable_items.each do |pi|
-      #   FactoryBot.create :stripe_product, purchasable_item: pi
-      # end
     end
 
     def create_contacts
@@ -183,9 +179,6 @@ module Fixtures
         created_at: registered_at
       )
 
-      TournamentRegistration.purchase_entry_fee(bowler)
-      TournamentRegistration.add_early_discount_to_ledger(bowler, registered_at)
-
       bowler
     end
 
@@ -212,6 +205,8 @@ module Fixtures
       end
     end
 
+    # @refactor This can be replaced by adding unpaid signups to some bowlers.
+    # Including adding them for, say, 30% of bowlers.
     def add_purchases_to_bowlers
       single_items = tournament.purchasable_items.bowling.where(refinement: nil)
       division_items = tournament.purchasable_items.bowling.where(refinement: :division)
@@ -256,6 +251,7 @@ module Fixtures
       end
     end
 
+    # @refactor Include unpaid signups
     def create_payments
       tournament.bowlers.each do |b|
         # make_payment = Random.rand(3) > 0 # we should have payments about 2/3 of the time
@@ -277,12 +273,19 @@ module Fixtures
       #   tournament: tournament,
       #   created_at: paid_at
 
-      # ledger entry for entry fee (minus early discount)
-      purchases = bowler.purchases.unpaid
-      # multiplying the discount by 2 since it's included in the first sum, but still need to subtract it
-      total = purchases.sum(&:value) - purchases.early_discount.sum(&:value) * 2
+      # # ledger entry for entry fee (minus early discount)
+      # purchases = bowler.purchases.unpaid
+      # # multiplying the discount by 2 since it's included in the first sum, but still need to subtract it
+      # total = purchases.sum(&:value) - purchases.early_discount.sum(&:value) * 2
+      #
+      # purchases.update_all(paid_at: paid_at)
 
-      purchases.update_all(paid_at: paid_at)
+      # have the bowler pay for their
+      #  - entry fee
+      #  - late fee
+      #  - early registration discount
+      #  - unpaid signups (if we're doing it)
+      #  - any non-signupable items we want to give them
 
       # ledger entries for extra purchases
       bowler.ledger_entries << LedgerEntry.new(
