@@ -39,29 +39,6 @@ FactoryBot.define do
 
     tournament_org
 
-    trait :demo do
-      aasm_state { :demo }
-    end
-
-    trait :testing do
-      aasm_state { :testing }
-    end
-
-    trait :active do
-      aasm_state { :active }
-    end
-
-    trait :closed do
-      aasm_state { :closed }
-    end
-
-    trait :past do
-      start_date { Date.today - 10.days }
-      end_date { Date.today - 8.days }
-      year { (Date.today - 10.days).year }
-      entry_deadline { Date.today - 20.days }
-    end
-
     factory :standard_tournament do
       after(:create) do |t, _|
         create :event, :singles, tournament: t
@@ -154,6 +131,29 @@ FactoryBot.define do
       end
     end
 
+    trait :demo do
+      aasm_state { :demo }
+    end
+
+    trait :testing do
+      aasm_state { :testing }
+    end
+
+    trait :active do
+      aasm_state { :active }
+    end
+
+    trait :closed do
+      aasm_state { :closed }
+    end
+
+    trait :past do
+      start_date { Date.today - 10.days }
+      end_date { Date.today - 8.days }
+      year { (Date.today - 10.days).year }
+      entry_deadline { Date.today - 20.days }
+    end
+
     trait :with_entry_fee do
       after(:create) do |t, _|
         create(:purchasable_item,
@@ -166,7 +166,12 @@ FactoryBot.define do
       after(:create) do |t, _|
         create(:purchasable_item,
           :late_fee,
-          tournament: t)
+          tournament: t,
+          configuration:
+            {
+              applies_at: t.entry_deadline - 1.month,
+            }
+        )
       end
     end
 
@@ -174,7 +179,12 @@ FactoryBot.define do
       after(:create) do |t, _|
         create(:purchasable_item,
           :early_discount,
-          tournament: t)
+          tournament: t,
+          configuration:
+            {
+              valid_until: t.entry_deadline - 2.months,
+            }
+        )
       end
     end
 
@@ -231,13 +241,6 @@ FactoryBot.define do
       after(:create) do |t, _|
         create(:purchasable_item, :banquet_entry, tournament: t)
         create(:purchasable_item, :raffle_bundle, value: 75, tournament: t)
-      end
-    end
-
-    trait :with_a_bowling_event do
-      after(:create) do |t, _|
-        t.shifts.first.update(capacity: 80)
-        create(:purchasable_item, :bowling_event, tournament: t)
       end
     end
 

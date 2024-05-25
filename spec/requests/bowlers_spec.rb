@@ -11,7 +11,7 @@ describe BowlersController, type: :request do
   describe '#index' do
     subject { get uri, as: :json }
 
-    let(:tournament) { create :one_shift_standard_tournament, :active, :with_a_bowling_event }
+    let(:tournament) { create :one_shift_standard_tournament, :active }
     let(:tournament_identifier) { tournament.identifier }
     let(:uri) { "/tournaments/#{tournament_identifier}/bowlers" }
 
@@ -309,7 +309,6 @@ describe BowlersController, type: :request do
           end
 
           before do
-            ap tournament.shifts.count
             tournament.shifts.map { |s| s.update(events: tournament.events) }
           end
 
