@@ -20,7 +20,7 @@ module Fixtures
       self.usbc_sequence = 100
       Time.zone = 'America/New_York'
       self.starting_time = Time.zone.now - 2.weeks
-      self.interval = Time.zone.now.to_i - starting_time.to_i
+      self.interval = 2.weeks.to_i
     end
 
     def perform
@@ -37,23 +37,38 @@ module Fixtures
 
       # At this point, all signups are created, and ready for use
 
-      # Do this loop for each bowler:
-      #
-      #  33% chance: Create some unpaid signups
-      #      --> sign_bowler_up_for_some(bowler:)
-      #   OR
-      #  33% chance: Create some paid ones, with purchases to go along with
-      #      --> purchase_some_signupables(bowler:)
-      #
-      #  50% chance: Create some purchases of non-bowling extras
-      #   AND
-      #  50% chance: Pay entry fee
-      #   - early discount? late fee?
-      #
-      # Update/remove these as needed:
-      #
-      # add_purchases_to_bowlers
-      # create_payments
+      tournament.reload.bowlers.each do |bowler|
+        window = Time.zone.now.to_i - bowler.created_at.to_i
+        paid_at = Time.zone.at(bowler.created_at.to_i + (window * Random.rand(1.0)).to_i)
+
+        # 33% chance: Create some unpaid signups
+        # 33% chance: Create some paid ones, with purchases to go along with
+        # 33% chance: nothing
+        signup_decision = Random.rand(3)
+        if signup_decision == 1
+          sign_bowler_up_for_some(bowler: bowler)
+        elsif signup_decision == 2
+          purchase_some_signupables(bowler: bowler, paid_at: paid_at)
+        end
+
+        # 50% chance: Create some purchases of non-bowling extras
+        extra_decision = Random.rand(2)
+        if extra_decision == 1
+          purchase_some_extras(bowler: bowler, paid_at: paid_at)
+        end
+
+        # 50% chance: Pay entry fee
+        entry_fee_decision = Random.rand(2)
+        if entry_fee_decision == 1
+          purchase_entry_fee(bowler: bowler, paid_at: paid_at)
+        end
+
+        pay_off_balance(bowler: bowler, paid_at: paid_at)
+      end
+
+      ap "Tournament: #{tournament.name}"
+      ap "Bowlers: #{tournament.bowlers.count}"
+      ap "Teams: #{tournament.teams.count}"
     end
 
     def random_name
@@ -145,10 +160,11 @@ module Fixtures
     end
 
     def create_teams
-      max_teams = tournament.shifts.first.capacity / tournament.team_size
+      max_teams = tournament.shifts.first.capacity
       min_teams = max_teams - 15
       teams_to_create = min_teams + Random.rand(11)
-      # teams_to_create = tournament.shifts.first.capacity / tournament.team_size
+
+      # How to handle creating teams across multiple shifts?
       teams_to_create.times do |i|
         create_team
       end
@@ -220,7 +236,7 @@ module Fixtures
     end
 
     def create_solo_bowlers
-      remaining_capacity = tournament.shifts.first.capacity - tournament.bowlers.count
+      remaining_capacity = (tournament.shifts.first.capacity - tournament.teams.count) * tournament.team_size
       return unless remaining_capacity.positive?
 
       solo_bowler_quantity = Random.rand(remaining_capacity)
@@ -233,7 +249,7 @@ module Fixtures
     def sign_bowler_up_for_some(bowler:)
       bowler.signups.each do |signup|
         # First, make sure we aren't signing up for the same event in a different division
-        division_items = bowler.tournament.purchasable_items.division
+        division_items = tournament.purchasable_items.division
         signed_up = bowler.signups.requested.where(purchasable_item: division_items)
         if signed_up.any?
           next
@@ -247,10 +263,10 @@ module Fixtures
       end
     end
 
-    def purchase_some_signupables(bowler:)
+    def purchase_some_signupables(bowler:, paid_at:)
       bowler.signups.each do |signup|
         # First, make sure we aren't paying for the same event in a different division
-        division_items = bowler.tournament.purchasable_items.division
+        division_items = tournament.purchasable_items.division
         signed_up = bowler.signups.paid.where(purchasable_item: division_items)
         if signed_up.any?
           next
@@ -266,106 +282,62 @@ module Fixtures
             :paid,
             bowler: bowler,
             purchasable_item: pi,
-            amount: pi.value
+            amount: pi.value,
+            paid_at: paid_at
           )
           bowler.ledger_entries << LedgerEntry.new(
             debit: pi.value,
             source: :purchase,
-            identifier: pi.name
+            identifier: pi.name,
+            created_at: paid_at
           )
         end
       end
     end
 
-    # @refactor This can be replaced by adding unpaid signups to some bowlers.
-    # Including adding them for, say, 30% of bowlers.
-    def add_purchases_to_bowlers
-      single_items = tournament.purchasable_items.bowling.where(refinement: nil)
-      division_items = tournament.purchasable_items.bowling.where(refinement: :division)
-      non_bowling_items = tournament.purchasable_items.where.not(category: %i(ledger bowling))
-
-      tournament.bowlers.each do |b|
-        items_for_bowler = []
-        # do they want a division item?
-        index = Random.rand(division_items.count)
-        if index > 0
-          items_for_bowler << division_items.sample
+    def purchase_some_extras(bowler:, paid_at:)
+      eligible_items = tournament.purchasable_items.where(category: %i(banquet product sanction raffle bracket))
+      eligible_items.each do |pi|
+        yes = Random.rand(2) > 0
+        if yes
+          bowler.purchases << Purchase.new(
+            purchasable_item: pi,
+            amount: pi.value,
+            paid_at: paid_at
+          )
+          bowler.ledger_entries << LedgerEntry.new(
+            debit: pi.value,
+            source: :purchase,
+            identifier: pi.name,
+            created_at: paid_at
+          )
         end
-
-        # which of the single items do they want?
-        count = Random.rand(single_items.count)
-        if count > 0
-          items_for_bowler += single_items.sample(count)
-        end
-
-        # how about multi_use items?
-        count = Random.rand(non_bowling_items.count)
-        if (count > 0)
-          items_for_bowler += non_bowling_items.sample(count)
-        end
-
-        add_purchases_to_bowler(bowler: b, items: items_for_bowler) unless items_for_bowler.empty?
       end
     end
 
-    def add_purchases_to_bowler(bowler:, items:)
-      items.each do |item|
-        FactoryBot.create :purchase,
-          purchasable_item: item,
-          bowler: bowler,
-          amount: item.value
-
-        bowler.ledger_entries << LedgerEntry.new(
-          debit: item.value,
-          source: :purchase,
-          identifier: item.name
-        )
-      end
-    end
-
-    # @refactor Include unpaid signups
-    def create_payments
-      tournament.bowlers.each do |b|
-        # make_payment = Random.rand(3) > 0 # we should have payments about 2/3 of the time
-        # create_payment(bowler: b) unless make_payment
-
-        # Let's have payments for all purchases. That reflects current reality.
-        create_payment(bowler: b)
-      end
-    end
-
-    def create_payment(bowler: )
-      window = Time.zone.now.to_i - bowler.created_at.to_i
-      paid_at = Time.zone.at(bowler.created_at.to_i + (window * Random.rand(1.0)).to_i)
-
-      # No external payments needed, since we're skipping Stripe in development
-      #
-      # payment = FactoryBot.create :external_payment,
-      #   :from_stripe,
-      #   tournament: tournament,
-      #   created_at: paid_at
-
-      # # ledger entry for entry fee (minus early discount)
-      # purchases = bowler.purchases.unpaid
-      # # multiplying the discount by 2 since it's included in the first sum, but still need to subtract it
-      # total = purchases.sum(&:value) - purchases.early_discount.sum(&:value) * 2
-      #
-      # purchases.update_all(paid_at: paid_at)
-
-      # have the bowler pay for their
-      #  - entry fee
-      #  - late fee
-      #  - early registration discount
-      #  - unpaid signups (if we're doing it)
-      #  - any non-signupable items we want to give them
-
-      # ledger entries for extra purchases
-      bowler.ledger_entries << LedgerEntry.new(
-        credit: total,
-        source: :stripe,
-        # identifier: payment.identifier
-        identifier: "pretend_payment_#{SecureRandom.uuid}"
+    def purchase_entry_fee(bowler:, paid_at:)
+      entry_fee_item = tournament.purchasable_items.entry_fee.first
+      bowler.purchases << Purchase.new(
+        purchasable_item: entry_fee_item,
+        amount: entry_fee_item.value,
+        paid_at: paid_at
       )
+      bowler.ledger_entries << LedgerEntry.new(
+        debit: entry_fee_item.value,
+        source: :purchase,
+        identifier: entry_fee_item.name,
+        created_at: paid_at
+      )
+    end
+
+    def pay_off_balance(bowler:, paid_at:)
+      amount = bowler.purchases.sum(&:amount)
+      bowler.ledger_entries << LedgerEntry.new(
+        credit: amount,
+        source: :automatic,
+        created_at: paid_at,
+        identifier: "pretend_#{SecureRandom.alphanumeric(5)}"
+      ) unless amount == 0
     end
 
     def person_first_names
