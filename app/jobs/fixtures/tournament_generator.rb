@@ -29,13 +29,31 @@ module Fixtures
       create_contacts
       create_purchasable_items
 
+      # Create non-bowling purchasable items
+
       # Need to limit these based on tournanent type
       create_teams
       create_solo_bowlers
 
+      # At this point, all signups are created, and ready for use
+
+      # Do this loop for each bowler:
+      #
+      #  33% chance: Create some unpaid signups
+      #      --> sign_bowler_up_for_some(bowler:)
+      #   OR
+      #  33% chance: Create some paid ones, with purchases to go along with
+      #      --> purchase_some_signupables(bowler:)
+      #
+      #  50% chance: Create some purchases of non-bowling extras
+      #   AND
+      #  50% chance: Pay entry fee
+      #   - early discount? late fee?
+      #
+      # Update/remove these as needed:
+      #
       # add_purchases_to_bowlers
-      # How about creating unpaid signups?
-      create_payments
+      # create_payments
     end
 
     def random_name
@@ -179,6 +197,13 @@ module Fixtures
         created_at: registered_at
       )
 
+      tournament.purchasable_items.bowling.each do |pi|
+        Signup.create(
+          bowler: bowler,
+          purchasable_item: pi
+        )
+      end
+
       bowler
     end
 
@@ -202,6 +227,53 @@ module Fixtures
       solo_bowler_quantity.times do |i|
         registration_time = Time.zone.at(starting_time + (interval * Random.rand(1.0)).to_i)
         create_bowler(registered_at: registration_time, registration_type: 'solo')
+      end
+    end
+
+    def sign_bowler_up_for_some(bowler:)
+      bowler.signups.each do |signup|
+        # First, make sure we aren't signing up for the same event in a different division
+        division_items = bowler.tournament.purchasable_items.division
+        signed_up = bowler.signups.requested.where(purchasable_item: division_items)
+        if signed_up.any?
+          next
+        end
+
+        # Flip a coin to decide whether to request this one
+        yes = Random.rand(2) > 0
+        if yes
+          signup.request!
+        end
+      end
+    end
+
+    def purchase_some_signupables(bowler:)
+      bowler.signups.each do |signup|
+        # First, make sure we aren't paying for the same event in a different division
+        division_items = bowler.tournament.purchasable_items.division
+        signed_up = bowler.signups.paid.where(purchasable_item: division_items)
+        if signed_up.any?
+          next
+        end
+
+        yes = Random.rand(2) > 0
+        if yes
+          signup.pay!
+
+          # create a purchase and a payment (easier that way)
+          pi = signup.purchasable_item
+          FactoryBot.create(:purchase,
+            :paid,
+            bowler: bowler,
+            purchasable_item: pi,
+            amount: pi.value
+          )
+          bowler.ledger_entries << LedgerEntry.new(
+            debit: pi.value,
+            source: :purchase,
+            identifier: pi.name
+          )
+        end
       end
     end
 
