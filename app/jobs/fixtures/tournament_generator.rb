@@ -102,8 +102,8 @@ module Fixtures
       abbr = name.scan(/[[:upper:]]/).join unless name.nil?
       org = TournamentOrg.all.sample
 
-      self.tournament = FactoryBot.create :one_shift_standard_tournament,
-      # self.tournament = FactoryBot.create :two_shift_standard_tournament,
+      # self.tournament = FactoryBot.create :one_shift_standard_tournament,
+      self.tournament = FactoryBot.create :two_shift_standard_tournament,
       # self.tournament = FactoryBot.create :mix_and_match_standard_tournament,
       # self.tournament = FactoryBot.create :one_shift_singles_tournament,
       # self.tournament = FactoryBot.create :two_shift_singles_tournament,
@@ -160,17 +160,18 @@ module Fixtures
     end
 
     def create_teams
-      max_teams = tournament.shifts.first.capacity
-      min_teams = max_teams - 15
-      teams_to_create = min_teams + Random.rand(11)
+      tournament.shifts.each do |shift|
+        max_teams = shift.capacity
+        min_teams = max_teams - 15
+        teams_to_create = min_teams + Random.rand(11)
 
-      # How to handle creating teams across multiple shifts?
-      teams_to_create.times do |i|
-        create_team
+        teams_to_create.times do |i|
+          create_team(shifts: [shift])
+        end
       end
     end
 
-    def create_team
+    def create_team(shifts:)
       self.team_sequence += 1
       team_name = "Team #{team_sequence}"
       count = Random.rand(tournament.team_size) + 1
@@ -179,7 +180,8 @@ module Fixtures
       team = FactoryBot.create :team,
         tournament: tournament,
         name: team_name,
-        options: { place_with_others: place_with_others }
+        options: { place_with_others: place_with_others },
+        shifts: shifts
 
       registration_time = Time.zone.at(starting_time + (interval * Random.rand(1.0)).to_i)
       count.times do |i|
@@ -189,7 +191,7 @@ module Fixtures
       assign_doubles_partners(team: team) unless count == 1
     end
 
-    def create_bowler (team: nil, position: nil, registration_type: 'new_team', registered_at: )
+    def create_bowler (team: nil, position: nil, registration_type: 'new_team', registered_at:, shifts: [])
       first_name_index = Random.rand(100)
       surname_index = Random.rand(100)
       usbc_id = "111-#{usbc_sequence}"
@@ -204,7 +206,8 @@ module Fixtures
         team: team,
         position: position,
         person: person,
-        created_at: registered_at
+        created_at: registered_at,
+        shifts: shifts
 
       DataPoint.create(
         key: :registration_type,
@@ -236,13 +239,15 @@ module Fixtures
     end
 
     def create_solo_bowlers
-      remaining_capacity = (tournament.shifts.first.capacity - tournament.teams.count) * tournament.team_size
-      return unless remaining_capacity.positive?
+      tournament.shifts.each do |shift|
+        remaining_capacity = (shift.capacity - shift.teams.count) * tournament.team_size
+        return unless remaining_capacity.positive?
 
-      solo_bowler_quantity = Random.rand(remaining_capacity)
-      solo_bowler_quantity.times do |i|
-        registration_time = Time.zone.at(starting_time + (interval * Random.rand(1.0)).to_i)
-        create_bowler(registered_at: registration_time, registration_type: 'solo')
+        solo_bowler_quantity = Random.rand(remaining_capacity)
+        solo_bowler_quantity.times do |i|
+          registration_time = Time.zone.at(starting_time + (interval * Random.rand(1.0)).to_i)
+          create_bowler(registered_at: registration_time, registration_type: 'solo', shifts: [shift])
+        end
       end
     end
 
@@ -334,7 +339,7 @@ module Fixtures
       amount = bowler.purchases.sum(&:amount)
       bowler.ledger_entries << LedgerEntry.new(
         credit: amount,
-        source: :automatic,
+        source: :stripe,
         created_at: paid_at,
         identifier: "pretend_#{SecureRandom.alphanumeric(5)}"
       ) unless amount == 0

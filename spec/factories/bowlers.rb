@@ -29,6 +29,7 @@ FactoryBot.define do
   factory :bowler do
     person
     tournament
+    shifts { [] }
 
     trait :with_team do
       position { 1 }

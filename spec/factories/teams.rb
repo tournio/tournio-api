@@ -25,6 +25,7 @@ FactoryBot.define do
   factory :team do
     name { 'Strike Force' }
     tournament
+    shifts { [] }
 
     trait :standard_one_bowler do
       after(:create) do |team, _|
