@@ -27,7 +27,8 @@ module Fixtures
       create_and_configure_tournament
 
       create_contacts
-      create_purchasable_items
+      create_optional_bowling_items
+      create_scratch_division_items
 
       # Create non-bowling purchasable items
 
@@ -109,8 +110,7 @@ module Fixtures
       # self.tournament = FactoryBot.create :two_shift_singles_tournament,
         :active,
         :with_entry_fee,
-        :with_scratch_competition_divisions,
-        :with_extra_stuff,
+        :with_extra_stuff,  # creates banquet and raffle ticket bundle
         name: name,
         abbreviation: abbr,
         start_date: Date.today + 120.days,
@@ -132,7 +132,7 @@ module Fixtures
       FactoryBot.create :contact, tournament: tournament, email: 'treasurer@igbo-factory.org', name: 'Stevie Nicks', role: :treasurer
     end
 
-    def create_purchasable_items
+    def create_optional_bowling_items
       items = [
         {
           name: 'Mystery Doubles',
@@ -156,6 +156,38 @@ module Fixtures
           name: item[:name],
           value: Random.rand(15) + 10,
           configuration: { order: index + 1 }
+      end
+    end
+
+    def create_scratch_division_items
+      params = [
+        {
+          value: 60,
+          configuration: { division: 'Alpha', note: '205+', order: 1 },
+        },
+        {
+          value: 55,
+          configuration: { division: 'Bravo', note: '190-204', order: 2 },
+        },
+        {
+          value: 50,
+          configuration: { division: 'Charlie', note: '175-189', order: 3 },
+        },
+        {
+          value: 45,
+          configuration: { division: 'Delta', note: '160-174', order: 4 },
+        },
+        {
+          value: 40,
+          configuration: { division: 'Echo', note: 'up to 159', order: 5 },
+        },
+      ]
+
+      params.each do |p|
+        FactoryBot.create :purchasable_item,
+          :scratch_competition,
+          tournament: tournament,
+          **p
       end
     end
 
