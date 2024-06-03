@@ -80,7 +80,7 @@ module Stripe
       bowler.ledger_entries << LedgerEntry.new(
         credit: cs[:amount_total] / 100, # (this comes in as cents, rather than dollars)
         source: :stripe,
-        identifier: cs[:payment_intent]
+        identifier: "Payment: #{cs[:payment_intent]}"
       )
       TournamentRegistration.send_receipt_email(bowler, external_payment.id) unless bowler.tournament.config[:stripe_receipts]
 

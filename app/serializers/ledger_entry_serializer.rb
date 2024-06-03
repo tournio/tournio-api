@@ -25,7 +25,8 @@
 class LedgerEntrySerializer < JsonSerializer
   attributes :identifier,
     :source,
-    :notes
+    :notes,
+    :created_at
 
   attribute :credit do |le|
     le.credit.to_i

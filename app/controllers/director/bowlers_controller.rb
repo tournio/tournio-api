@@ -133,7 +133,8 @@ module Director
         return
       end
 
-      render json: BowlerBlueprint.render(bowler.reload, view: :director_detail)
+      # render json: BowlerBlueprint.render(bowler.reload, view: :director_detail)
+      render json: DirectorBowlerSerializer.new(bowler.reload).as_json
     end
 
     def destroy

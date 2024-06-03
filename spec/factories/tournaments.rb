@@ -91,14 +91,20 @@ FactoryBot.define do
 
         factory :one_shift_singles_tournament do
           after(:create) do |t, _|
-            t.shifts << build(:shift, events: t.events)
+            t.shifts << build(:shift,
+              events: t.events,
+              capacity: 69
+            )
           end
         end
 
         factory :two_shift_singles_tournament do
           after(:create) do |t, _|
             2.times do
-              t.shifts << build(:shift, events: t.events)
+              t.shifts << build(:shift,
+                events: t.events,
+                capacity: 69
+              )
             end
           end
         end

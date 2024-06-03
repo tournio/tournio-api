@@ -96,21 +96,21 @@ module Fixtures
       end until !Tournament.exists?(name: name)
       name
     end
-    
+
     def create_and_configure_tournament
       location = locations_and_time_zones.sample
       name = random_name
       abbr = name.scan(/[[:upper:]]/).join unless name.nil?
       org = TournamentOrg.all.sample
 
-      # self.tournament = FactoryBot.create :one_shift_standard_tournament,
-      self.tournament = FactoryBot.create :two_shift_standard_tournament,
+      self.tournament = FactoryBot.create :one_shift_standard_tournament,
+      # self.tournament = FactoryBot.create :two_shift_standard_tournament,
       # self.tournament = FactoryBot.create :mix_and_match_standard_tournament,
       # self.tournament = FactoryBot.create :one_shift_singles_tournament,
       # self.tournament = FactoryBot.create :two_shift_singles_tournament,
         :active,
         :with_entry_fee,
-        :with_extra_stuff,  # creates banquet and raffle ticket bundle
+        :with_extra_stuff, # creates banquet and raffle ticket bundle
         name: name,
         abbreviation: abbr,
         start_date: Date.today + 120.days,
@@ -121,6 +121,19 @@ module Fixtures
         location: location[:location],
         timezone: location[:timezone],
         tournament_org: org
+
+      extended_fields = ExtendedFormField.where(name: %w(comment pronouns standings_link))
+      extended_fields.each_with_index do |extended_field, i|
+        FactoryBot.create(:additional_question,
+          extended_form_field: extended_field,
+          tournament: tournament,
+          order: i + 1,
+          validation_rules: {}
+        )
+      end
+
+      # set form fields to include DOB and city
+      tournament.config_items.find_by_key('bowler_form_fields').update(value: 'usbc_id date_of_birth city')
 
       image_path = Rails.root.join('spec', 'support', 'images').children.sample
       tournament.logo_image.attach(io: File.open(image_path), filename: 'digital.jpg')
@@ -192,6 +205,8 @@ module Fixtures
     end
 
     def create_teams
+      return unless tournament.events.team.any?
+
       tournament.shifts.each do |shift|
         max_teams = shift.capacity
         min_teams = max_teams - 15
@@ -272,10 +287,18 @@ module Fixtures
 
     def create_solo_bowlers
       tournament.shifts.each do |shift|
-        remaining_capacity = (shift.capacity - shift.teams.count) * tournament.team_size
+        minimum = 15
+        remaining_capacity = shift.capacity
+        if tournament.events.team.any?
+          minimum = 0
+          remaining_capacity =
+            (shift.capacity - shift.teams.count) * tournament.team_size
+        end
+
         return unless remaining_capacity.positive?
 
-        solo_bowler_quantity = Random.rand(remaining_capacity)
+        r = Random.rand(remaining_capacity)
+        solo_bowler_quantity = minimum > r ? minimum : r
         solo_bowler_quantity.times do |i|
           registration_time = Time.zone.at(starting_time + (interval * Random.rand(1.0)).to_i)
           create_bowler(registered_at: registration_time, registration_type: 'solo', shifts: [shift])
@@ -373,7 +396,7 @@ module Fixtures
         credit: amount,
         source: :stripe,
         created_at: paid_at,
-        identifier: "pretend_#{SecureRandom.alphanumeric(5)}"
+        identifier: "Payment: pretend_#{SecureRandom.alphanumeric(5)}"
       ) unless amount == 0
     end
 
