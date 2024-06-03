@@ -48,14 +48,14 @@ FactoryBot.define do
 
       factory :one_shift_standard_tournament do
         after(:create) do |t, _|
-          t.config_items << ConfigItem.new(key: 'tournament_type', value: Tournament::IGBO_STANDARD)
+          t.config_items << ConfigItem.new(label: 'Tournament Type', key: 'tournament_type', value: Tournament::IGBO_STANDARD)
           t.shifts << build(:shift, events: t.events)
         end
       end
 
       factory :two_shift_standard_tournament do
         after(:create) do |t, _|
-          t.config_items << ConfigItem.new(key: 'tournament_type', value: Tournament::IGBO_MULTI_SHIFT)
+          t.config_items << ConfigItem.new(label: 'Tournament Type', key: 'tournament_type', value: Tournament::IGBO_MULTI_SHIFT)
           2.times do
             t.shifts << build(:shift, events: t.events)
           end
@@ -81,12 +81,13 @@ FactoryBot.define do
 
     factory :single_event_tournament do
       after(:create) do |t, _|
-        t.config_items << ConfigItem.new(key: 'tournament_type', value: Tournament::SINGLE_EVENT_OCCASION)
+        t.config_items << ConfigItem.new(label: 'Tournament Type', key: 'tournament_type', value: Tournament::SINGLE_EVENT_OCCASION)
       end
 
       factory :singles_tournament do
         after(:create) do |t, _|
           create :event, :singles, tournament: t
+          t.config_items.find_by_key('team_size').destroy
         end
 
         factory :one_shift_singles_tournament do

@@ -41,4 +41,16 @@ class DirectorTournamentSerializer < TournamentSerializer
       sanction
   },
     resource: PurchasableItemSerializer
+
+  attribute :bowler_count do |t|
+    t.bowlers.count
+  end
+
+  attribute :team_count do |t|
+    t.teams.count
+  end
+
+  attribute :free_entry_count do |t|
+    t.free_entries.count
+  end
 end
