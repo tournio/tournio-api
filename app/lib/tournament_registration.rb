@@ -219,6 +219,11 @@ module TournamentRegistration
         amount: entry_fee_item.value,
         paid_at: Time.zone.now
       )
+      bowler.ledger_entries << LedgerEntry.new(
+        debit: total_credit,
+        source: :purchase,
+        identifier: entry_fee_item.name
+      )
     end
 
     identifier = confirmed_by.present? ? "Free entry confirmed by #{confirmed_by}" : 'Free entry confirmed by no one'
