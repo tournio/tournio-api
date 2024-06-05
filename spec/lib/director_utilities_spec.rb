@@ -756,4 +756,38 @@ RSpec.describe DirectorUtilities do
       end
     end
   end
+
+  describe '#bowler_export' do
+    subject { described_class.bowler_export(bowler: bowler) }
+    let(:tournament) { create :one_shift_standard_tournament }
+    let(:bowler) do
+      create :bowler,
+        tournament: tournament,
+        team: create(:team, tournament: tournament, shifts: tournament.shifts),
+        person: create(:person)
+    end
+    let(:expected_keys) { %i(id last_name first_name nickname birth_day birth_month birth_year address city state country postal_code phone1 email usbc_number average handicap igbo_member) }
+
+    before do
+      tournament.config_items.find_by_key('bowler_form_fields').update(value: 'address1 city state country postal_code date_of_birth usbc_id')
+    end
+
+    it 'includes the expected keys' do
+      exported_bowler = subject
+      expect(exported_bowler.keys).to match_array(expected_keys)
+    end
+
+    context 'with all optional fields except USBC ID turned off' do
+      let(:expected_keys) { %i(id last_name first_name nickname phone1 email usbc_number average handicap igbo_member) }
+
+      before do
+        tournament.config_items.find_by_key('bowler_form_fields').update(value: 'usbc_id')
+      end
+
+      it 'includes the expected keys' do
+        exported_bowler = subject
+        expect(exported_bowler.keys).to match_array(expected_keys)
+      end
+    end
+  end
 end
