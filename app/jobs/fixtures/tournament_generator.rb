@@ -134,7 +134,7 @@ module Fixtures
       end
 
       # set form fields to include DOB and city
-      tournament.config_items.find_by_key('bowler_form_fields').update(value: 'usbc_id date_of_birth city')
+      tournament.config_items.find_by_key('bowler_form_fields').update(value: 'usbc_id date_of_birth payment_app')
 
       image_path = Rails.root.join('spec', 'support', 'images').children.sample
       tournament.logo_image.attach(io: File.open(image_path), filename: 'digital.jpg')

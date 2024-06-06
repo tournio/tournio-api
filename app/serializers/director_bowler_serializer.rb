@@ -28,7 +28,8 @@ class DirectorBowlerSerializer < BowlerSerializer
     :created_at,
     :state,
     :country,
-    :postal_code
+    :postal_code,
+    :payment_app
 
   one :free_entry, resource: FreeEntrySerializer
   many :additional_question_responses, resource: AdditionalQuestionResponseSerializer
