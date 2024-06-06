@@ -11,7 +11,7 @@ module TournamentBusiness
   IGBO_NON_STANDARD = 'igbo_non_standard' # things like DAMIT
   SINGLE_EVENT_OCCASION = 'single_event' # things like fundraisers, bowling clinics, etc. May have multiple shift times
 
-  OPTIONAL_BOWLER_FIELDS = %i(address1 city state country postal_code date_of_birth usbc_id)
+  OPTIONAL_BOWLER_FIELDS = %i(address1 city state country postal_code date_of_birth usbc_id payment_app)
 
   def entry_fee
     purchasable_items.entry_fee.first.value
