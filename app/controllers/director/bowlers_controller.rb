@@ -22,6 +22,7 @@ module Director
         state
         country
         postal_code
+        payment_app
       ].freeze
 
     def index

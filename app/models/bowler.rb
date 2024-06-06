@@ -52,6 +52,7 @@ class Bowler < ApplicationRecord
            :first_name,
            :last_name,
            :nickname,
+           :payment_app,
            :phone,
            :postal_code,
            :preferred_name,

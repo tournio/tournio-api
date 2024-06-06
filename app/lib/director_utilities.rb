@@ -170,6 +170,8 @@ module DirectorUtilities
         })
       when :usbc_id
         deets[:usbc_number] = bowler.usbc_id
+      when :payment_app
+        deets[:'payment app'] = bowler.payment_app
       else
         deets[field_sym] = bowler.send(field_sym)
       end
