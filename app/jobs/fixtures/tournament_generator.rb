@@ -33,8 +33,8 @@ module Fixtures
       # Create non-bowling purchasable items
 
       # Need to limit these based on tournanent type
-      # create_teams
-      # create_solo_bowlers
+      create_teams
+      create_solo_bowlers
 
       # At this point, all signups are created, and ready for use
 
@@ -108,9 +108,10 @@ module Fixtures
       # self.tournament = FactoryBot.create :mix_and_match_standard_tournament,
       # self.tournament = FactoryBot.create :one_shift_singles_tournament,
       # self.tournament = FactoryBot.create :two_shift_singles_tournament,
-      #   :active,
-        :testing,
+        :active,
+        # :testing,
         :with_entry_fee,
+        # :with_late_fee,
         :with_extra_stuff, # creates banquet and raffle ticket bundle
         name: name,
         abbreviation: abbr,
@@ -393,11 +394,20 @@ module Fixtures
 
     def pay_off_balance(bowler:, paid_at:)
       amount = bowler.purchases.sum(&:amount)
+      payment_identifier = "Payment: pretend_#{SecureRandom.alphanumeric(5)}"
+      extp = ExternalPayment.create(
+        identifier: payment_identifier,
+        payment_type: :stripe,
+        tournament: tournament
+      )
+      bowler.purchases.map do |purchase|
+        purchase.update(external_payment: extp)
+      end
       bowler.ledger_entries << LedgerEntry.new(
         credit: amount,
         source: :stripe,
         created_at: paid_at,
-        identifier: "Payment: pretend_#{SecureRandom.alphanumeric(5)}"
+        identifier: payment_identifier,
       ) unless amount == 0
     end
 
