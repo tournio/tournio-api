@@ -503,8 +503,8 @@ RSpec.describe TournamentRegistration do
       expect(free_entry.reload.confirmed?).to be_truthy
     end
 
-    it "adds an entry to the bowler's ledger" do
-      expect { subject }.to change(bowler.ledger_entries, :count).by(1)
+    it "adds two entries to the bowler's ledger" do
+      expect { subject }.to change(bowler.ledger_entries, :count).by(2)
     end
 
     it 'creates an entry-fee purchase for the bowler' do
