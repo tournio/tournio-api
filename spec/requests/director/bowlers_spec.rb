@@ -255,9 +255,10 @@ describe Director::BowlersController, type: :request do
 
     it 'includes the updated bowler in the response' do
       subject
-      expect(json).to have_key('last_name')
+      ap json
+      expect(json).to have_key('lastName')
       expect(json).to have_key('identifier')
-      expect(json['nickname']).to eq('Freddy')
+      expect(json['preferredName']).to eq('Freddy')
     end
 
     it 'does not change their team' do
@@ -347,7 +348,7 @@ describe Director::BowlersController, type: :request do
 
       it 'includes the updated doubles partner in the response' do
         subject
-        expect(json['doubles_partner']['full_name']).to eq(TournamentRegistration.person_list_name(new_partner.person))
+        expect(json['doublesPartner']['name']).to eq(TournamentRegistration.person_list_name(new_partner.person))
       end
     end
 
@@ -385,8 +386,9 @@ describe Director::BowlersController, type: :request do
 
       it 'reflects the response' do
         subject
-        expect(json).to have_key('additional_question_responses')
-        expect(json['additional_question_responses'][aq.name]['response']).to eq('my updated response')
+        expect(json).to have_key('additionalQuestionResponses')
+        index = json['additionalQuestionResponses'].find_index { |elem| elem['name'] == aq.name }
+        expect(json['additionalQuestionResponses'][index]['response']).to eq('my updated response')
       end
 
       context 'to an empty response' do
@@ -401,8 +403,9 @@ describe Director::BowlersController, type: :request do
 
         it 'reflects the response' do
           subject
-          expect(json).to have_key('additional_question_responses')
-          expect(json['additional_question_responses'][aq.name]['response']).to eq('')
+          expect(json).to have_key('additionalQuestionResponses')
+          index = json['additionalQuestionResponses'].find_index { |elem| elem['name'] == aq.name }
+          expect(json['additionalQuestionResponses'][index]['response']).to eq('')
         end
       end
     end
@@ -434,8 +437,9 @@ describe Director::BowlersController, type: :request do
 
       it 'reflects the response' do
         subject
-        expect(json).to have_key('additional_question_responses')
-        expect(json['additional_question_responses'][aq.name]['response']).to eq('info provided by a director about the bowler')
+        expect(json).to have_key('additionalQuestionResponses')
+        index = json['additionalQuestionResponses'].find_index { |elem| elem['name'] == aq.name }
+        expect(json['additionalQuestionResponses'][index]['response']).to eq('info provided by a director about the bowler')
       end
     end
 
@@ -460,14 +464,14 @@ describe Director::BowlersController, type: :request do
 
       it 'reflects the response' do
         subject
-        expect(json).to have_key('verified_average')
-        expect(json['verified_average']).to eq(199)
+        expect(json).to have_key('verifiedAverage')
+        expect(json['verifiedAverage']).to eq(199)
       end
 
       it 'includes the igbo_member property' do
         subject
-        expect(json).to have_key('igbo_member')
-        expect(json['igbo_member']).to eq(true)
+        expect(json).to have_key('igboMember')
+        expect(json['igboMember']).to eq(true)
       end
     end
 
