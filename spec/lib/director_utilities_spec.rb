@@ -770,7 +770,7 @@ RSpec.describe DirectorUtilities do
         team: create(:team, tournament: tournament, shifts: tournament.shifts),
         person: create(:person)
     end
-    let(:expected_keys) { %i(id last_name first_name nickname birth_day birth_month birth_year address city state country postal_code phone1 email usbc_number average handicap igbo_member payment_app) }
+    let(:expected_keys) { %i(id last_name first_name nickname birth_day birth_month birth_year address city state country postal_code phone1 email usbc_number average handicap igbo_member).append(:'payment app') }
 
     before do
       tournament.config_items.find_by_key('bowler_form_fields').update(value: 'address1 city state country postal_code date_of_birth usbc_id payment_app')

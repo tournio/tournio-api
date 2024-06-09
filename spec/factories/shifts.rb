@@ -26,8 +26,8 @@ FactoryBot.define do
 
     sequence(:name) { |n| "Shift no. #{n}" }
     sequence(:description) do |n|
-      first = ('A'.codepoints.first + n-1).chr
-      second = ('M'.codepoints.first + n-1).chr
+      first = n+1
+      second = n+2
       "Some from column #{first}, some from column #{second}"
     end
 

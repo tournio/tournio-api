@@ -255,7 +255,6 @@ describe Director::BowlersController, type: :request do
 
     it 'includes the updated bowler in the response' do
       subject
-      ap json
       expect(json).to have_key('lastName')
       expect(json).to have_key('identifier')
       expect(json['preferredName']).to eq('Freddy')
