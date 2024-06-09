@@ -11,13 +11,13 @@ describe BowlersController, type: :request do
   describe '#index' do
     subject { get uri, as: :json }
 
-    let(:tournament) { create :one_shift_standard_tournament, :active }
+    let(:tournament) { create :one_shift_standard_tournament }
     let(:tournament_identifier) { tournament.identifier }
     let(:uri) { "/tournaments/#{tournament_identifier}/bowlers" }
 
     before do
       10.times do |i|
-        create :bowler, tournament: tournament, position: nil
+        create :bowler, tournament: tournament
       end
     end
 

@@ -854,7 +854,7 @@ describe Director::TournamentsController, type: :request do
       end
 
       context 'Active' do
-        let(:tournament) { create :one_shift_standard_tournament, :active }
+        let(:tournament) { create :one_shift_standard_tournament, :with_entry_fee, :active }
 
         it 'responds with Forbidden' do
           subject
