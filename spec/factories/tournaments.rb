@@ -37,10 +37,106 @@ FactoryBot.define do
     end_date { Date.today + 92.days }
     entry_deadline { Date.today + 80.days }
 
-    # to be removed
-    # association :stripe_account, strategy: :build
-
     tournament_org
+
+    factory :standard_tournament do
+      after(:create) do |t, _|
+        create :event, :singles, tournament: t
+        create :event, :doubles, tournament: t
+        create :event, :team, tournament: t
+      end
+
+      factory :one_shift_standard_tournament do
+        after(:create) do |t, _|
+          t.config_items << ConfigItem.new(label: 'Tournament Type', key: 'tournament_type', value: TournamentBusiness::IGBO_STANDARD)
+          t.shifts << build(:shift, events: t.events)
+        end
+      end
+
+      factory :two_shift_standard_tournament do
+        after(:create) do |t, _|
+          t.config_items << ConfigItem.new(label: 'Tournament Type', key: 'tournament_type', value: TournamentBusiness::IGBO_MULTI_SHIFT)
+          2.times do
+            t.shifts << build(:shift, events: t.events)
+          end
+        end
+      end
+
+      factory :mix_and_match_standard_tournament do
+        after(:create) do |t, _|
+          t.config_items << ConfigItem.new(key: 'tournament_type', value: TournamentBusiness::IGBO_MIX_AND_MATCH)
+
+          singles_event = t.events.single.first
+          doubles_event = t.events.double.first
+          team_event = t.events.team.first
+          t.shifts = [
+            build(:shift, name: 'SD1', description: 'S&D early', events: [singles_event, doubles_event]),
+            build(:shift, name: 'SD2', description: 'S&D late', events: [singles_event, doubles_event]),
+            build(:shift, name: 'T1', description: 'T early', events: [team_event]),
+            build(:shift, name: 'T2', description: 'T late', events: [team_event]),
+          ]
+        end
+      end
+    end
+
+    factory :single_event_tournament do
+      after(:create) do |t, _|
+        t.config_items << ConfigItem.new(label: 'Tournament Type', key: 'tournament_type', value: TournamentBusiness::SINGLE_EVENT_OCCASION)
+      end
+
+      factory :singles_tournament do
+        after(:create) do |t, _|
+          create :event, :singles, tournament: t
+          t.config_items.find_by_key('team_size').destroy
+        end
+
+        factory :one_shift_singles_tournament do
+          after(:create) do |t, _|
+            t.shifts << build(:shift,
+              events: t.events,
+              capacity: 69
+            )
+          end
+        end
+
+        factory :two_shift_singles_tournament do
+          after(:create) do |t, _|
+            2.times do
+              t.shifts << build(:shift,
+                events: t.events,
+                capacity: 69
+              )
+            end
+          end
+        end
+      end
+
+      # Not treating doubles tournaments as special until we need to.
+      # For now, it's a team tournament with a team size of 2.
+      # factory :doubles_tournament do
+      #
+      # end
+
+      factory :team_tournament do
+        after(:create) do |t, _|
+          create :event, :team, tournament: t
+        end
+
+        factory :one_shift_team_tournament do
+          after(:create) do |t, _|
+            t.shifts << build(:shift, events: t.events)
+          end
+        end
+
+        factory :two_shift_team_tournament do
+          after(:create) do |t, _|
+            2.times do
+              t.shifts << build(:shift, events: t.events)
+            end
+          end
+        end
+      end
+    end
 
     trait :demo do
       aasm_state { :demo }
@@ -65,52 +161,6 @@ FactoryBot.define do
       entry_deadline { Date.today - 20.days }
     end
 
-    # Every tournament needs at least one shift now, if only to specify capacity
-    after(:create) do |t, _|
-      create :shift, tournament: t
-    end
-
-    trait :one_shift do
-      # nothing more to do
-    end
-
-    trait :one_small_shift do
-      after(:create) do |t, _|
-        t.shifts.first.update(capacity: 10)
-      end
-    end
-
-    trait :two_shifts do
-      after(:create) do |t, _|
-        t.config_items.find_by(key: 'tournament_type').update(value: Tournament::IGBO_MULTI_SHIFT)
-        create :shift, tournament: t, name: 'Second Shift', display_order: 2
-      end
-    end
-
-    trait :with_standard_events do
-      after(:create) do |t, _|
-        create :event, :singles, tournament: t
-        create :event, :doubles, tournament: t
-        create :event, :team, tournament: t
-      end
-    end
-
-    trait :mix_and_match_shifts do
-      after(:create) do |t, _|
-        t.config_items.find_by(key: 'tournament_type').update(value: Tournament::IGBO_MIX_AND_MATCH)
-        singles = create :event, :singles, tournament: t
-        doubles = create :event, :doubles, tournament: t
-        team = create :event, :team, tournament: t
-
-        t.shifts = [
-          build(:shift, name: 'SD1', description: 'S&D early', events: [singles, doubles]),
-          build(:shift, name: 'SD2', description: 'S&D late', events: [singles, doubles]),
-          build(:shift, name: 'T1', description: 'T early', events: [team]),
-          build(:shift, name: 'T2', description: 'T late', events: [team]),
-        ]
-      end
-    end
-
     trait :with_entry_fee do
       after(:create) do |t, _|
         create(:purchasable_item,
@@ -123,7 +173,12 @@ FactoryBot.define do
       after(:create) do |t, _|
         create(:purchasable_item,
           :late_fee,
-          tournament: t)
+          tournament: t,
+          configuration:
+            {
+              applies_at: t.entry_deadline - 1.month,
+            }
+        )
       end
     end
 
@@ -131,7 +186,12 @@ FactoryBot.define do
       after(:create) do |t, _|
         create(:purchasable_item,
           :early_discount,
-          tournament: t)
+          tournament: t,
+          configuration:
+            {
+              valid_until: t.entry_deadline - 2.months,
+            }
+        )
       end
     end
 
@@ -188,20 +248,6 @@ FactoryBot.define do
       after(:create) do |t, _|
         create(:purchasable_item, :banquet_entry, tournament: t)
         create(:purchasable_item, :raffle_bundle, value: 75, tournament: t)
-      end
-    end
-
-    trait :with_a_bowling_event do
-      after(:create) do |t, _|
-        t.shifts.first.update(capacity: 80)
-        create(:purchasable_item, :bowling_event, tournament: t)
-      end
-    end
-
-    trait :with_a_doubles_event do
-      after(:create) do |t, _|
-        t.shifts.first.update(capacity: 80)
-        create(:purchasable_item, :doubles_event, tournament: t)
       end
     end
 

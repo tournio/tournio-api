@@ -10,7 +10,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema[7.1].define(version: 2024_03_14_150711) do
+ActiveRecord::Schema[7.1].define(version: 2024_06_06_212612) do
   # These are extensions that must be enabled in order to support this database
   enable_extension "plpgsql"
 
@@ -89,6 +89,13 @@ ActiveRecord::Schema[7.1].define(version: 2024_03_14_150711) do
     t.index ["person_id"], name: "index_bowlers_on_person_id"
     t.index ["team_id"], name: "index_bowlers_on_team_id"
     t.index ["tournament_id"], name: "index_bowlers_on_tournament_id"
+  end
+
+  create_table "bowlers_shifts", id: false, force: :cascade do |t|
+    t.bigint "bowler_id", null: false
+    t.bigint "shift_id", null: false
+    t.index ["bowler_id"], name: "index_bowlers_shifts_on_bowler_id"
+    t.index ["shift_id"], name: "index_bowlers_shifts_on_shift_id"
   end
 
   create_table "config_items", force: :cascade do |t|
@@ -239,6 +246,7 @@ ActiveRecord::Schema[7.1].define(version: 2024_03_14_150711) do
     t.datetime "created_at", null: false
     t.datetime "updated_at", null: false
     t.integer "birth_year"
+    t.string "payment_app"
     t.index ["last_name"], name: "index_people_on_last_name"
     t.index ["usbc_id"], name: "index_people_on_usbc_id"
   end

@@ -46,7 +46,7 @@ RSpec.describe TournamentBusiness do
   end
   let(:dummy_obj) { dummy_class.new }
 
-  let(:tournament) { create :tournament }
+  let(:tournament) { create :one_shift_standard_tournament }
 
   before do
     allow(dummy_obj).to receive(:teams).and_return(tournament.teams)

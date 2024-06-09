@@ -27,5 +27,21 @@ class ShiftSerializer < JsonSerializer
     :name,
     :description,
     :capacity,
-    :display_order
+    :display_order,
+    :is_full,
+    :group_title,
+    :event_string
+
+  # If there's a team event, returns team count + count of solo bowlers / team size
+  # Otherwise, returns count of bowlers
+  attribute :tally do |shift|
+    team_size = 1
+    if shift.events.team.any?
+      team_size = shift.tournament.team_size
+    end
+
+    shift.teams.count + shift.bowlers.count / team_size
+
+    # @doubles Do we want to handle doubles-only events differently?
+  end
 end

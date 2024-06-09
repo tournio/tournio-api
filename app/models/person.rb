@@ -16,6 +16,7 @@
 #  first_name  :string           not null
 #  last_name   :string           not null
 #  nickname    :string
+#  payment_app :string
 #  phone       :string           not null
 #  postal_code :string
 #  state       :string

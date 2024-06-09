@@ -16,7 +16,7 @@ describe Director::TeamsController, type: :request do
 
     let(:uri) { "/director/tournaments/#{tournament_identifier}/teams" }
 
-    let!(:tournament) { create :tournament, :active, :one_shift }
+    let(:tournament) { create :one_shift_standard_tournament, :active }
     let(:tournament_identifier) { tournament.identifier }
     let(:shift) { tournament.shifts.first }
 
@@ -33,9 +33,10 @@ describe Director::TeamsController, type: :request do
         create :team, :standard_two_bowlers, tournament: tournament, shifts: [shift]
       end
 
-      1.times do
-        create :team, :standard_three_bowlers, tournament: tournament, shifts: [shift]
-      end
+      create :team,
+        :standard_three_bowlers,
+        tournament: tournament,
+        shifts: [shift]
     end
 
     include_examples 'an authorized action'
@@ -104,7 +105,7 @@ describe Director::TeamsController, type: :request do
     let(:uri) { "/director/tournaments/#{tournament_identifier}/teams" }
 
     let(:tournament_identifier) { tournament.identifier }
-    let(:tournament) { create :tournament, :active, :one_shift }
+    let(:tournament) { create :one_shift_standard_tournament, :active }
     let(:shift) { tournament.shifts.first }
 
     let(:params) do
@@ -137,7 +138,7 @@ describe Director::TeamsController, type: :request do
     end
 
     context 'when the tournament has 2 inclusive shifts' do
-      let(:tournament) { create :tournament, :active, :two_shifts }
+      let(:tournament) { create :two_shift_standard_tournament, :active }
       let(:shift) { tournament.shifts.last }
 
       it 'succeeds with a 201 Created' do
@@ -153,7 +154,7 @@ describe Director::TeamsController, type: :request do
     end
 
     context 'when the tournament has mix-and-match shifts' do
-      let(:tournament) { create :tournament, :active, :mix_and_match_shifts }
+      let(:tournament) { create :mix_and_match_standard_tournament, :active }
       let(:shifts) do
         [
           tournament.events.team.first.shifts.first,
@@ -277,7 +278,7 @@ describe Director::TeamsController, type: :request do
 
     let(:uri) { "/director/teams/#{team_identifier}" }
 
-    let(:tournament) { create :tournament, :active }
+    let(:tournament) { create :one_shift_standard_tournament, :active }
     let(:team) { create :team, :standard_full_team, tournament: tournament, shifts: tournament.shifts }
     let(:team_identifier) { team.identifier }
     let(:new_name) { 'High Rollers' }
@@ -321,7 +322,7 @@ describe Director::TeamsController, type: :request do
     end
 
     context 'moving to a different shift' do
-      let(:tournament) { create :tournament, :active, :two_shifts }
+      let(:tournament) { create :two_shift_standard_tournament, :active }
       let(:old_shift) { tournament.shifts.first }
       let(:new_shift) { tournament.shifts.second }
       let(:team) { create :team, :standard_full_team, tournament: tournament, shifts: [old_shift] }
@@ -374,7 +375,7 @@ describe Director::TeamsController, type: :request do
     end
 
     context 'moving around a mix-and-match tournament' do
-      let(:tournament) { create :tournament, :active, :mix_and_match_shifts }
+      let(:tournament) { create :mix_and_match_standard_tournament, :active }
       let(:old_shifts) do
         [
           tournament.events.team.first.shifts.first,

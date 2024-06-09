@@ -129,31 +129,55 @@ module DirectorUtilities
   end
 
   def self.bowler_export(bowler:)
-    {
-      id: bowler_identifier(bowler),
+    deets = {
+      id: bowler.identifier,
 
       last_name: bowler.last_name,
       first_name: bowler.first_name,
       nickname: bowler.nickname.present? ? bowler.nickname : '',
 
-      birth_day: bowler.birth_day,
-      birth_month: bowler.birth_month,
-      birth_year: bowler.birth_year,
+      # birth_day: bowler.birth_day,
+      # birth_month: bowler.birth_month,
+      # birth_year: bowler.birth_year,
 
-      address1: bowler.address1,
-      address2: bowler.address2.present? ? bowler.address2 : '',
-      city: bowler.city,
-      state: bowler.state,
-      country: bowler.country,
-      postal_code: bowler.postal_code,
+      # address1: bowler.address1,
+      # address2: bowler.address2.present? ? bowler.address2 : '',
+      # city: bowler.city,
+      # state: bowler.state,
+      # country: bowler.country,
+      # postal_code: bowler.postal_code,
       phone1: bowler.phone,
       email: bowler.email,
 
-      usbc_number: bowler.usbc_id,
+      # usbc_number: bowler.usbc_id,
       average: bowler.verified_data['verified_average'] || '',
       handicap: bowler.verified_data['handicap'],
       igbo_member: bowler.verified_data['igbo_member'],
     }
+
+    # Optional fields are: address1 city state country postal_code date_of_birth usbc_id
+    included_fields = bowler.tournament.config['bowler_form_fields'].split(' ')
+    included_fields.each do |field|
+      field_sym = field.to_sym
+      case field_sym
+      when :address1
+        deets[:address] = bowler.address1
+      when :date_of_birth
+        deets.merge!({
+          birth_day: bowler.birth_day,
+          birth_month: bowler.birth_month,
+          birth_year: bowler.birth_year,
+        })
+      when :usbc_id
+        deets[:usbc_number] = bowler.usbc_id
+      when :payment_app
+        deets[:'payment app'] = bowler.payment_app
+      else
+        deets[field_sym] = bowler.send(field_sym)
+      end
+    end
+
+    deets
   end
 
   def self.doubles_partner_info(partner:, name_only: false)
@@ -163,7 +187,7 @@ module DirectorUtilities
     }
     unless name_only
       deets.merge!(
-        doubles_external_id: bowler_identifier(partner),
+        doubles_external_id: partner.identifier,
         doubles_birth_day: partner&.birth_day,
         doubles_birth_month: partner&.birth_month,
       )
@@ -233,9 +257,17 @@ module DirectorUtilities
         team.shifts.each do |shift|
           data["shift preference: #{shift.event_string}"] = shift.name
         end
+      else
+        bowler.shifts.each do |shift|
+          data["shift preference: #{shift.event_string}"] = shift.name
+        end
       end
     elsif tournament.config['tournament_type'] == Tournament::IGBO_MULTI_SHIFT
-      data['shift preference'] = team.present? ? team.shifts.first.name : 'n/a'
+      if team.present?
+        data['shift preference'] = team.shifts.first.name
+      else
+        data['shift preference'] = bowler.shifts.first.name
+      end
     end
 
     data

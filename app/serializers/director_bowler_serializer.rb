@@ -28,7 +28,8 @@ class DirectorBowlerSerializer < BowlerSerializer
     :created_at,
     :state,
     :country,
-    :postal_code
+    :postal_code,
+    :payment_app
 
   one :free_entry, resource: FreeEntrySerializer
   many :additional_question_responses, resource: AdditionalQuestionResponseSerializer
@@ -41,7 +42,14 @@ class DirectorBowlerSerializer < BowlerSerializer
   # }, resource: :SignupSerializer
 
   attribute :doubles_partner do |b|
-    b.doubles_partner.present? ? TournamentRegistration.person_list_name(b.doubles_partner) : 'n/a'
+    if b.doubles_partner.present?
+      {
+        name: TournamentRegistration.person_list_name(b.doubles_partner),
+        identifier: b.doubles_partner.identifier,
+      }
+    else
+      nil
+    end
   end
   attribute :amount_paid do |b|
     TournamentRegistration.amount_paid(b)

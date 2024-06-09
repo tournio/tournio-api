@@ -21,6 +21,7 @@ class TeamsController < ApplicationController
       state
       country
       postal_code
+      payment_app
     ].freeze
   BOWLER_ATTRS = [
     :position,

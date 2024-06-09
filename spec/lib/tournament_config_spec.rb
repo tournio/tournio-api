@@ -3,7 +3,7 @@
 require 'rails_helper'
 
 RSpec.describe TournamentConfig do
-  let(:tournament) { create :tournament }
+  let(:tournament) { create :one_shift_standard_tournament }
   let(:tournament_config) { TournamentConfig.new(tournament.config_items) }
 
   describe '#[]' do

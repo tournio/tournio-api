@@ -23,8 +23,15 @@
 FactoryBot.define do
   factory :shift do
     capacity { 40 }
-    description { 'One event on Friday, the other two on Saturday' }
-    name { 'Main' }
+
+    sequence(:name) { |n| "Shift no. #{n}" }
+    sequence(:description) do |n|
+      first = n+1
+      second = n+2
+      "Some from column #{first}, some from column #{second}"
+    end
+
+    tournament
 
     trait :full do
       is_full { true }

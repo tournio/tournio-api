@@ -60,6 +60,8 @@ class BowlerBlueprint < Blueprinter::Base
     association :paid_purchases, blueprint: PurchaseBlueprint do |bowler, _|
       bowler.purchases.includes(:purchasable_item).paid.order(paid_at: :asc)
     end
+
+    association :shifts, blueprint: ShiftBlueprint
   end
 
   view :director_list do
@@ -130,6 +132,7 @@ class BowlerBlueprint < Blueprinter::Base
     association :free_entry, blueprint: FreeEntryBlueprint
     association :ledger_entries, blueprint: LedgerEntryBlueprint
     association :waivers, blueprint: WaiverBlueprint
+    association :shifts, blueprint: ShiftBlueprint
 
     field :additional_question_responses do |b, _|
       b.additional_question_responses.each_with_object({}) { |aqr, obj| obj[aqr.name] = AdditionalQuestionResponseBlueprint.render_as_hash(aqr) }

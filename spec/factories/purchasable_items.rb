@@ -44,6 +44,7 @@ FactoryBot.define do
       determination { :late_fee }
       name { 'Late registration fee'}
       user_selectable { false }
+      value { 17 }
       configuration do
         {
           applies_at: 2.weeks.ago,
@@ -55,7 +56,7 @@ FactoryBot.define do
       category { :ledger }
       determination { :early_discount }
       name { 'Early registration discount' }
-      value { 15 }
+      value { 12 }
       user_selectable { false }
       configuration do
         {

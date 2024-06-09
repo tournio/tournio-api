@@ -3,6 +3,7 @@
 class DirectorTournamentSerializer < TournamentSerializer
   attributes :id
 
+  many :shifts, resource: ShiftSerializer
   many :purchasable_items, proc { |purchasable_items, params, tournament|
     ledger_items = tournament.purchasable_items.ledger
     event_items = tournament.purchasable_items.event
@@ -40,4 +41,16 @@ class DirectorTournamentSerializer < TournamentSerializer
       sanction
   },
     resource: PurchasableItemSerializer
+
+  attribute :bowler_count do |t|
+    t.bowlers.count
+  end
+
+  attribute :team_count do |t|
+    t.teams.count
+  end
+
+  attribute :free_entry_count do |t|
+    t.free_entries.count
+  end
 end

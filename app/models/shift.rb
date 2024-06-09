@@ -22,6 +22,7 @@
 #
 class Shift < ApplicationRecord
   belongs_to :tournament
+  has_and_belongs_to_many :bowlers
   has_and_belongs_to_many :teams
   has_and_belongs_to_many :events
 

@@ -8,7 +8,10 @@ module TournamentBusiness
   IGBO_STANDARD = 'igbo_standard'
   IGBO_MULTI_SHIFT = 'igbo_multi_shift'
   IGBO_MIX_AND_MATCH = 'igbo_mix_and_match'
-  IGBO_NON_STANDARD = 'igbo_non_standard'
+  IGBO_NON_STANDARD = 'igbo_non_standard' # things like DAMIT
+  SINGLE_EVENT_OCCASION = 'single_event' # things like fundraisers, bowling clinics, etc. May have multiple shift times
+
+  OPTIONAL_BOWLER_FIELDS = %i(address1 city state country postal_code date_of_birth usbc_id payment_app)
 
   def entry_fee
     purchasable_items.entry_fee.first.value
@@ -46,7 +49,7 @@ module TournamentBusiness
       ConfigItem.new(key: 'website', value: 'http://www.igbo.org', label: 'Website'),
       ConfigItem.new(key: 'stripe_receipts', value: 'true', label: 'Send receipts via Stripe'),
       ConfigItem.new(key: 'team_size', value: 4, label: 'Team Size'),
-      ConfigItem.new(key: 'tournament_type', value: IGBO_STANDARD, label: 'Tournament Type'),
+      # ConfigItem.new(key: 'tournament_type', value: IGBO_STANDARD, label: 'Tournament Type'),
       ConfigItem.new(key: 'bowler_form_fields', value: 'usbc_id', label: 'Bowler Form Fields'),
       ConfigItem.new(key: 'enable_unpaid_signups', value: 'true', label: 'Allow unpaid signups for optional events'),
     ]

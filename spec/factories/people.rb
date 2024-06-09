@@ -16,6 +16,7 @@
 #  first_name  :string           not null
 #  last_name   :string           not null
 #  nickname    :string
+#  payment_app :string
 #  phone       :string           not null
 #  postal_code :string
 #  state       :string
@@ -35,6 +36,7 @@ FactoryBot.define do
     last_name   { 'McBowler' }
     birth_day   { 28 }
     birth_month { 12 }
+    birth_year  { 1980 }
     address1    { '123 Synthetic Lane' }
     city        { 'Denver' }
     country     { 'US' }

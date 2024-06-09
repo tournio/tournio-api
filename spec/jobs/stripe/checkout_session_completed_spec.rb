@@ -53,7 +53,7 @@ RSpec.describe Stripe::CheckoutSessionCompleted, type: :job do
 
       it 'correctly populates the identifier on the Stripe LedgerEntry' do
         subject
-        pi_identifier = mock_checkout_session[:payment_intent]
+        pi_identifier = "Payment: #{mock_checkout_session[:payment_intent]}"
         expect(LedgerEntry.stripe.last.identifier).to eq(pi_identifier)
       end
 

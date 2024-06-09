@@ -18,7 +18,7 @@ RSpec.describe Stripe::CheckoutSessionExpired, type: :job do
     end
 
     context 'a standard tournament' do
-      let(:tournament) { create :tournament, :active, :one_shift }
+      let(:tournament) { create :one_shift_standard_tournament, :active }
 
       context 'a regular checkout session' do
         before do

@@ -26,12 +26,13 @@ class BowlersController < ApplicationController
       state
       country
       postal_code
+      payment_app
     ].freeze
   BOWLER_ATTRS = [
     :position,
     :doubles_partner_num,
     :doubles_partner_identifier,
-    :shift_identifier,
+    shift_identifiers: [],
     person_attributes: PERSON_ATTRS,
     additional_question_responses: ADDITIONAL_QUESTION_RESPONSES_ATTRS,
   ].freeze
@@ -58,7 +59,7 @@ class BowlersController < ApplicationController
     render json: ListBowlerSerializer.new(list, within: {
       doubles_partner: :doubles_partner,
       team: :team,
-    }).as_json, status: :ok
+    }), status: :ok
   end
 
   def create
@@ -123,6 +124,7 @@ class BowlersController < ApplicationController
     end
 
     render json: BowlerBlueprint.render(bowlers, view: :detail), status: :created
+    # render json: BowlerSerializer.new(bowlers), status: :created
   end
 
   def commerce
@@ -312,6 +314,12 @@ class BowlersController < ApplicationController
         partner = Bowler.where(identifier: p['doubles_partner_identifier'], doubles_partner_id: nil).first
         p['doubles_partner_id'] = partner.id unless partner.nil?
         p.delete('doubles_partner_identifier')
+      end
+
+      # We allow solo bowlers to specify their preferred shift, when applicable
+      if p['shift_identifiers']
+        p['shifts'] = Shift.where(identifier: p['shift_identifiers'])
+        p.delete('shift_identifiers')
       end
     end
 
