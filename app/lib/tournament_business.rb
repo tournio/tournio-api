@@ -52,6 +52,7 @@ module TournamentBusiness
       # ConfigItem.new(key: 'tournament_type', value: IGBO_STANDARD, label: 'Tournament Type'),
       ConfigItem.new(key: 'bowler_form_fields', value: 'usbc_id', label: 'Bowler Form Fields'),
       ConfigItem.new(key: 'enable_unpaid_signups', value: 'true', label: 'Allow unpaid signups for optional events'),
+      ConfigItem.new(key: 'enable_free_entries', value: 'true', label: 'Accept free entry codes from bowlers'),
     ]
 
     if Rails.env.development?
