@@ -33,8 +33,8 @@ module Fixtures
       # Create non-bowling purchasable items
 
       # Need to limit these based on tournanent type
-      create_teams
-      create_solo_bowlers
+      # create_teams
+      # create_solo_bowlers
 
       # At this point, all signups are created, and ready for use
 
@@ -108,7 +108,7 @@ module Fixtures
       # self.tournament = FactoryBot.create :mix_and_match_standard_tournament,
       # self.tournament = FactoryBot.create :one_shift_singles_tournament,
       # self.tournament = FactoryBot.create :two_shift_singles_tournament,
-        :active,
+      #   :active,
         # :testing,
         :with_entry_fee,
         # :with_late_fee,

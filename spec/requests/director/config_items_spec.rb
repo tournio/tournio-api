@@ -119,6 +119,14 @@ describe Director::ConfigItemsController, type: :request do
           end
         end
 
+        context 'enable free entries' do
+          let(:config_item) { tournament.config_items.find_by(key: 'enable_free_entries') }
+
+          it 'succeeds with a 200 OK' do
+            subject
+            expect(response).to have_http_status(:ok)
+          end
+        end
       end
     end
 
