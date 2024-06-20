@@ -82,7 +82,6 @@ module Stripe
         source: :stripe,
         identifier: "Payment: #{cs[:payment_intent]}"
       )
-      TournamentRegistration.send_receipt_email(bowler, external_payment.id) unless bowler.tournament.config[:stripe_receipts]
 
       TournamentRegistration.notify_payment_contacts(
         bowler,

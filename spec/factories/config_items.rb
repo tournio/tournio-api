@@ -36,9 +36,5 @@ FactoryBot.define do
       value { 5 }
       label { 'Team Size' }
     end
-    trait :stripe_receipts do
-      key { 'stripe_receipts' }
-      value { true }
-    end
   end
 end
