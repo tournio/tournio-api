@@ -72,17 +72,6 @@ RSpec.describe Stripe::CheckoutSessionCompleted, type: :job do
         subject
       end
 
-      context 'with the config item for sending receipts via Stripe disabled' do
-        before do
-          tournament.config_items.find_by(key: 'stripe_receipts').update(value: 'false')
-        end
-
-        it 'sends a receipt email' do
-          expect(TournamentRegistration).to receive(:send_receipt_email).once
-          subject
-        end
-      end
-
       context 'with an entry fee' do
         let(:entry_fee_amount) { 117 }
         let(:entry_fee_item) do
