@@ -293,3 +293,13 @@ ExtendedFormField.create(
   helper_text: '',
   helper_url: '',
 ) unless ExtendedFormField.find_by(name: 'igbo_league_and_state').present?
+
+ExtendedFormField.create(
+  name: 'first_time',
+  label: "Is this your first time attending this tournament?",
+  html_element_type: 'checkbox',
+  html_element_config: { label: 'Yes', value: 'no' },
+  validation_rules: { required: false },
+  helper_text: '',
+  helper_url: '',
+) unless ExtendedFormField.find_by(name: 'first_time').present?
