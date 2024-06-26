@@ -45,7 +45,11 @@ module StripeApiHelpers
         amount_total: amount_total,
         object: 'checkout.session',
         status: 'complete',
-        payment_intent: "pi_test_#{SecureRandom.uuid}"
+        payment_intent: "pi_test_#{SecureRandom.uuid}",
+        customer_details: {
+          email: 'contrived@address.org',
+          name: 'Ephemer Elle',
+        },
       }
     end
   end
@@ -74,7 +78,7 @@ module StripeApiHelpers
       "custom_text": {"after_submit":nil,"shipping_address":nil,"submit":nil,"terms_of_service_acceptance":nil},
       "customer": nil,
       "customer_creation": "if_required",
-      "customer_details": {"address":{"city":nil,"country":"US","line1":nil,"line2":nil,"postal_code":"76227","state":nil},"email":"l.kutzler@gmail.com","name":"Laura Benfield","phone":nil,"tax_exempt":"none","tax_ids":[]},
+      "customer_details": {"address":{"city":nil,"country":"US","line1":nil,"line2":nil,"postal_code":"76227","state":nil},"email":"example.person@example.com","name":"Example Person","phone":nil,"tax_exempt":"none","tax_ids":[]},
       "customer_email": nil,
       "expires_at": 1702927834,
       "invoice": nil,
