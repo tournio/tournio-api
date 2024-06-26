@@ -151,17 +151,15 @@ module DirectorUtilities
 
       # usbc_number: bowler.usbc_id,
       average: bowler.verified_data['verified_average'] || '',
-      handicap: bowler.verified_data['handicap'],
-      igbo_member: bowler.verified_data['igbo_member'],
+      handicap: bowler.verified_data['handicap'] || '',
+      igbo_member: bowler.verified_data['igbo_member'] || '',
     }
 
-    # Optional fields are: address1 city state country postal_code date_of_birth usbc_id
+    # Optional fields are: address1 address2 city state country postal_code date_of_birth usbc_id
     included_fields = bowler.tournament.config['bowler_form_fields'].split(' ')
     included_fields.each do |field|
       field_sym = field.to_sym
       case field_sym
-      when :address1
-        deets[:address] = bowler.address1
       when :date_of_birth
         deets.merge!({
           birth_day: bowler.birth_day,
@@ -171,9 +169,9 @@ module DirectorUtilities
       when :usbc_id
         deets[:usbc_number] = bowler.usbc_id
       when :payment_app
-        deets[:'payment app'] = bowler.payment_app
+        next
       else
-        deets[field_sym] = bowler.send(field_sym)
+        deets[field_sym] = bowler.send(field_sym) || ''
       end
     end
 
@@ -229,6 +227,9 @@ module DirectorUtilities
   end
 
   def self.csv_bowlers(tournament:)
+    included_fields = tournament.config['bowler_form_fields'].split(' ')
+    include_payment_app = included_fields.include?('payment_app')
+
     tournament.bowlers.collect do |bowler|
       team_deets = team_export(bowler: bowler)
       d = bowler.doubles_partner
@@ -239,7 +240,7 @@ module DirectorUtilities
       # CSV wants phone, not phone1, which is what the IGBOTS export wants
       bowler_data[:phone] = bowler_data.delete(:phone1)
 
-      bowler_data.merge(team_deets).merge(doubles_deets).merge(csv_specific_data(bowler: bowler)).merge(shift_data)
+      bowler_data.merge(team_deets).merge(doubles_deets).merge(csv_specific_data(bowler: bowler, include_payment_app: include_payment_app)).merge(shift_data)
     end
   end
 
@@ -273,14 +274,21 @@ module DirectorUtilities
     data
   end
 
-  def self.csv_specific_data(bowler:)
+  def self.csv_specific_data(bowler:, include_payment_app: false)
     t = bowler.tournament
     timezone = t.present? ? t.timezone : 'America/Los_Angeles'
-    {
+
+    result = {
       entry_fee_paid: bowler.purchases.entry_fee.first&.paid_at.present? ? 'Y' : 'N',
       registered_at: bowler.created_at.in_time_zone(timezone).strftime('%Y %b %-d %l:%M%P %Z'),
     }.merge(csv_additional_questions(bowler: bowler))
       .merge(csv_purchases(bowler: bowler))
+
+    if include_payment_app
+      result['payment app'] = bowler.payment_app
+    end
+
+    result
   end
 
   def self.csv_purchases(bowler:)

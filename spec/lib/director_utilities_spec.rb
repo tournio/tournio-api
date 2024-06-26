@@ -353,7 +353,7 @@ RSpec.describe DirectorUtilities do
     end
 
     context 'when bowler data are present' do
-      let(:csv_headers) { %w[id last_name first_name nickname birth_day birth_month birth_year address city state country postal_code phone email usbc_number team_id team_name team_order entry_fee_paid registered_at doubles_last_name doubles_first_name average handicap igbo_member] + shift_headers + ['payment app'] }
+      let(:csv_headers) { %w[id last_name first_name nickname birth_day birth_month birth_year address1 city state country postal_code phone email usbc_number team_id team_name team_order entry_fee_paid registered_at doubles_last_name doubles_first_name average handicap igbo_member] + shift_headers + ['payment app'] }
 
       context 'a bowler on a team' do
         let(:team) { create :team, tournament: tournament, shifts: tournament.shifts }
@@ -770,7 +770,7 @@ RSpec.describe DirectorUtilities do
         team: create(:team, tournament: tournament, shifts: tournament.shifts),
         person: create(:person)
     end
-    let(:expected_keys) { %i(id last_name first_name nickname birth_day birth_month birth_year address city state country postal_code phone1 email usbc_number average handicap igbo_member).append(:'payment app') }
+    let(:expected_keys) { %i(id last_name first_name nickname birth_day birth_month birth_year address1 city state country postal_code phone1 email usbc_number average handicap igbo_member) } # note: no payment_app -- that should not go into IGBO-TS export
 
     before do
       tournament.config_items.find_by_key('bowler_form_fields').update(value: 'address1 city state country postal_code date_of_birth usbc_id payment_app')
