@@ -80,7 +80,8 @@ module Stripe
       bowler.ledger_entries << LedgerEntry.new(
         credit: cs[:amount_total] / 100, # (this comes in as cents, rather than dollars)
         source: :stripe,
-        identifier: "Payment: #{cs[:payment_intent]}"
+        identifier: cs[:payment_intent],
+        notes: "Paid by: #{cs[:customer_details][:name]} (#{cs[:customer_details][:email]})"
       )
 
       TournamentRegistration.notify_payment_contacts(

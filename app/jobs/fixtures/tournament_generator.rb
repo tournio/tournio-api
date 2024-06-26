@@ -103,13 +103,13 @@ module Fixtures
       abbr = name.scan(/[[:upper:]]/).join unless name.nil?
       org = TournamentOrg.all.sample
 
-      self.tournament = FactoryBot.create :one_shift_standard_tournament,
-      # self.tournament = FactoryBot.create :two_shift_standard_tournament,
+      # self.tournament = FactoryBot.create :one_shift_standard_tournament,
+      self.tournament = FactoryBot.create :two_shift_standard_tournament,
       # self.tournament = FactoryBot.create :mix_and_match_standard_tournament,
       # self.tournament = FactoryBot.create :one_shift_singles_tournament,
       # self.tournament = FactoryBot.create :two_shift_singles_tournament,
-      #   :active,
-        # :testing,
+        # :active,
+        :testing,
         :with_entry_fee,
         # :with_late_fee,
         :with_extra_stuff, # creates banquet and raffle ticket bundle
@@ -394,11 +394,17 @@ module Fixtures
 
     def pay_off_balance(bowler:, paid_at:)
       amount = bowler.purchases.sum(&:amount)
-      payment_identifier = "Payment: pretend_#{SecureRandom.alphanumeric(5)}"
+      payment_identifier = "pretend_pi_#{SecureRandom.alphanumeric(5)}"
       extp = ExternalPayment.create(
         identifier: payment_identifier,
         payment_type: :stripe,
-        tournament: tournament
+        tournament: tournament,
+        details: {
+          customer_details: {
+            email: bowler.email,
+            name: TournamentRegistration.person_display_name(bowler),
+          }
+        }
       )
       bowler.purchases.map do |purchase|
         purchase.update(external_payment: extp)
