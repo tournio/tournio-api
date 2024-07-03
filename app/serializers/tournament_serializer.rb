@@ -65,4 +65,8 @@ class TournamentSerializer < JsonSerializer
   attribute :starting_date do |t|
     t.start_date.strftime '%B %e, %Y'
   end
+
+  attribute :ending_date do |t|
+    t.end_date.strftime '%B %e, %Y'
+  end
 end
