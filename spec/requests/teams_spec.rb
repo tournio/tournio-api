@@ -87,6 +87,28 @@ describe TeamsController, type: :request do
       expect(tournament_id).to eq(tournament.id)
     end
 
+    context 'a full team' do
+      let(:new_team_params) do
+        {
+          team: full_team_test_data_missing_shift.merge(shift_params)
+        }
+      end
+
+      it 'succeeds' do
+        subject
+        expect(response).to have_http_status(:created)
+      end
+
+      it 'creates 4 bowlers' do
+        expect { subject }.to change(Bowler, :count).by(4)
+      end
+
+      it 'includes all bowlers in the response' do
+        subject
+        expect(json['bowlers'].count).to eq(4)
+      end
+    end
+
     context 'with no shift identifier' do
       let(:shift_params) { {} }
 
