@@ -6,9 +6,7 @@
 #
 #  id            :bigint           not null, primary key
 #  identifier    :string           not null
-#  initial_size  :integer          default(4)
 #  name          :string
-#  options       :jsonb
 #  created_at    :datetime         not null
 #  updated_at    :datetime         not null
 #  shift_id      :bigint
@@ -48,7 +46,7 @@ class Team < ApplicationRecord
 
   def generate_identifier
     begin
-      self.identifier = SecureRandom.alphanumeric(6)
+      self.identifier = "#{tournament.identifier}-#{SecureRandom.alphanumeric(6)}"
     end while Team.exists?(identifier: self.identifier)
   end
 end

@@ -121,9 +121,7 @@ module Director
     def new_team_params
       parameters = params.require(:team).permit(
         :name,
-        :initial_size,
         shift_identifiers: [],
-        options: {},
       ).to_h.symbolize_keys
 
       parameters[:shifts] = Shift.where(identifier: parameters[:shift_identifiers])
@@ -135,7 +133,6 @@ module Director
     def edit_team_params
       parameters = params.require(:team).permit(
         :name,
-        :initial_size,
         shift_identifiers: [],
         bowlers_attributes: %i[id position doubles_partner_id],
       ).to_h.with_indifferent_access

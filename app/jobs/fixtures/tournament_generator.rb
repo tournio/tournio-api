@@ -229,7 +229,6 @@ module Fixtures
       team = FactoryBot.create :team,
         tournament: tournament,
         name: team_name,
-        options: { place_with_others: place_with_others },
         shifts: shifts
 
       registration_time = Time.zone.at(starting_time + (interval * Random.rand(1.0)).to_i)

@@ -87,38 +87,6 @@ describe TeamsController, type: :request do
       expect(tournament_id).to eq(tournament.id)
     end
 
-    context 'with an initial size of 3' do
-      let(:new_team_params) do
-        {
-          team: single_bowler_team_test_data.merge(shift_params).merge(
-            'initial_size' => '3',
-          ),
-        }
-      end
-
-      it 'succeeds' do
-        subject
-        expect(response).to have_http_status(:created)
-      end
-
-      it 'includes the new team in the response' do
-        subject
-        expect(json).to have_key('name')
-        expect(json).to have_key('identifier')
-        expect(json).to have_key('bowlers')
-        expect(json['name']).to eq(single_bowler_team_test_data['name'])
-        expect(json['initial_size']).to eq(3)
-      end
-
-      it 'creates the right kinds of data point' do
-        subject
-        dp = DataPoint.last
-        expect(dp.key).to eq('registration_type')
-        expect(dp.value).to eq('new_team')
-      end
-
-    end
-
     context 'with no shift identifier' do
       let(:shift_params) { {} }
 

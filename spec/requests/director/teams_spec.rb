@@ -296,7 +296,6 @@ describe Director::TeamsController, type: :request do
       {
         team: {
           name: new_name,
-          initial_size: new_initial_size,
           bowlers_attributes: attributes_array,
         }
       }
@@ -314,11 +313,6 @@ describe Director::TeamsController, type: :request do
       expect(json).to have_key('name')
       expect(json).to have_key('identifier')
       expect(json['name']).to eq(new_name)
-    end
-
-    it 'updates the initial size' do
-      subject
-      expect(team.reload.initial_size).to eq(new_initial_size)
     end
 
     context 'moving to a different shift' do

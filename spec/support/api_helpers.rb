@@ -16,7 +16,6 @@ module ApiHelpers
   def single_bowler_team_test_data
     {
       'name' => 'Voltron',
-      'initial_size' => '4',
       'bowlers_attributes' => [
         {
           'position' => '3',
@@ -171,7 +170,6 @@ module ApiHelpers
   def full_team_cleaned_up_form_data
     {
       'name' => 'Blood To Spare',
-      'initial_size' => 4,
       'bowlers_attributes' => [
         {
           'position' => 3,
