@@ -61,4 +61,12 @@ class TournamentSerializer < JsonSerializer
       hash[key] = t.config[key]
     end
   end
+
+  attribute :starting_date do |t|
+    t.start_date.strftime '%B %e, %Y'
+  end
+
+  attribute :ending_date do |t|
+    t.end_date.strftime '%B %e, %Y'
+  end
 end
