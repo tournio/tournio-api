@@ -68,9 +68,13 @@ class TeamsController < ApplicationController
 
     TournamentRegistration.register_team(team)
 
-    team.bowlers.includes(:person, :ledger_entries).order(:position)
-    # render json: TeamDetailedSerializer.new(team, within: {bowlers: {doubles_partner: :doubles_partner}}).serialize, status: :created
-    render json: TeamBlueprint.render(team, view: :detail), status: :created
+    team.bowlers.map do |b|
+      b.update(doubles_partner_id: team.bowlers[b.doubles_partner_index].id) unless b.doubles_partner_id.present?
+      TournamentRegistration.register_bowler(b)
+    end
+
+    render json: TeamDetailedSerializer.new(team, within: {bowlers: {doubles_partner: :doubles_partner}}).serialize, status: :created
+    # render json: TeamBlueprint.render(team, view: :detail), status: :created
   rescue MissingShiftIdentifiers => e
     render json: { team: e.message }, status: :unprocessable_entity
   end

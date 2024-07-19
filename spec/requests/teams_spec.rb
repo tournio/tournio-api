@@ -107,6 +107,12 @@ describe TeamsController, type: :request do
         subject
         expect(json['bowlers'].count).to eq(4)
       end
+
+      it 'correctly partners up the bowlers' do
+        subject
+        partners = Bowler.last(4).filter { |b| b.doubles_partner_id.nil? }
+        expect(partners).to be_empty
+      end
     end
 
     context 'with no shift identifier' do
