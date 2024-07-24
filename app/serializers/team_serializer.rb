@@ -24,5 +24,5 @@ class TeamSerializer < JsonSerializer
     :name,
     :created_at
 
-  many :shifts, resource: ShiftSerializer
+  has_many :shifts
 end

@@ -14,5 +14,5 @@
 #  updated_at          :datetime         not null
 #
 class ExtendedFormField < ApplicationRecord
-  validates :name, format: { with: /\A[a-z_0-9\-]+\z/, message: 'must be HTML form-friendly (e.g., no spaces)' }
+  validates :name, format: { with: /\A[a-zA-Z0-9]+\z/, message: 'must be camelCased and alphanumeric only (e.g., no spaces, hyphens, or underscores)' }
 end

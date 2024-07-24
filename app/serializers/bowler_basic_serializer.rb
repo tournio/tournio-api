@@ -24,8 +24,23 @@
 #  index_bowlers_on_team_id             (team_id)
 #  index_bowlers_on_tournament_id       (tournament_id)
 #
-class BowlerSerializer < JsonSerializer
-  many :shifts, resource: ShiftSerializer
-  one :team, resource: TeamSerializer
-  one :doubles_partner, resource: BowlerBasicSerializer
+class BowlerBasicSerializer < JsonSerializer
+
+  attributes :identifier,
+    :email,
+    :first_name,
+    :last_name,
+    :phone,
+    :preferred_name,
+    :usbc_id
+
+  attribute :registered_on do |b|
+    b.created_at.strftime('%F')
+  end
+  attribute :list_name do |b|
+    TournamentRegistration.person_list_name(b.person)
+  end
+  attribute :full_name do |b|
+    TournamentRegistration.person_display_name(b.person)
+  end
 end

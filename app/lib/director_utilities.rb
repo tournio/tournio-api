@@ -158,7 +158,7 @@ module DirectorUtilities
     # Optional fields are: address1 address2 city state country postal_code date_of_birth usbc_id
     included_fields = bowler.tournament.config['bowler_form_fields'].split(' ')
     included_fields.each do |field|
-      field_sym = field.to_sym
+      field_sym = field.underscore.to_sym
       case field_sym
       when :date_of_birth
         deets.merge!({
@@ -228,7 +228,7 @@ module DirectorUtilities
 
   def self.csv_bowlers(tournament:)
     included_fields = tournament.config['bowler_form_fields'].split(' ')
-    include_payment_app = included_fields.include?('payment_app')
+    include_payment_app = included_fields.include?('paymentApp')
 
     tournament.bowlers.collect do |bowler|
       team_deets = team_export(bowler: bowler)

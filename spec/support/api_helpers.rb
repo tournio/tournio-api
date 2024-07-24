@@ -38,7 +38,7 @@ module ApiHelpers
           },
           'additional_question_responses' => [
             {
-              'name' => 'standings_link',
+              'name' => 'standingsLink',
               'response' => 'http://www.leaguesecretary.com',
             },
           ],
@@ -73,7 +73,7 @@ module ApiHelpers
           },
           'additional_question_responses' => [
             {
-              'name' => 'standings_link',
+              'name' => 'standingsLink',
               'response' => 'http://www.leaguesecretary.com',
             },
           ],
@@ -193,7 +193,7 @@ module ApiHelpers
           'additional_question_responses_attributes' => [
             {
               'response' => 'http://www.leaguesecretary.com',
-              'extended_form_field_id' => ExtendedFormField.find_by(name: 'standings_link').id,
+              'extended_form_field_id' => ExtendedFormField.find_by(name: 'standingsLink').id,
             },
           ],
         },
@@ -226,7 +226,7 @@ module ApiHelpers
           },
           'additional_question_responses' => [
             {
-              'name' => 'standings_link',
+              'name' => 'standingsLink',
               'response' => 'http://www.leaguesecretary.com',
             },
           ],

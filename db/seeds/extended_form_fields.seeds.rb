@@ -11,14 +11,14 @@ ExtendedFormField.create(
 ) unless ExtendedFormField.find_by(name: 'comment').present?
 
 ExtendedFormField.create(
-  name: 'standings_link',
+  name: 'standingsLink',
   label: 'URL of current league standing sheet',
   html_element_type: 'input',
   html_element_config: { type: 'url', value: '' },
   validation_rules: { required: false },
   helper_text: '',
   helper_url: '',
-) unless ExtendedFormField.find_by(name: 'standings_link').present?
+) unless ExtendedFormField.find_by(name: 'standingsLink').present?
 
 ExtendedFormField.create(
   name: 'pronouns',

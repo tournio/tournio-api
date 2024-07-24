@@ -124,7 +124,7 @@ module Fixtures
         timezone: location[:timezone],
         tournament_org: org
 
-      extended_fields = ExtendedFormField.where(name: %w(comment pronouns standings_link))
+      extended_fields = ExtendedFormField.where(name: %w(comment pronouns standingsLink))
       extended_fields.each_with_index do |extended_field, i|
         FactoryBot.create(:additional_question,
           extended_form_field: extended_field,
@@ -135,7 +135,7 @@ module Fixtures
       end
 
       # set form fields to include DOB and city
-      tournament.config_items.find_by_key('bowler_form_fields').update(value: 'usbc_id date_of_birth payment_app')
+      tournament.config_items.find_by_key('bowler_form_fields').update(value: 'usbcId dateOfBirth paymentApp')
 
       image_path = Rails.root.join('spec', 'support', 'images').children.sample
       tournament.logo_image.attach(io: File.open(image_path), filename: 'digital.jpg')

@@ -15,7 +15,7 @@
 #
 FactoryBot.define do
   factory :extended_form_field do
-    name { "an_extended_form_field" }
+    name { "anExtendedFormField" }
     label { "An Extended Form Field" }
     html_element_type { 'input' }
     html_element_config { { type: 'text', value: '' } }
@@ -27,7 +27,7 @@ FactoryBot.define do
   end
 
   trait :standings_link do
-    name { 'standings_link' }
+    name { 'standingsLink' }
     html_element_config do
       {
         type: 'url',

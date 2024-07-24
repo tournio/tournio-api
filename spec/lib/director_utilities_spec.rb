@@ -345,7 +345,7 @@ RSpec.describe DirectorUtilities do
     let!(:entry_fee_item) { create(:purchasable_item, :entry_fee, value: entry_fee_amount, tournament: tournament) }
 
     before do
-      tournament.config_items.find_by_key('bowler_form_fields').update(value: 'address1 city state country postal_code date_of_birth usbc_id payment_app')
+      tournament.config_items.find_by_key('bowler_form_fields').update(value: 'address1 city state country postalCode dateOfBirth usbcId paymentApp')
     end
 
     it 'is an empty string' do
@@ -773,7 +773,7 @@ RSpec.describe DirectorUtilities do
     let(:expected_keys) { %i(id last_name first_name nickname birth_day birth_month birth_year address1 city state country postal_code phone1 email usbc_number average handicap igbo_member) } # note: no payment_app -- that should not go into IGBO-TS export
 
     before do
-      tournament.config_items.find_by_key('bowler_form_fields').update(value: 'address1 city state country postal_code date_of_birth usbc_id payment_app')
+      tournament.config_items.find_by_key('bowler_form_fields').update(value: 'address1 city state country postalCode dateOfBirth usbcId paymentApp')
     end
 
     it 'includes the expected keys' do
@@ -785,7 +785,7 @@ RSpec.describe DirectorUtilities do
       let(:expected_keys) { %i(id last_name first_name nickname phone1 email usbc_number average handicap igbo_member) }
 
       before do
-        tournament.config_items.find_by_key('bowler_form_fields').update(value: 'usbc_id')
+        tournament.config_items.find_by_key('bowler_form_fields').update(value: 'usbcId')
       end
 
       it 'includes the expected keys' do
