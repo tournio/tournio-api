@@ -38,14 +38,14 @@ module Director
       if params[:serializer] == 'modern'
         # load bowlers with all the associations. (probably want more)
         bowlers = policy_scope(tournament.bowlers).includes(
-            :ledger_entries,
-            :additional_question_responses,
-            :team,
-            :person,
-            :free_entry,
-            purchases: :purchasable_item,
-            doubles_partner: :person,
-          )
+          :ledger_entries,
+          :additional_question_responses,
+          :team,
+          :person,
+          :free_entry,
+          purchases: :purchasable_item,
+          doubles_partner: :person,
+        )
         render json: DirectorBowlerSerializer.new(bowlers).serialize, status: :ok
       else
         # if not:
@@ -127,7 +127,7 @@ module Director
       try_updating_details
       try_updating_additional_question_responses
       try_reassigning
-      try_partnering
+      # try_partnering
 
       if error.present?
         render json: { error: error }, status: :bad_request
@@ -199,14 +199,21 @@ module Director
     end
 
     def update_bowler_params
-      params.require(:bowler).permit(
+      parameters = params.require(:bowler).permit(
+        shift_identifiers: [],
         team: %i(identifier),
         doubles_partner: %i(identifier),
         person_attributes: PERSON_ATTRS,
         additional_question_responses: %i(name response),
         verified_data: %i(verified_average handicap igbo_member),
-      )
-            .to_h.with_indifferent_access
+      ).to_h.with_indifferent_access
+
+      parameters[:shifts] = Shift.where(identifier: parameters[:shift_identifiers])
+      raise ActiveRecord::RecordNotFound unless parameters[:shift_identifiers].blank? || parameters[:shifts].count == parameters[:shift_identifiers].count
+
+      parameters.delete(:shift_identifiers)
+
+      parameters
     end
 
     def create_bowler_params
@@ -255,7 +262,7 @@ module Director
     end
 
     def try_reassigning
-      bowler_data = update_bowler_params
+      bowler_data = update_bowler_params.slice(:team)
       return unless bowler_data[:team].present?
 
       new_team = tournament.teams.find_by(identifier: bowler_data[:team][:identifier])
@@ -272,6 +279,8 @@ module Director
       DirectorUtilities.reassign_bowler(bowler: bowler, to_team: new_team)
     end
 
+    # Note: This is no longer necessary since we aren't explicitly handling Doubles events
+    # as distinct from 2-person Team events.
     def try_partnering
       bowler_data = update_bowler_params
       return unless bowler_data[:doubles_partner] && bowler_data[:doubles_partner][:identifier].present?
@@ -286,27 +295,21 @@ module Director
     end
 
     def try_updating_details
-      bowler_data = update_bowler_params
+      bowler_data = update_bowler_params.slice(:shifts, :person_attributes, :verified_data)
 
-      # First, update bowler deets
+      # Make sure we merge any incoming verified data with what we already have
       if bowler_data[:verified_data].present?
         bowler.verified_data.merge!(bowler_data[:verified_data])
-        unless bowler.save
-          self.error = bowler.errors.full_messages
-          return
-        end
       end
 
-      # Next, update person deets, if there are any
-      return unless bowler_data[:person_attributes].present?
-
-      unless bowler.person.update(bowler_data[:person_attributes])
-        self.error = bowler.person.errors.full_messages
+      unless bowler.update(bowler_data)
+        self.error = bowler.errors.full_messages
+        return
       end
     end
 
     def try_updating_additional_question_responses
-      bowler_data = update_bowler_params
+      bowler_data = update_bowler_params.slice(:additional_question_responses)
       return false unless bowler_data[:additional_question_responses].present?
 
       bowler_data[:additional_question_responses].each do |aqr_data|
