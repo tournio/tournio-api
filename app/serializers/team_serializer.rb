@@ -24,7 +24,6 @@
 class TeamSerializer < JsonSerializer
   attributes :identifier,
     :name,
-    :initial_size,
     :created_at
 
   many :shifts, resource: ShiftSerializer

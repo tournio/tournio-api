@@ -107,7 +107,6 @@ describe TeamsController, type: :request do
         expect(json).to have_key('identifier')
         expect(json).to have_key('bowlers')
         expect(json['name']).to eq(single_bowler_team_test_data['name'])
-        expect(json['initial_size']).to eq(3)
       end
 
       it 'creates the right kinds of data point' do

@@ -3,8 +3,6 @@
 class TeamBlueprint < Blueprinter::Base
   identifier :identifier
 
-  field :initial_size
-
   association :tournament, blueprint: TournamentBlueprint
   association :shifts, blueprint: ShiftBlueprint
 
@@ -31,9 +29,6 @@ class TeamBlueprint < Blueprinter::Base
     field :created_at, name: :date_registered, datetime_format: '%F'
     field :size do |t, _|
       t.bowlers.count
-    end
-    field :place_with_others do |t, _|
-      t.options['place_with_others'].nil? ? 'n/a' : t.options['place_with_others']
     end
 
     field :who_has_paid do |t, _|
