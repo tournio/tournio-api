@@ -1,5 +1,7 @@
 # frozen_string_literal: true
 
 class TeamDetailedSerializer < TeamSerializer
-  has_many :bowlers, resource: BowlerSerializer
+  one :tournament, resource: TournamentSerializer
+  has_many :bowlers, resource: TeamBowlerSerializer
+  has_many :shifts, resource: ShiftSerializer
 end

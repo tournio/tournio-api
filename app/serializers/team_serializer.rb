@@ -23,6 +23,4 @@ class TeamSerializer < JsonSerializer
   attributes :identifier,
     :name,
     :created_at
-
-  has_many :shifts
 end
