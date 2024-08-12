@@ -24,10 +24,24 @@ class DirectorBowlerSerializer < DirectorBowlerBasicSerializer
   # From DirectorBowlerBasicSerializer:
   # attributes :id
 
+  attributes :address1,
+    :address2,
+    :birth_day,
+    :birth_month,
+    :birth_year,
+    :city,
+    :created_at,
+    :state,
+    :country,
+    :position,
+    :postal_code,
+    :payment_app
+
   one :free_entry, resource: FreeEntrySerializer
   many :additional_question_responses, resource: AdditionalQuestionResponseSerializer
   many :purchases, resource: PurchaseSerializer
   many :ledger_entries, resource: LedgerEntrySerializer
+  many :shifts, resource: ShiftSerializer
   many :signups, resource: SignupSerializer
   many :waivers, resource: WaiverSerializer
   # many :signups, proc { |signups, params, bowler|
@@ -35,7 +49,6 @@ class DirectorBowlerSerializer < DirectorBowlerBasicSerializer
   # }, resource: :SignupSerializer
 
   one :team, resource: TeamSerializer
-  attributes :position
   one :doubles_partner, resource: DirectorBowlerBasicSerializer
 
   attribute :amount_paid do |b|
