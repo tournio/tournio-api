@@ -32,7 +32,8 @@ module Director
         return
       end
       authorize tournament, :show?
-      render json: TeamBlueprint.render(team, view: :director_detail)
+      # render json: TeamBlueprint.render(team, view: :director_detail)
+      render json: TeamDetailedSerializer.new(team)
     end
 
     def create

@@ -23,4 +23,8 @@ class TeamSerializer < JsonSerializer
   attributes :identifier,
     :name,
     :created_at
+
+  attribute :size do |t|
+    t.bowlers.count
+  end
 end
