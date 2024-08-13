@@ -31,7 +31,9 @@ module DirectorUtilities
     end
 
     # assign their position
-    new_position = (to_team.bowlers.collect(&:position).max || 0) + 1
+    all_positions = (1..tournament.team_size).to_a
+    taken_positions = to_team.bowlers.collect(&:position)
+    new_position = all_positions.difference(taken_positions).first
     bowler.update(position: new_position)
 
     # put them on the new team

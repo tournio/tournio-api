@@ -268,6 +268,57 @@ RSpec.describe DirectorUtilities do
         expect(from_team.reload.bowler_ids).to include(moving_bowler.id)
       end
     end
+
+    context 'when the first available position is at the front' do
+      let(:b1) { create(:bowler, tournament: tournament, position: 2, person: create(:person)) }
+      let(:b2) { create(:bowler, tournament: tournament, position: 3, person: create(:person)) }
+      let(:b3) { create(:bowler, tournament: tournament, position: 4, person: create(:person)) }
+
+      it 'puts them in position 1' do
+        subject
+        expect(moving_bowler.reload.position).to eq(1)
+      end
+    end
+
+    context 'when the first available position is in the middle' do
+      let(:b1) { create(:bowler, tournament: tournament, position: 1, person: create(:person)) }
+      let(:b2) { create(:bowler, tournament: tournament, position: 3, person: create(:person)) }
+      let(:b3) { create(:bowler, tournament: tournament, position: 4, person: create(:person)) }
+
+      it 'puts them in position 2' do
+        subject
+        expect(moving_bowler.reload.position).to eq(2)
+      end
+    end
+
+    context 'when the destination team contains only two bowlers' do
+      context 'and the first available position is 1' do
+        let(:dest_team_bowlers) { [b2, b3] }
+
+        it 'puts them in position 1' do
+          subject
+          expect(moving_bowler.reload.position).to eq(1)
+        end
+      end
+
+      context 'and the first available position is 2' do
+        let(:dest_team_bowlers) { [b1, b3] }
+
+        it 'puts them in position 2' do
+          subject
+          expect(moving_bowler.reload.position).to eq(2)
+        end
+      end
+
+      context 'and the first available position is 3' do
+        let(:dest_team_bowlers) { [b1, b2] }
+
+        it 'puts them in position 3' do
+          subject
+          expect(moving_bowler.reload.position).to eq(3)
+        end
+      end
+    end
   end
 
   describe '#igbots_hash' do
