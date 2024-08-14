@@ -391,9 +391,9 @@ RSpec.describe DirectorUtilities do
     let(:shift_headers) { [] }
     let(:csv_headers) { [] }
 
-    let(:tournament) { create :one_shift_standard_tournament }
-    let(:entry_fee_amount) { 101 }
-    let!(:entry_fee_item) { create(:purchasable_item, :entry_fee, value: entry_fee_amount, tournament: tournament) }
+    let(:tournament) { create :one_shift_standard_tournament, :with_entry_fee }
+    let!(:entry_fee_item) { tournament.purchasable_items.entry_fee.first }
+    let(:entry_fee_amount) { entry_fee_item.value }
 
     before do
       tournament.config_items.find_by_key('bowler_form_fields').update(value: 'address1 city state country postalCode dateOfBirth usbcId paymentApp')
@@ -842,6 +842,79 @@ RSpec.describe DirectorUtilities do
       it 'includes the expected keys' do
         exported_bowler = subject
         expect(exported_bowler.keys).to match_array(expected_keys)
+      end
+    end
+  end
+
+  describe '#financial_csv' do
+    subject { described_class.financial_csv(tournament_id: tournament.id) }
+
+    let(:tournament) { create :one_shift_standard_tournament, :with_entry_fee, :with_an_optional_event, :with_extra_stuff }
+
+    require 'csv'
+
+    it 'is an empty string' do
+      expect(subject).to eq('')
+    end
+
+    context 'when we have bowlers' do
+      let(:csv_headers) do
+        [
+          'Bowler',
+          'ID',
+          'USBC ID',
+          'Item Name',
+          'Division',
+          'Size',
+          'Amount',
+          'Payment Identifier',
+          'Note',
+        ]
+      end
+      let(:entry_fee_item) { tournament.purchasable_items.entry_fee.first }
+      let(:optional_item) { tournament.purchasable_items.bowling.first }
+      let(:banquet_item) { tournament.purchasable_items.banquet.first }
+      let(:raffle_item) { tournament.purchasable_items.raffle.first }
+
+      before do
+        10.times do |i|
+          b = create :bowler, tournament: tournament
+          extp = create :external_payment, :from_stripe, tournament: tournament
+          create :purchase, :paid,
+            bowler: b,
+            purchasable_item: entry_fee_item,
+            amount: entry_fee_item.value,
+            external_payment: extp
+          create :purchase, :paid,
+            bowler: b,
+            purchasable_item: optional_item,
+            amount: optional_item.value,
+            external_payment: extp
+          create :purchase, :paid,
+            bowler: b,
+            purchasable_item: banquet_item,
+            amount: banquet_item.value,
+            external_payment: extp
+          create :purchase, :paid,
+            bowler: b,
+            purchasable_item: raffle_item,
+            amount: raffle_item.value,
+            external_payment: extp
+        end
+      end
+
+      it 'is not an empty string' do
+        expect(subject).not_to eq('')
+      end
+
+      it 'has the correct headers' do
+        headers = CSV.parse_line(subject)
+        expect(headers).to match_array(csv_headers)
+      end
+
+      it 'has a line for every purchase' do
+        lines = CSV.parse(subject)
+        expect(lines.count).to eq(41)
       end
     end
   end

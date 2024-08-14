@@ -425,7 +425,7 @@ module DirectorUtilities
         'Bowler': TournamentRegistration.person_list_name(waiver.bowler.person),
         'ID': waiver.bowler.identifier,
         'USBC ID': waiver.bowler.usbc_id,
-        'Waived Item': "Waived #{waiver.name}",
+        'Item Name': "Waived #{waiver.name}",
         'Division': '',
         'Size': '',
         'Amount': "$#{waiver.amount}",

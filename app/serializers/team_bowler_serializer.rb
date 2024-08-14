@@ -28,4 +28,8 @@ class TeamBowlerSerializer < DirectorBowlerBasicSerializer
   attributes :position, :doubles_partner_id
 
   one :doubles_partner, resource: DirectorBowlerBasicSerializer
+
+  attribute :amount_outstanding do |b|
+    TournamentRegistration.amount_outstanding(b)
+  end
 end
