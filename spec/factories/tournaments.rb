@@ -84,6 +84,14 @@ FactoryBot.define do
         t.config_items << ConfigItem.new(label: 'Tournament Type', key: 'tournament_type', value: TournamentBusiness::SINGLE_EVENT_OCCASION)
       end
 
+      factory :trios_tournament do
+        after(:create) do |t, _|
+          create :event, :trio, tournament: t
+          t.config_items.find_by_key('team_size').destroy
+        end
+
+      end
+
       factory :singles_tournament do
         after(:create) do |t, _|
           create :event, :singles, tournament: t

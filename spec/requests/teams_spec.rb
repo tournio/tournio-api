@@ -221,6 +221,55 @@ describe TeamsController, type: :request do
       end
     end
 
+    context 'a single-event trios tournament' do
+      let(:tournament) do
+        create :one_shift_team_tournament, :active
+      end
+
+      before do
+        ci = tournament.config_items.find_by(key: 'team_size')
+        ci.update(value: 3)
+      end
+
+      let(:new_team_params) do
+        {
+          team: trio_test_data.merge(shift_params)
+        }
+      end
+
+      it 'succeeds' do
+        subject
+        expect(response).to have_http_status(:created)
+      end
+
+      it 'creates 3 bowlers' do
+        expect { subject }.to change(Bowler, :count).by(3)
+      end
+
+      it 'includes all bowlers in the response' do
+        subject
+        expect(json['bowlers'].count).to eq(3)
+      end
+
+      context 'but doubles partner index still -1' do
+        let(:new_team_params) do
+          {
+            team: trio_test_data_with_doubles_index.merge(shift_params)
+          }
+        end
+
+        it 'succeeds' do
+          subject
+          expect(response).to have_http_status(:created)
+        end
+
+        it 'does not attempt to partner people up' do
+          subject
+          expect(tournament.bowlers.map(&:doubles_partner_id).compact).to be_empty
+        end
+      end
+    end
+
     context 'with invalid data' do
       let(:new_team_params) do
         {

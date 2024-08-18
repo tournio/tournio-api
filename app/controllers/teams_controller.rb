@@ -69,9 +69,11 @@ class TeamsController < ApplicationController
     TournamentRegistration.register_team(team)
 
     team.bowlers.map do |b|
-      if b.doubles_partner_index.present? && b.doubles_partner_id.blank?
-        # assign doubles partner if we have an index and it isn't already assigned
-        b.update(doubles_partner_id: team.bowlers[b.doubles_partner_index].id)
+      if tournament.events.double.any?
+        if b.doubles_partner_index.present? && b.doubles_partner_id.blank?
+          # assign doubles partner if we have an index and it isn't already assigned
+          b.update(doubles_partner_id: team.bowlers[b.doubles_partner_index].id)
+        end
       end
       TournamentRegistration.register_bowler(b)
     end
@@ -165,15 +167,17 @@ class TeamsController < ApplicationController
     end
     permitted_params['position'] = permitted_params['position'].to_i if permitted_params['position'].present?
 
-    # Remove additional question responses that are empty
-    permitted_params['additional_question_responses'].filter! { |r| r['response'].present? }
+    if permitted_params['additional_question_responses'].present?
+      # Remove additional question responses that are empty
+      permitted_params['additional_question_responses'].filter! { |r| r['response'].present? }
 
-    # transform the add'l question responses into the shape that we can accept via ActiveRecord
-    permitted_params['additional_question_responses_attributes'] =
-      additional_question_responses(permitted_params['additional_question_responses'])
+      # transform the add'l question responses into the shape that we can accept via ActiveRecord
+      permitted_params['additional_question_responses_attributes'] =
+        additional_question_responses(permitted_params['additional_question_responses'])
 
-    # remove that key from the params...
-    permitted_params.delete('additional_question_responses')
+      # remove that key from the params...
+      permitted_params.delete('additional_question_responses')
+    end
 
     permitted_params
   end
