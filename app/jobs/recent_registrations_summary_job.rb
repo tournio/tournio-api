@@ -62,7 +62,7 @@ class RecentRegistrationsSummaryJob < TemplateMailerJob
           usbc_id: bowler.usbc_id,
           birthday: "#{bowler.birth_month}/#{bowler.birth_day}/#{bowler.birth_year}",
           team_name: bowler.team.present? ? bowler.team.name : 'n/a',
-          team_order: bowler.position,
+          team_order: bowler.position || 'n/a',
           doubles_partner: bowler.doubles_partner.present? ? TournamentRegistration.bowler_full_name(bowler.doubles_partner) : 'n/a',
           address1: bowler.address1,
           address2: bowler.address2,
