@@ -151,11 +151,6 @@ RSpec.describe TournamentRegistration do
     it 'Creates a person for each Bowler on the team' do
       expect { subject }.to change { Person.count }.by(form_data['bowlers_attributes'].count)
     end
-
-    it 'Calls register_bowler for each bowler on the team' do
-      expect(subject_class).to receive(:register_bowler).exactly(form_data['bowlers_attributes'].count).times
-      subject
-    end
   end
 
   describe '#register_bowler' do

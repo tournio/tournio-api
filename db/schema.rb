@@ -10,7 +10,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema[7.1].define(version: 2024_06_06_212612) do
+ActiveRecord::Schema[7.1].define(version: 2024_07_04_172031) do
   # These are extensions that must be enabled in order to support this database
   enable_extension "plpgsql"
 
@@ -398,8 +398,6 @@ ActiveRecord::Schema[7.1].define(version: 2024_06_06_212612) do
     t.string "name"
     t.datetime "created_at", null: false
     t.datetime "updated_at", null: false
-    t.jsonb "options", default: {}
-    t.integer "initial_size", default: 4
     t.bigint "shift_id"
     t.index ["identifier"], name: "index_teams_on_identifier", unique: true
     t.index ["shift_id"], name: "index_teams_on_shift_id"
@@ -444,7 +442,7 @@ ActiveRecord::Schema[7.1].define(version: 2024_06_06_212612) do
     t.date "end_date"
     t.string "timezone", default: "America/New_York"
     t.datetime "entry_deadline"
-    t.jsonb "details", default: {"enabled_registration_options"=>["new_team", "solo", "join_team"]}
+    t.jsonb "details", default: {"enabled_registration_options"=>[]}
     t.bigint "tournament_org_id"
     t.index ["aasm_state"], name: "index_tournaments_on_aasm_state"
     t.index ["identifier"], name: "index_tournaments_on_identifier"

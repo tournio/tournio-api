@@ -31,7 +31,9 @@ module DirectorUtilities
     end
 
     # assign their position
-    new_position = (to_team.bowlers.collect(&:position).max || 0) + 1
+    all_positions = (1..tournament.team_size).to_a
+    taken_positions = to_team.bowlers.collect(&:position)
+    new_position = all_positions.difference(taken_positions).first
     bowler.update(position: new_position)
 
     # put them on the new team
@@ -158,7 +160,7 @@ module DirectorUtilities
     # Optional fields are: address1 address2 city state country postal_code date_of_birth usbc_id
     included_fields = bowler.tournament.config['bowler_form_fields'].split(' ')
     included_fields.each do |field|
-      field_sym = field.to_sym
+      field_sym = field.underscore.to_sym
       case field_sym
       when :date_of_birth
         deets.merge!({
@@ -228,7 +230,7 @@ module DirectorUtilities
 
   def self.csv_bowlers(tournament:)
     included_fields = tournament.config['bowler_form_fields'].split(' ')
-    include_payment_app = included_fields.include?('payment_app')
+    include_payment_app = included_fields.include?('paymentApp')
 
     tournament.bowlers.collect do |bowler|
       team_deets = team_export(bowler: bowler)
@@ -423,7 +425,7 @@ module DirectorUtilities
         'Bowler': TournamentRegistration.person_list_name(waiver.bowler.person),
         'ID': waiver.bowler.identifier,
         'USBC ID': waiver.bowler.usbc_id,
-        'Waived Item': "Waived #{waiver.name}",
+        'Item Name': "Waived #{waiver.name}",
         'Division': '',
         'Size': '',
         'Amount': "$#{waiver.amount}",

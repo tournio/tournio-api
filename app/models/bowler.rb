@@ -61,7 +61,7 @@ class Bowler < ApplicationRecord
 
   scope :without_doubles_partner, -> { where(doubles_partner_id: nil) }
 
-  accepts_nested_attributes_for :person, :free_entry, :additional_question_responses
+  accepts_nested_attributes_for :person, :free_entry, :additional_question_responses, update_only: true
 
   before_create :generate_identifier
   before_destroy :unlink_free_entry, :unlink_doubles_partner

@@ -87,12 +87,10 @@ describe TeamsController, type: :request do
       expect(tournament_id).to eq(tournament.id)
     end
 
-    context 'with an initial size of 3' do
+    context 'a full team' do
       let(:new_team_params) do
         {
-          team: single_bowler_team_test_data.merge(shift_params).merge(
-            'initial_size' => '3',
-          ),
+          team: full_team_test_data_missing_shift.merge(shift_params)
         }
       end
 
@@ -101,21 +99,20 @@ describe TeamsController, type: :request do
         expect(response).to have_http_status(:created)
       end
 
-      it 'includes the new team in the response' do
-        subject
-        expect(json).to have_key('name')
-        expect(json).to have_key('identifier')
-        expect(json).to have_key('bowlers')
-        expect(json['name']).to eq(single_bowler_team_test_data['name'])
+      it 'creates 4 bowlers' do
+        expect { subject }.to change(Bowler, :count).by(4)
       end
 
-      it 'creates the right kinds of data point' do
+      it 'includes all bowlers in the response' do
         subject
-        dp = DataPoint.last
-        expect(dp.key).to eq('registration_type')
-        expect(dp.value).to eq('new_team')
+        expect(json['bowlers'].count).to eq(4)
       end
 
+      it 'correctly partners up the bowlers' do
+        subject
+        partners = Bowler.last(4).filter { |b| b.doubles_partner_id.nil? }
+        expect(partners).to be_empty
+      end
     end
 
     context 'with no shift identifier' do
@@ -221,6 +218,55 @@ describe TeamsController, type: :request do
         #   subject
         #   expect(response).to have_http_status(:unprocessable_entity)
         # end
+      end
+    end
+
+    context 'a single-event trios tournament' do
+      let(:tournament) do
+        create :one_shift_team_tournament, :active
+      end
+
+      before do
+        ci = tournament.config_items.find_by(key: 'team_size')
+        ci.update(value: 3)
+      end
+
+      let(:new_team_params) do
+        {
+          team: trio_test_data.merge(shift_params)
+        }
+      end
+
+      it 'succeeds' do
+        subject
+        expect(response).to have_http_status(:created)
+      end
+
+      it 'creates 3 bowlers' do
+        expect { subject }.to change(Bowler, :count).by(3)
+      end
+
+      it 'includes all bowlers in the response' do
+        subject
+        expect(json['bowlers'].count).to eq(3)
+      end
+
+      context 'but doubles partner index still -1' do
+        let(:new_team_params) do
+          {
+            team: trio_test_data_with_doubles_index.merge(shift_params)
+          }
+        end
+
+        it 'succeeds' do
+          subject
+          expect(response).to have_http_status(:created)
+        end
+
+        it 'does not attempt to partner people up' do
+          subject
+          expect(tournament.bowlers.map(&:doubles_partner_id).compact).to be_empty
+        end
       end
     end
 

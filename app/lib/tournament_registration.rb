@@ -108,9 +108,8 @@ module TournamentRegistration
 
   def self.register_team(team)
     team.save
-
-    team.bowlers.each { |b| register_bowler(b) }
   end
+
 
   def self.register_bowler(bowler, registration_type = 'new_team')
     complete_doubles_link(bowler) if bowler.doubles_partner_id.present?

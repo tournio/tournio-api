@@ -24,8 +24,12 @@
 #  index_bowlers_on_team_id             (team_id)
 #  index_bowlers_on_tournament_id       (tournament_id)
 #
-class BowlerSerializer < BowlerBasicSerializer
-  many :shifts, resource: ShiftSerializer
-  one :team, resource: TeamSerializer
-  one :doubles_partner, resource: BowlerBasicSerializer
+class TeamBowlerSerializer < DirectorBowlerBasicSerializer
+  attributes :position, :doubles_partner_id
+
+  one :doubles_partner, resource: DirectorBowlerBasicSerializer
+
+  attribute :amount_outstanding do |b|
+    TournamentRegistration.amount_outstanding(b)
+  end
 end

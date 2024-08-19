@@ -268,6 +268,57 @@ RSpec.describe DirectorUtilities do
         expect(from_team.reload.bowler_ids).to include(moving_bowler.id)
       end
     end
+
+    context 'when the first available position is at the front' do
+      let(:b1) { create(:bowler, tournament: tournament, position: 2, person: create(:person)) }
+      let(:b2) { create(:bowler, tournament: tournament, position: 3, person: create(:person)) }
+      let(:b3) { create(:bowler, tournament: tournament, position: 4, person: create(:person)) }
+
+      it 'puts them in position 1' do
+        subject
+        expect(moving_bowler.reload.position).to eq(1)
+      end
+    end
+
+    context 'when the first available position is in the middle' do
+      let(:b1) { create(:bowler, tournament: tournament, position: 1, person: create(:person)) }
+      let(:b2) { create(:bowler, tournament: tournament, position: 3, person: create(:person)) }
+      let(:b3) { create(:bowler, tournament: tournament, position: 4, person: create(:person)) }
+
+      it 'puts them in position 2' do
+        subject
+        expect(moving_bowler.reload.position).to eq(2)
+      end
+    end
+
+    context 'when the destination team contains only two bowlers' do
+      context 'and the first available position is 1' do
+        let(:dest_team_bowlers) { [b2, b3] }
+
+        it 'puts them in position 1' do
+          subject
+          expect(moving_bowler.reload.position).to eq(1)
+        end
+      end
+
+      context 'and the first available position is 2' do
+        let(:dest_team_bowlers) { [b1, b3] }
+
+        it 'puts them in position 2' do
+          subject
+          expect(moving_bowler.reload.position).to eq(2)
+        end
+      end
+
+      context 'and the first available position is 3' do
+        let(:dest_team_bowlers) { [b1, b2] }
+
+        it 'puts them in position 3' do
+          subject
+          expect(moving_bowler.reload.position).to eq(3)
+        end
+      end
+    end
   end
 
   describe '#igbots_hash' do
@@ -340,12 +391,12 @@ RSpec.describe DirectorUtilities do
     let(:shift_headers) { [] }
     let(:csv_headers) { [] }
 
-    let(:tournament) { create :one_shift_standard_tournament }
-    let(:entry_fee_amount) { 101 }
-    let!(:entry_fee_item) { create(:purchasable_item, :entry_fee, value: entry_fee_amount, tournament: tournament) }
+    let(:tournament) { create :one_shift_standard_tournament, :with_entry_fee }
+    let!(:entry_fee_item) { tournament.purchasable_items.entry_fee.first }
+    let(:entry_fee_amount) { entry_fee_item.value }
 
     before do
-      tournament.config_items.find_by_key('bowler_form_fields').update(value: 'address1 city state country postal_code date_of_birth usbc_id payment_app')
+      tournament.config_items.find_by_key('bowler_form_fields').update(value: 'address1 city state country postalCode dateOfBirth usbcId paymentApp')
     end
 
     it 'is an empty string' do
@@ -773,7 +824,7 @@ RSpec.describe DirectorUtilities do
     let(:expected_keys) { %i(id last_name first_name nickname birth_day birth_month birth_year address1 city state country postal_code phone1 email usbc_number average handicap igbo_member) } # note: no payment_app -- that should not go into IGBO-TS export
 
     before do
-      tournament.config_items.find_by_key('bowler_form_fields').update(value: 'address1 city state country postal_code date_of_birth usbc_id payment_app')
+      tournament.config_items.find_by_key('bowler_form_fields').update(value: 'address1 city state country postalCode dateOfBirth usbcId paymentApp')
     end
 
     it 'includes the expected keys' do
@@ -785,12 +836,85 @@ RSpec.describe DirectorUtilities do
       let(:expected_keys) { %i(id last_name first_name nickname phone1 email usbc_number average handicap igbo_member) }
 
       before do
-        tournament.config_items.find_by_key('bowler_form_fields').update(value: 'usbc_id')
+        tournament.config_items.find_by_key('bowler_form_fields').update(value: 'usbcId')
       end
 
       it 'includes the expected keys' do
         exported_bowler = subject
         expect(exported_bowler.keys).to match_array(expected_keys)
+      end
+    end
+  end
+
+  describe '#financial_csv' do
+    subject { described_class.financial_csv(tournament_id: tournament.id) }
+
+    let(:tournament) { create :one_shift_standard_tournament, :with_entry_fee, :with_an_optional_event, :with_extra_stuff }
+
+    require 'csv'
+
+    it 'is an empty string' do
+      expect(subject).to eq('')
+    end
+
+    context 'when we have bowlers' do
+      let(:csv_headers) do
+        [
+          'Bowler',
+          'ID',
+          'USBC ID',
+          'Item Name',
+          'Division',
+          'Size',
+          'Amount',
+          'Payment Identifier',
+          'Note',
+        ]
+      end
+      let(:entry_fee_item) { tournament.purchasable_items.entry_fee.first }
+      let(:optional_item) { tournament.purchasable_items.bowling.first }
+      let(:banquet_item) { tournament.purchasable_items.banquet.first }
+      let(:raffle_item) { tournament.purchasable_items.raffle.first }
+
+      before do
+        10.times do |i|
+          b = create :bowler, tournament: tournament
+          extp = create :external_payment, :from_stripe, tournament: tournament
+          create :purchase, :paid,
+            bowler: b,
+            purchasable_item: entry_fee_item,
+            amount: entry_fee_item.value,
+            external_payment: extp
+          create :purchase, :paid,
+            bowler: b,
+            purchasable_item: optional_item,
+            amount: optional_item.value,
+            external_payment: extp
+          create :purchase, :paid,
+            bowler: b,
+            purchasable_item: banquet_item,
+            amount: banquet_item.value,
+            external_payment: extp
+          create :purchase, :paid,
+            bowler: b,
+            purchasable_item: raffle_item,
+            amount: raffle_item.value,
+            external_payment: extp
+        end
+      end
+
+      it 'is not an empty string' do
+        expect(subject).not_to eq('')
+      end
+
+      it 'has the correct headers' do
+        headers = CSV.parse_line(subject)
+        expect(headers).to match_array(csv_headers)
+      end
+
+      it 'has a line for every purchase' do
+        lines = CSV.parse(subject)
+        expect(lines.count).to eq(41)
       end
     end
   end

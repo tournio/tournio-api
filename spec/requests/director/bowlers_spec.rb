@@ -24,8 +24,8 @@ describe Director::BowlersController, type: :request do
         create :bowler, :with_team, tournament: tournament
       end
       for i in 0..4 do
-        src = tournament.bowlers[i*2]
-        partner = tournament.bowlers[i*2 + 1]
+        src = tournament.bowlers[i * 2]
+        partner = tournament.bowlers[i * 2 + 1]
         src.update(doubles_partner_id: partner.id)
         partner.update(doubles_partner_id: src.id)
       end
@@ -221,32 +221,33 @@ describe Director::BowlersController, type: :request do
 
     let(:uri) { "/director/bowlers/#{bowler_identifier}" }
 
-    let(:bowler) { create :bowler, :with_team }
-    let(:tournament) { bowler.tournament }
-    let(:team) { bowler.team }
+    let(:tournament) { create :two_shift_standard_tournament }
+    let(:bowler) { create :bowler, tournament: tournament }
+    let(:team) { create :team, tournament: tournament, name: 'Ladies Who Lunch' }
     let(:bowler_identifier) { bowler.identifier }
-    let(:person_attributes) { { nickname: 'Freddy' } }
-    let(:team_params) { {} }
-    let(:partner_params) { {} }
+
+    let(:person_attributes) do
+      {
+        person_attributes: {
+          nickname: 'Freddy',
+        }
+      }
+    end
+    let(:team_param) { {} }
     let(:additional_question_response_params) { {} }
-    let(:verified_data_params) { {} }
+    let(:bowler_params) { {} }
+    let(:shift_params) { {} }
     let(:params) do
       {
-        bowler: {
-          person_attributes: person_attributes,
-          team: team_params,
-          doubles_partner: partner_params,
-          additional_question_responses: additional_question_response_params,
-          verified_data: verified_data_params,
-        },
+        bowler: bowler_params
+                  .merge(person_attributes)
+                  .merge(team_param)
+                  .merge(additional_question_response_params)
+                  .merge(shift_params)
       }
     end
 
     include_examples 'an authorized action'
-
-    before do
-      team.update(name: 'Ladies Who Lunch')
-    end
 
     it 'succeeds with a 200 OK' do
       subject
@@ -260,9 +261,249 @@ describe Director::BowlersController, type: :request do
       expect(json['preferredName']).to eq('Freddy')
     end
 
-    it 'does not change their team' do
-      subject
-      expect(json['team']['name']).to eq('Ladies Who Lunch')
+    context 'a bowler on a team' do
+      let(:bowler) { create :bowler, position: 1, team: team, tournament: tournament }
+
+      context 'moving the bowler to a different team' do
+        let(:new_team) { create :team, name: 'Dudes Who Dance', tournament: tournament }
+        let(:team_param) do
+          {
+            team: {
+              identifier: new_team.identifier,
+            }
+          }
+        end
+
+        it 'succeeds with a 200 OK' do
+          subject
+          expect(response).to have_http_status(:ok)
+        end
+
+        it 'includes the updated bowler in the response' do
+          subject
+          expect(json).to have_key('identifier')
+        end
+
+        it 'reflects the new team' do
+          subject
+          expect(json['team']['name']).to eq('Dudes Who Dance')
+        end
+
+        context 'without supplying person_attributes' do
+          let(:params) do
+            {
+              bowler: {}.merge(team_param),
+            }
+          end
+
+          it 'succeeds with a 200 OK' do
+            subject
+            expect(response).to have_http_status(:ok)
+          end
+
+          it 'reflects the new team' do
+            subject
+            expect(json['team']['name']).to eq('Dudes Who Dance')
+          end
+        end
+      end
+
+      context 'moving the bowler to an unrecognized team' do
+        let(:team_param) do
+          {
+            team: {
+              identifier: 'you-shall-not-pass',
+            }
+          }
+        end
+
+        it 'yields a 400 Bad Request' do
+          subject
+          expect(response).to have_http_status(:bad_request)
+        end
+
+        it "does not change the bowler's team" do
+          subject
+          expect(bowler.team.reload.identifier).to eq(team.identifier)
+        end
+      end
+
+      context 'moving the bowler to a full team' do
+        let(:new_team) { create :team, :standard_full_team, tournament: tournament }
+        let(:team_param) do
+          {
+            team: {
+              identifier: new_team.identifier,
+            }
+          }
+        end
+
+        it 'yields a 400 Bad Redquest' do
+          subject
+          expect(response).to have_http_status(:bad_request)
+        end
+
+        it "does not change the bowler's team" do
+          subject
+          expect(bowler.team.reload.identifier).to eq(team.identifier)
+        end
+      end
+    end
+
+    context 'updating an additional question response' do
+      let(:aq) do
+        create(:additional_question,
+          extended_form_field: create(:extended_form_field, :standings_link),
+          tournament: tournament)
+      end
+      let(:additional_question_response_params) do
+        {
+          additional_question_responses: [
+            {
+              name: aq.name,
+              response: 'my updated response',
+            }
+          ],
+        }
+      end
+
+      before do
+        create :additional_question_response,
+          response: 'my response',
+          extended_form_field: aq.extended_form_field,
+          bowler: bowler
+      end
+
+      it 'succeeds with a 200 OK' do
+        subject
+        expect(response).to have_http_status(:ok)
+      end
+
+      it 'includes the updated bowler in the response' do
+        subject
+        expect(json).to have_key('identifier')
+      end
+
+      it 'reflects the response' do
+        subject
+        expect(json).to have_key('additionalQuestionResponses')
+        index = json['additionalQuestionResponses'].find_index { |elem| elem['name'] == aq.name }
+        expect(json['additionalQuestionResponses'][index]['response']).to eq('my updated response')
+      end
+
+      context 'to an empty response' do
+        let(:additional_question_response_params) do
+          {
+            additional_question_responses: [
+              {
+                name: aq.name,
+                response: '',
+              }
+            ],
+          }
+        end
+
+        it 'reflects the response' do
+          subject
+          expect(json).to have_key('additionalQuestionResponses')
+          index = json['additionalQuestionResponses'].find_index { |elem| elem['name'] == aq.name }
+          expect(json['additionalQuestionResponses'][index]['response']).to eq('')
+        end
+      end
+    end
+
+    context 'creating an additional question response' do
+      let(:aq) do
+        create(:additional_question,
+          extended_form_field: create(:extended_form_field, :comment),
+          tournament: tournament)
+      end
+      let(:additional_question_response_params) do
+        {
+          additional_question_responses: [
+            {
+              name: aq.name,
+              response: 'info provided by a director about the bowler',
+            }
+          ],
+        }
+      end
+
+      it 'succeeds with a 200 OK' do
+        subject
+        expect(response).to have_http_status(:ok)
+      end
+
+      it 'includes the updated bowler in the response' do
+        subject
+        expect(json).to have_key('identifier')
+      end
+
+      it 'reflects the response' do
+        subject
+        expect(json).to have_key('additionalQuestionResponses')
+        index = json['additionalQuestionResponses'].find_index { |elem| elem['name'] == aq.name }
+        expect(json['additionalQuestionResponses'][index]['response']).to eq('info provided by a director about the bowler')
+      end
+    end
+
+    context 'updating verified data' do
+      let(:bowler_params) do
+        {
+          verified_data: {
+            verified_average: 199,
+            handicap: 17,
+            igbo_member: true,
+          }
+        }
+      end
+
+      it 'succeeds with a 200 OK' do
+        subject
+        expect(response).to have_http_status(:ok)
+      end
+
+      it 'includes the updated bowler in the response' do
+        subject
+        expect(json).to have_key('identifier')
+      end
+
+      it 'reflects the response' do
+        subject
+        expect(json).to have_key('verifiedAverage')
+        expect(json['verifiedAverage']).to eq(199)
+      end
+
+      it 'includes the igbo_member property' do
+        subject
+        expect(json).to have_key('igboMember')
+        expect(json['igboMember']).to eq(true)
+      end
+    end
+
+    context 'a solo bowler' do
+      let(:original_shift) { tournament.shifts.first }
+      let(:new_shift) { tournament.shifts.second }
+      let(:bowler) do
+        create :bowler,
+          tournament: tournament,
+          shifts: [original_shift]
+      end
+      let(:shift_params) do
+        {
+          shift_identifiers: [new_shift.identifier],
+        }
+      end
+
+      it 'succeeds with a 200 OK' do
+        subject
+        expect(response).to have_http_status(:ok)
+      end
+
+      it 'includes the changed shift in the response' do
+        subject
+        expect(json['shifts'].first['identifier']).to eq(new_shift.identifier)
+      end
     end
 
     context 'as an unpermitted user' do
@@ -292,188 +533,6 @@ describe Director::BowlersController, type: :request do
       end
     end
 
-    context 'moving the bowler to a different team' do
-      let(:new_team) { create :team, name: 'Dudes Who Dance', tournament: tournament }
-      let(:team_params) { { identifier: new_team.identifier } }
-
-      it 'succeeds with a 200 OK' do
-        subject
-        expect(response).to have_http_status(:ok)
-      end
-
-      it 'includes the updated bowler in the response' do
-        subject
-        expect(json).to have_key('identifier')
-      end
-
-      it 'reflects the new team' do
-        subject
-        expect(json['team']['name']).to eq('Dudes Who Dance')
-      end
-
-      context 'without supplying person_attributes' do
-        let(:params) do
-          {
-            bowler: {
-              team: team_params,
-            },
-          }
-        end
-
-        it 'succeeds with a 200 OK' do
-          subject
-          expect(response).to have_http_status(:ok)
-        end
-
-        it 'reflects the new team' do
-          subject
-          expect(json['team']['name']).to eq('Dudes Who Dance')
-        end
-      end
-    end
-
-    context 'assigning a new doubles partner' do
-      let(:new_partner) { create :bowler, tournament: tournament }
-      let(:partner_params) { { identifier: new_partner.identifier } }
-
-      before do
-        create :purchasable_item, :doubles_event, tournament: tournament
-      end
-
-      it 'succeeds with a 200 OK' do
-        subject
-        expect(response).to have_http_status(:ok)
-      end
-
-      it 'includes the updated doubles partner in the response' do
-        subject
-        expect(json['doublesPartner']['name']).to eq(TournamentRegistration.person_list_name(new_partner.person))
-      end
-    end
-
-    context 'updating an additional question response' do
-      let(:aq) do
-        create(:additional_question,
-               extended_form_field: create(:extended_form_field, :standings_link),
-               tournament: tournament)
-      end
-      let(:additional_question_response_params) do
-        [
-          {
-            name: aq.name,
-            response: 'my updated response',
-          }
-        ]
-      end
-
-      before do
-        create :additional_question_response,
-               response: 'my response',
-               extended_form_field: aq.extended_form_field,
-               bowler: bowler
-      end
-
-      it 'succeeds with a 200 OK' do
-        subject
-        expect(response).to have_http_status(:ok)
-      end
-
-      it 'includes the updated bowler in the response' do
-        subject
-        expect(json).to have_key('identifier')
-      end
-
-      it 'reflects the response' do
-        subject
-        expect(json).to have_key('additionalQuestionResponses')
-        index = json['additionalQuestionResponses'].find_index { |elem| elem['name'] == aq.name }
-        expect(json['additionalQuestionResponses'][index]['response']).to eq('my updated response')
-      end
-
-      context 'to an empty response' do
-        let(:additional_question_response_params) do
-          [
-            {
-              name: aq.name,
-              response: '',
-            }
-          ]
-        end
-
-        it 'reflects the response' do
-          subject
-          expect(json).to have_key('additionalQuestionResponses')
-          index = json['additionalQuestionResponses'].find_index { |elem| elem['name'] == aq.name }
-          expect(json['additionalQuestionResponses'][index]['response']).to eq('')
-        end
-      end
-    end
-
-    context 'creating an additional question response' do
-      let(:aq) do
-        create(:additional_question,
-          extended_form_field: create(:extended_form_field, :comment),
-          tournament: tournament)
-      end
-      let(:additional_question_response_params) do
-        [
-          {
-            name: aq.name,
-            response: 'info provided by a director about the bowler',
-          }
-        ]
-      end
-
-      it 'succeeds with a 200 OK' do
-        subject
-        expect(response).to have_http_status(:ok)
-      end
-
-      it 'includes the updated bowler in the response' do
-        subject
-        expect(json).to have_key('identifier')
-      end
-
-      it 'reflects the response' do
-        subject
-        expect(json).to have_key('additionalQuestionResponses')
-        index = json['additionalQuestionResponses'].find_index { |elem| elem['name'] == aq.name }
-        expect(json['additionalQuestionResponses'][index]['response']).to eq('info provided by a director about the bowler')
-      end
-    end
-
-    context 'updating verified data' do
-      let(:verified_data_params) do
-        {
-          verified_average: 199,
-          handicap: 17,
-          igbo_member: true,
-        }
-      end
-
-      it 'succeeds with a 200 OK' do
-        subject
-        expect(response).to have_http_status(:ok)
-      end
-
-      it 'includes the updated bowler in the response' do
-        subject
-        expect(json).to have_key('identifier')
-      end
-
-      it 'reflects the response' do
-        subject
-        expect(json).to have_key('verifiedAverage')
-        expect(json['verifiedAverage']).to eq(199)
-      end
-
-      it 'includes the igbo_member property' do
-        subject
-        expect(json).to have_key('igboMember')
-        expect(json['igboMember']).to eq(true)
-      end
-    end
-
     context 'error scenarios' do
       context 'an unrecognized bowler identifier' do
         let(:bowler_identifier) { 'say-what-now' }
@@ -486,12 +545,14 @@ describe Director::BowlersController, type: :request do
 
       context 'an unknown additional question' do
         let(:additional_question_response_params) do
-          [
-            {
-              name: 'unknown-form-field',
-              response: 'my detailed response to it',
-            }
-          ]
+          {
+            additional_question_responses: [
+              {
+                name: 'unknown-form-field',
+                response: 'my detailed response to it',
+              }
+            ],
+          }
         end
 
         it 'yields a 400 Bad Request' do
@@ -507,7 +568,13 @@ describe Director::BowlersController, type: :request do
 
       context 'a failed validation' do
         context 'missing a required value' do
-          let(:person_attributes) { { last_name: '' } }
+          let(:person_attributes) do
+            {
+              person_attributes: {
+                last_name: '',
+              }
+            }
+          end
 
           it 'yields a 400 Bad Request' do
             subject
@@ -518,35 +585,6 @@ describe Director::BowlersController, type: :request do
             subject
             expect(json).to have_key('error')
           end
-        end
-      end
-
-      context 'moving the bowler to an unrecognized team' do
-        let(:team_params) { { identifier: 'you-shall-not-pass' } }
-
-        it 'yields a 400 Bad Request' do
-          subject
-          expect(response).to have_http_status(:bad_request)
-        end
-
-        it "does not change the bowler's team" do
-          subject
-          expect(bowler.team.reload.identifier).to eq(team.identifier)
-        end
-      end
-
-      context 'moving the bowler to a full team' do
-        let(:new_team) { create :team, :standard_full_team, tournament: tournament }
-        let(:team_params) { { identifier: new_team.identifier } }
-
-        it 'yields a 400 Bad Redquest' do
-          subject
-          expect(response).to have_http_status(:bad_request)
-        end
-
-        it "does not change the bowler's team" do
-          subject
-          expect(bowler.team.reload.identifier).to eq(team.identifier)
         end
       end
     end

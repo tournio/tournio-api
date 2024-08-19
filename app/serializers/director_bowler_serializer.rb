@@ -1,6 +1,8 @@
 # frozen_string_literal: true
 
-class DirectorBowlerSerializer < BowlerSerializer
+class DirectorBowlerSerializer < DirectorBowlerBasicSerializer
+  # From BowlerBasicSerializer:
+  #
   # attributes :identifier,
   #   :email,
   #   :first_name,
@@ -19,6 +21,9 @@ class DirectorBowlerSerializer < BowlerSerializer
   #   TournamentRegistration.person_display_name(b.person)
   # end
 
+  # From DirectorBowlerBasicSerializer:
+  # attributes :id
+
   attributes :address1,
     :address2,
     :birth_day,
@@ -28,6 +33,7 @@ class DirectorBowlerSerializer < BowlerSerializer
     :created_at,
     :state,
     :country,
+    :position,
     :postal_code,
     :payment_app
 
@@ -35,22 +41,16 @@ class DirectorBowlerSerializer < BowlerSerializer
   many :additional_question_responses, resource: AdditionalQuestionResponseSerializer
   many :purchases, resource: PurchaseSerializer
   many :ledger_entries, resource: LedgerEntrySerializer
+  many :shifts, resource: ShiftSerializer
   many :signups, resource: SignupSerializer
   many :waivers, resource: WaiverSerializer
   # many :signups, proc { |signups, params, bowler|
   #   bowler.signups.requested + bowler.signups.paid
   # }, resource: :SignupSerializer
 
-  attribute :doubles_partner do |b|
-    if b.doubles_partner.present?
-      {
-        name: TournamentRegistration.person_list_name(b.doubles_partner),
-        identifier: b.doubles_partner.identifier,
-      }
-    else
-      nil
-    end
-  end
+  one :team, resource: TeamSerializer
+  one :doubles_partner, resource: DirectorBowlerBasicSerializer
+
   attribute :amount_paid do |b|
     TournamentRegistration.amount_paid(b)
   end
@@ -62,9 +62,6 @@ class DirectorBowlerSerializer < BowlerSerializer
   end
   attribute :team_name do |b|
     b.team.present? ? b.team.name : 'n/a'
-  end
-  attribute :position do |b|
-    b.position.present? ? b.position : ''
   end
   attribute :verified_average do |b|
     b.verified_data['verified_average']

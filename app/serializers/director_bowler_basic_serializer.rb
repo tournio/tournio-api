@@ -24,8 +24,7 @@
 #  index_bowlers_on_team_id             (team_id)
 #  index_bowlers_on_tournament_id       (tournament_id)
 #
-class BowlerSerializer < BowlerBasicSerializer
-  many :shifts, resource: ShiftSerializer
-  one :team, resource: TeamSerializer
-  one :doubles_partner, resource: BowlerBasicSerializer
+class DirectorBowlerBasicSerializer < BowlerBasicSerializer
+
+  attributes :id
 end

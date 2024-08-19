@@ -3,7 +3,7 @@
 class CreateBowlerFormFieldRows < ActiveRecord::Migration[7.0]
   def up
     Tournament.upcoming.each do |t|
-      t.config_items << ConfigItem.new(key: 'bowler_form_fields', label: 'Bowler Form Fields', value: 'address1 city state country postal_code usbc_id date_of_birth') unless t.config_items.exists?(key: 'bowler_form_fields')
+      t.config_items << ConfigItem.new(key: 'bowler_form_fields', label: 'Bowler Form Fields', value: 'address1 city state country postalCode usbc_Id dateOfBirth') unless t.config_items.exists?(key: 'bowler_form_fields')
     end
   end
 

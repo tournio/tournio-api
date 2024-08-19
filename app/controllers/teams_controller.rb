@@ -31,10 +31,8 @@ class TeamsController < ApplicationController
   ].freeze
   TEAM_ATTRS = [
     :name,
-    :initial_size,
     shift_identifiers: [],
     bowlers_attributes: BOWLER_ATTRS,
-    options: {},
   ].freeze
 
   #####################
@@ -70,9 +68,17 @@ class TeamsController < ApplicationController
 
     TournamentRegistration.register_team(team)
 
-    team.bowlers.includes(:person, :ledger_entries).order(:position)
-    # render json: TeamDetailedSerializer.new(team, within: {bowlers: {doubles_partner: :doubles_partner}}).serialize, status: :created
-    render json: TeamBlueprint.render(team, view: :detail), status: :created
+    team.bowlers.map do |b|
+      if tournament.events.double.any?
+        if b.doubles_partner_index.present? && b.doubles_partner_id.blank?
+          # assign doubles partner if we have an index and it isn't already assigned
+          b.update(doubles_partner_id: team.bowlers[b.doubles_partner_index].id)
+        end
+      end
+      TournamentRegistration.register_bowler(b)
+    end
+
+    render json: TeamDetailedSerializer.new(team).serialize, status: :created
   rescue MissingShiftIdentifiers => e
     render json: { team: e.message }, status: :unprocessable_entity
   end
@@ -92,11 +98,9 @@ class TeamsController < ApplicationController
       render json: nil, status: 404
       return
     end
-    # TODO Does this do what I think it does?
-    # team.bowlers.includes(:person, :ledger_entries).order(:position)
 
-    # render json: TeamDetailedSerializer.new(team, within: {bowlers: {doubles_partner: :doubles_partner}}).serialize
-    render json: TeamBlueprint.render(team, view: :detail)
+    render json: TeamDetailedSerializer.new(team)
+    # render json: TeamBlueprint.render(team, view: :detail)
   end
 
   private
@@ -111,7 +115,7 @@ class TeamsController < ApplicationController
 
   def load_team
     identifier = params.require(:identifier)
-    @team = Team.includes(bowlers: [:person, :ledger_entries]).find_by_identifier(identifier)
+    @team = Team.includes(:tournament, bowlers: [:person, :ledger_entries]).find_by_identifier(identifier)
   end
 
   #######################
@@ -163,15 +167,17 @@ class TeamsController < ApplicationController
     end
     permitted_params['position'] = permitted_params['position'].to_i if permitted_params['position'].present?
 
-    # Remove additional question responses that are empty
-    permitted_params['additional_question_responses'].filter! { |r| r['response'].present? }
+    if permitted_params['additional_question_responses'].present?
+      # Remove additional question responses that are empty
+      permitted_params['additional_question_responses'].filter! { |r| r['response'].present? }
 
-    # transform the add'l question responses into the shape that we can accept via ActiveRecord
-    permitted_params['additional_question_responses_attributes'] =
-      additional_question_responses(permitted_params['additional_question_responses'])
+      # transform the add'l question responses into the shape that we can accept via ActiveRecord
+      permitted_params['additional_question_responses_attributes'] =
+        additional_question_responses(permitted_params['additional_question_responses'])
 
-    # remove that key from the params...
-    permitted_params.delete('additional_question_responses')
+      # remove that key from the params...
+      permitted_params.delete('additional_question_responses')
+    end
 
     permitted_params
   end

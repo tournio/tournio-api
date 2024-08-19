@@ -6,9 +6,7 @@
 #
 #  id            :bigint           not null, primary key
 #  identifier    :string           not null
-#  initial_size  :integer          default(4)
 #  name          :string
-#  options       :jsonb
 #  created_at    :datetime         not null
 #  updated_at    :datetime         not null
 #  shift_id      :bigint
@@ -26,5 +24,7 @@ class TeamSerializer < JsonSerializer
     :name,
     :created_at
 
-  many :shifts, resource: ShiftSerializer
+  attribute :size do |t|
+    t.bowlers.count
+  end
 end

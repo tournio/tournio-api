@@ -16,10 +16,10 @@ describe Director::LedgerEntriesController, type: :request do
 
     let(:uri) { "/director/bowlers/#{bowler_identifier}/ledger_entries" }
 
-    let(:tournament) { create :tournament }
+    let(:tournament) { create :tournament, :with_entry_fee }
     let(:bowler) { create :bowler, tournament: tournament }
     let(:bowler_identifier) { bowler.identifier }
-    let(:entry_fee_pi) { create :purchasable_item, :entry_fee, tournament: tournament }
+    let(:entry_fee_pi) { tournament.purchasable_items.entry_fee.first }
 
     let(:params) do
       {
@@ -72,6 +72,26 @@ describe Director::LedgerEntriesController, type: :request do
 
     it "links the new purchase with the bowler" do
       expect { subject }.to change(bowler.purchases, :count).by(1)
+    end
+
+    context 'when it covers a late-registration fee, too' do
+      let(:tournament) { create :tournament, :with_entry_fee, :with_late_fee }
+      let(:late_fee_pi) { tournament.purchasable_items.late_fee.first }
+
+      let(:new_entry_params) do
+        {
+          credit: entry_fee_pi.value + late_fee_pi.value,
+          identifier: 'cash payment',
+        }
+      end
+
+      it "creates a Late Fee purchase as well" do
+        expect { subject }.to change(Purchase, :count).by(2)
+      end
+
+      it "links the new purchases with the bowler" do
+        expect { subject }.to change(bowler.purchases, :count).by(2)
+      end
     end
 
     context 'as an unpermitted user' do
