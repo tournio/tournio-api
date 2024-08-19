@@ -57,7 +57,6 @@ class Tournament < ApplicationRecord
   # delegate :stripe_account, :users, to: :tournament_org
 
   accepts_nested_attributes_for :additional_questions, allow_destroy: true
-  accepts_nested_attributes_for :config_items, allow_destroy: true
   accepts_nested_attributes_for :scratch_divisions, allow_destroy: true
   accepts_nested_attributes_for :events, allow_destroy: true
   accepts_nested_attributes_for :shifts, allow_destroy: true
@@ -68,8 +67,8 @@ class Tournament < ApplicationRecord
   scope :upcoming, ->(right_now = Time.zone.now) { where('end_date > ?', right_now) }
   scope :available, -> { upcoming.where(aasm_state: %w[active closed]).where(config_items: { key: 'publicly_listed', value: ['true', 't'] }) }
 
-  SUPPORTED_DETAILS = %w(registration_types)
-  SUPPORTED_REGISTRATION_OPTIONS = %w(new_team solo new_pair standard)
+  SUPPORTED_DETAILS = %w(registration_types).freeze
+  SUPPORTED_REGISTRATION_OPTIONS = %w(new_team solo new_pair standard).freeze
 
   aasm do
     state :setup, initial: true

@@ -43,21 +43,20 @@ module TournamentBusiness
 
   def create_default_config
     self.config_items += [
-      ConfigItem.new(key: 'display_capacity', value: 'false', label: 'Display Capacity'),
-      ConfigItem.new(key: 'publicly_listed', value: 'true', label: 'Publicly Listed'), # applies to tournaments in the "active" state
-      ConfigItem.new(key: 'accept_payments', value: 'true', label: 'Accept Payments'),
-      ConfigItem.new(key: 'website', value: 'http://www.igbo.org', label: 'Website'),
-      ConfigItem.new(key: 'team_size', value: 4, label: 'Team Size'),
-      # ConfigItem.new(key: 'tournament_type', value: IGBO_STANDARD, label: 'Tournament Type'),
-      ConfigItem.new(key: 'bowler_form_fields', value: 'usbcId', label: 'Bowler Form Fields'),
-      ConfigItem.new(key: 'enable_unpaid_signups', value: 'true', label: 'Allow unpaid signups for optional events'),
-      ConfigItem.new(key: 'enable_free_entries', value: 'true', label: 'Accept free entry codes from bowlers'),
+      ConfigItem.gimme(key_sym: :DISPLAY_CAPACITY, initial_value: 'false'),
+      ConfigItem.gimme(key_sym: :PUBLICLY_LISTED), # applies to tournaments in the "active" state
+      ConfigItem.gimme(key_sym: :ACCEPT_PAYMENTS),
+      ConfigItem.gimme(key_sym: :WEBSITE, initial_value: 'http://www.igbo.org'),
+      ConfigItem.gimme(key_sym: :TEAM_SIZE, initial_value: 4),
+      ConfigItem.gimme(key_sym: :BOWLER_FORM_FIELDS, initial_value: 'usbcId'),
+      ConfigItem.gimme(key_sym: :ENABLE_UNPAID_SIGNUPS),
+      ConfigItem.gimme(key_sym: :ENABLE_FREE_ENTRIES),
     ]
 
     if Rails.env.development?
       self.config_items += [
-        ConfigItem.new(key: 'email_in_dev', value: 'false', label: '[dev] Send Emails'),
-        ConfigItem.new(key: 'skip_stripe', value: 'true', label: 'Skip Stripe'),
+        ConfigItem.gimme(key_sym: :EMAIL_IN_DEV, initial_value: 'false'),
+        ConfigItem.gimme(key_sym: :SKIP_STRIPE),
       ]
     end
   end

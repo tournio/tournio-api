@@ -99,11 +99,10 @@ RSpec.describe TournamentBusiness do
     subject { dummy_obj.config }
 
     before do
-      tournament.config_items << ConfigItem.new(key: 'dummyfoo', value: 'foo')
-      tournament.config_items << ConfigItem.new(key: 'dummy17', value: '17')
-      tournament.config_items << ConfigItem.new(key: 'dummytrue', value: 'true')
-      tournament.config_items << ConfigItem.new(key: 'dummyfalse', value: 'false')
-      tournament.config_items << ConfigItem.new(key: 'dummyf', value: 'f')
+      tournament.config_items.find_by_key(ConfigItem::Keys::WEBSITE).update(value: 'foo')
+      tournament.config_items.find_by_key(ConfigItem::Keys::TEAM_SIZE).update(value: 17)
+      tournament.config_items.find_by_key(ConfigItem::Keys::DISPLAY_CAPACITY).update(value: 'true')
+      tournament.config_items.find_by_key(ConfigItem::Keys::ACCEPT_PAYMENTS).update(value: 'false')
     end
 
     it 'returns a hash' do
@@ -112,14 +111,14 @@ RSpec.describe TournamentBusiness do
 
     it 'has the correct key-value mapping' do
       result = subject
-      expect(result[:dummyfoo]).to eq('foo')
-      expect(result[:dummy17]).to eq(17)
+      expect(result[ConfigItem::Keys::WEBSITE]).to eq('foo')
+      expect(result[ConfigItem::Keys::TEAM_SIZE]).to eq(17)
     end
 
     it 'casts "true" and "false" to boolean' do
       result = subject
-      expect(result[:dummytrue]).to be_instance_of(TrueClass)
-      expect(result[:dummyfalse]).to be_instance_of(FalseClass)
+      expect(result[ConfigItem::Keys::PUBLICLY_LISTED]).to be_instance_of(TrueClass)
+      expect(result[ConfigItem::Keys::ACCEPT_PAYMENTS]).to be_instance_of(FalseClass)
     end
   end
 

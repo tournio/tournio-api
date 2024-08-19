@@ -32,11 +32,6 @@ module Director
         :_destroy,
         validation_rules: {}
       ],
-      config_items_attributes: [
-        :id,
-        :key,
-        :value,
-      ],
       scratch_divisions_attributes: [
         :id,
         :key,
@@ -304,7 +299,7 @@ module Director
 
       load_stripe_account
       unless stripe_account.present?
-        if tournament.config['skip_stripe']
+        if tournament.config[ConfigItem::Keys::SKIP_STRIPE]
           Rails.logger.debug "Skipping actual integration with Stripe and faking it"
           self.stripe_account = StripeAccount.create(
             tournament_org_id: tournament.tournament_org.id,
@@ -321,7 +316,7 @@ module Director
         return
       end
 
-      if tournament.config['skip_stripe']
+      if tournament.config[ConfigItem::Keys::SKIP_STRIPE]
         stripe_account.update(
           link_url: "/director/tournaments/#{tournament.identifier}",
           link_expires_at: Time.zone.now + 6.hours,
@@ -354,7 +349,7 @@ module Director
         return
       end
 
-      unless tournament.config['skip_stripe']
+      unless tournament.config[ConfigItem::Keys::SKIP_STRIPE]
         result = get_account_details
         unless result.present?
           render json: { error: 'Failed to retrieve account status from Stripe.' }, status: :service_unavailable

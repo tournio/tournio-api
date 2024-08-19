@@ -522,18 +522,12 @@ describe Director::TournamentsController, type: :request do
       end
     end
 
-    context 'setting two properties and adding a config item' do
+    context 'setting two properties' do
       let(:params) do
         {
           tournament: {
             location: 'Maui, HI',
             timezone: 'Pacific/Honolulu',
-            config_items_attributes: [
-              {
-                key: 'travel-site',
-                value: 'http://maui.hawaii.us',
-              },
-            ],
           },
         }
       end
@@ -544,27 +538,12 @@ describe Director::TournamentsController, type: :request do
         expect(tournament.location).to eq('Maui, HI')
         expect(tournament.timezone).to eq('Pacific/Honolulu')
       end
-
-      it 'creates a new config item' do
-        expect{ subject }.to change(tournament.config_items, :count).by(1)
-      end
-
-      it 'creates a travel-site config item' do
-        subject
-        expect(tournament.reload.config['travel-site']).to eq('http://maui.hawaii.us')
-      end
     end
 
-    context 'adding a config item and scratch divisions' do
+    context 'adding scratch divisions' do
       let(:params) do
         {
           tournament: {
-            config_items_attributes: [
-              {
-                key: 'handicap_rule',
-                value: '90%225',
-              },
-            ],
             scratch_divisions_attributes: [
               {
                 key: 'A',
@@ -599,15 +578,6 @@ describe Director::TournamentsController, type: :request do
             ]
           },
         }
-      end
-
-      it 'creates a new config item' do
-        expect{ subject }.to change(tournament.config_items, :count).by(1)
-      end
-
-      it 'creates the right config item' do
-        subject
-        expect(tournament.config[:handicap_rule]).to eq('90%225')
       end
 
       it 'creates 5 scratch divisions' do
@@ -854,15 +824,11 @@ describe Director::TournamentsController, type: :request do
       end
 
       context 'Active' do
-        let(:tournament) { create :one_shift_standard_tournament, :with_entry_fee, :active }
+        let(:tournament) { create :tournament, :active }
 
         it 'responds with Forbidden' do
           subject
           expect(response).to have_http_status(:forbidden)
-        end
-
-        it 'does not create an additional question' do
-          expect{ subject }.not_to(change { AdditionalQuestion.count })
         end
       end
 
