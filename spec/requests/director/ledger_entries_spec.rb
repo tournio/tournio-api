@@ -94,6 +94,36 @@ describe Director::LedgerEntriesController, type: :request do
       end
     end
 
+    context 'when the bowler has already paid the entry fee' do
+      let(:credit_amount) { 27 }
+
+      let(:new_entry_params) do
+        {
+          credit: credit_amount,
+          identifier: 'cash payment',
+        }
+      end
+
+      before do
+        create :purchase, :paid,
+          bowler: bowler,
+          amount: entry_fee_pi.value,
+          purchasable_item: entry_fee_pi
+      end
+
+      it "does not create a Purchase" do
+        expect { subject }.not_to change(Purchase, :count)
+      end
+
+      it "creates a Ledger Entry" do
+        expect { subject }.to change(LedgerEntry, :count).by(1)
+      end
+
+      it "adds it to the bowler's list of entries" do
+        expect { subject }.to change(bowler.ledger_entries, :count).by(1)
+      end
+    end
+
     context 'as an unpermitted user' do
       let(:requesting_user) { create(:user, :unpermitted) }
 
