@@ -21,7 +21,7 @@ require 'rails_helper'
 
 RSpec.describe ConfigItemSerializer do
   let(:tournament) { create :tournament }
-  let(:config_item) { tournament.config_items.find_by(key: 'team_size') }
+  let(:config_item) { tournament.config_items.find_by(key: ConfigItem::Keys::TEAM_SIZE) }
 
   subject { ConfigItemSerializer.new(config_item).serialize }
 
@@ -46,17 +46,15 @@ RSpec.describe ConfigItemSerializer do
   end
 
   describe 'where value is a boolean' do
-    let(:key) { 'like_bubbles' }
-    let(:config_item) do
-      create :config_item,
-        key: key,
-        value: value,
-        label: 'Do I like bubbles?',
-        tournament: tournament
-    end
+    let(:key) { ConfigItem::Keys::ENABLE_FREE_ENTRIES }
+    let(:config_item) { tournament.config_items.find_by(key: key) }
 
     context 'for something that is true' do
       let(:value) { true }
+
+      before do
+        config_item.update(value: 'true')
+      end
 
       it 'has a value that parses as boolean' do
         expect(json_hash[:value]).to be_an_instance_of(TrueClass)
@@ -65,6 +63,10 @@ RSpec.describe ConfigItemSerializer do
 
     context 'for something that is false' do
       let(:value) { false }
+
+      before do
+        config_item.update(value: 'false')
+      end
 
       it 'has a value that parses as boolean' do
         expect(json_hash[:value]).to be_an_instance_of(FalseClass)

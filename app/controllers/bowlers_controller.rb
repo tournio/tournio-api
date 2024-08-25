@@ -170,7 +170,7 @@ class BowlersController < ApplicationController
       return
     end
 
-    unless tournament.config['accept_payments']
+    unless tournament.config[ConfigItem::Keys::ACCEPT_PAYMENTS]
       render json: { error: 'The tournament is no longer accepting online payments.' }, status: :bad_request
       return
     end
@@ -184,7 +184,7 @@ class BowlersController < ApplicationController
     process_purchase_details(details)
 
     session = {}
-    if Rails.env.development? && tournament.config['skip_stripe'] || tournament.testing? || tournament.demo?
+    if Rails.env.development? && tournament.config[ConfigItem::Keys::SKIP_STRIPE] || tournament.testing? || tournament.demo?
       finish_checkout_without_stripe
       session[:id] = "pretend_checkout_session_#{bowler.id}_#{Time.zone.now.strftime('%FT%T')}"
       session[:url] = "/bowlers/#{bowler.identifier}/finish_checkout"

@@ -7,13 +7,16 @@ RSpec.describe TournamentConfig do
   let(:tournament_config) { TournamentConfig.new(tournament.config_items) }
 
   describe '#[]' do
-    let!(:c1) { create :config_item, :email_in_dev, tournament: tournament, value: 'true' }
+    let(:c1) { tournament.config_items.find_by_key(ConfigItem::Keys::EMAIL_IN_DEV) }
     let(:url) { 'www.igbo.org' }
 
-    before { tournament.config_items.find_by_key('website').update(value: url) }
+    before do
+      tournament.config_items << ConfigItem.gimme(key_sym: :EMAIL_IN_DEV, initial_value: 'true')
+      tournament.config_items.find_by_key(ConfigItem::Keys::WEBSITE).update(value: url)
+    end
 
     it 'accepts a string argument' do
-      expect(tournament_config['website']).to eq(url)
+      expect(tournament_config[ConfigItem::Keys::WEBSITE]).to eq(url)
     end
 
     it 'accepts a symbol argument' do
@@ -35,21 +38,25 @@ RSpec.describe TournamentConfig do
     end
 
     context 'an integer value' do
-      before { tournament.config_items.find_by(key: 'team_size').update(value: 42) }
+      before { tournament.config_items.find_by(key: ConfigItem::Keys::TEAM_SIZE).update(value: 42) }
 
       it 'returns the value as an integer' do
-        expect(tournament_config['team_size']).to be_instance_of Integer
+        expect(tournament_config[ConfigItem::Keys::TEAM_SIZE]).to be_instance_of Integer
       end
     end
   end
 
   describe '#[]=' do
-    let!(:c1) { create :config_item, :email_in_dev, tournament: tournament, value: 'true' }
+    let(:c1) { tournament.config_items.find_by_key(ConfigItem::Keys::EMAIL_IN_DEV) }
+
+    before do
+      tournament.config_items << ConfigItem.gimme(key_sym: :EMAIL_IN_DEV, initial_value: 'true')
+    end
 
     subject { tournament_config[key] = new_value }
 
     context 'a string key' do
-      let(:key) { 'website' }
+      let(:key) { ConfigItem::Keys::WEBSITE }
       let(:new_value) { 'www.tourn.io' }
 
       it 'updates the config item value' do
@@ -60,7 +67,7 @@ RSpec.describe TournamentConfig do
     end
 
     context 'a symbol key' do
-      let(:key) { :website }
+      let(:key) { ConfigItem::Keys::WEBSITE.to_sym }
       let(:new_value) { 'www.tourn.io' }
 
       it 'updates the config item value' do
@@ -71,7 +78,7 @@ RSpec.describe TournamentConfig do
     end
 
     context 'a numeric value' do
-      let(:key) { :website }
+      let(:key) { ConfigItem::Keys::WEBSITE }
       let(:new_value) { 42 }
 
       it 'updates the config item value' do
@@ -82,7 +89,7 @@ RSpec.describe TournamentConfig do
     end
 
     context 'boolean false' do
-      let(:key) { :email_in_dev }
+      let(:key) { ConfigItem::Keys::EMAIL_IN_DEV }
       let(:new_value) { false }
 
       it 'updates the config item value' do
@@ -92,7 +99,7 @@ RSpec.describe TournamentConfig do
     end
 
     context 'boolean true' do
-      let(:key) { 'display_capacity' }
+      let(:key) { ConfigItem::Keys::DISPLAY_CAPACITY }
       let(:new_value) { true }
 
       it 'updates the config item value' do

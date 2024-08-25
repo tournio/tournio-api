@@ -18,7 +18,7 @@ describe Director::ConfigItemsController, type: :request do
 
     let(:tournament_identifier) { tournament.identifier }
     let(:tournament) { create :tournament }
-    let(:config_item) { tournament.config_items.find_by(key: 'team_size') }
+    let(:config_item) { tournament.config_items.find_by(key: ConfigItem::Keys::TEAM_SIZE) }
     let(:config_item_id) { config_item.id }
 
     let(:params) do
@@ -84,9 +84,10 @@ describe Director::ConfigItemsController, type: :request do
         end
 
         context 'email_in_dev' do
-          let(:config_item) { tournament.config_items.find_by(key: 'email_in_dev') }
+          let(:key) { ConfigItem::Keys::EMAIL_IN_DEV }
+          let(:config_item) { tournament.config_items.find_by(key: key) }
 
-          before { create :config_item, :email_in_dev, value: 'true', tournament: tournament }
+          before { tournament.config_items << ConfigItem.gimme(key_sym: :EMAIL_IN_DEV, initial_value: 'true') }
 
           it 'succeeds with a 200 OK' do
             subject
@@ -95,7 +96,7 @@ describe Director::ConfigItemsController, type: :request do
         end
 
         context 'publicly listed' do
-          let(:config_item) { tournament.config_items.find_by(key: 'publicly_listed') }
+          let(:config_item) { tournament.config_items.find_by(key: ConfigItem::Keys::PUBLICLY_LISTED) }
 
           it 'succeeds with a 200 OK' do
             subject
@@ -104,7 +105,7 @@ describe Director::ConfigItemsController, type: :request do
         end
 
         context 'website' do
-          let(:config_item) { tournament.config_items.find_by(key: 'website') }
+          let(:config_item) { tournament.config_items.find_by(key: ConfigItem::Keys::WEBSITE) }
           let(:params) do
             {
               config_item: {
@@ -120,7 +121,7 @@ describe Director::ConfigItemsController, type: :request do
         end
 
         context 'enable free entries' do
-          let(:config_item) { tournament.config_items.find_by(key: 'enable_free_entries') }
+          let(:config_item) { tournament.config_items.find_by(key: ConfigItem::Keys::ENABLE_FREE_ENTRIES) }
 
           it 'succeeds with a 200 OK' do
             subject

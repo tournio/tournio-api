@@ -31,23 +31,22 @@ module Director
           paid_at: Time.zone.now,
           external_payment_id: extp.id
         )
-      end
 
-      # If the manual amount also covers a late fee, let's add that.
-      late_fee_item = tournament.purchasable_items.late_fee.first
-      if late_fee_item.present?
-        remainder = entry.credit - entry_fee_item.value
+        # If the manual amount also covers a late fee, let's add that.
+        late_fee_item = tournament.purchasable_items.late_fee.first
+        if late_fee_item.present?
+          remainder = entry.credit - entry_fee_item.value
 
-        if remainder == late_fee_item.value
-          bowler.purchases << Purchase.new(
-            purchasable_item: late_fee_item,
-            amount: late_fee_item.value,
-            paid_at: Time.zone.now,
-            external_payment_id: extp.id
-          )
+          if remainder == late_fee_item.value
+            bowler.purchases << Purchase.new(
+              purchasable_item: late_fee_item,
+              amount: late_fee_item.value,
+              paid_at: Time.zone.now,
+              external_payment_id: extp.id
+            )
+          end
         end
       end
-
 
       render json: LedgerEntryBlueprint.render(entry), status: :created
     rescue ActiveRecord::RecordNotFound

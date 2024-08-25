@@ -18,6 +18,45 @@
 #
 
 class ConfigItem < ApplicationRecord
+  module Keys
+    ACCEPT_PAYMENTS = 'accept_payments'
+    BOWLER_FORM_FIELDS = 'bowler_form_fields'
+    DISPLAY_CAPACITY = 'display_capacity'
+    EMAIL_IN_DEV = 'email_in_dev'
+    ENABLE_FREE_ENTRIES = 'enable_free_entries'
+    ENABLE_UNPAID_SIGNUPS = 'enable_unpaid_signups'
+    PUBLICLY_LISTED = 'publicly_listed'
+    SKIP_STRIPE = 'skip_stripe'
+    TEAM_SIZE = 'team_size'
+    TOURNAMENT_TYPE = 'tournament_type'
+    WEBSITE = 'website'
+  end
+
+  module Labels
+    ACCEPT_PAYMENTS = 'Accept Payments'
+    BOWLER_FORM_FIELDS = 'Bowler Form Fields'
+    DISPLAY_CAPACITY = 'Display Capacity'
+    EMAIL_IN_DEV = '[dev] Send Emails'
+    ENABLE_FREE_ENTRIES = 'Accept Free Entry Codes from Bowlers'
+    ENABLE_UNPAID_SIGNUPS = 'Allow Unpaid Signups for Optional Events'
+    PUBLICLY_LISTED = 'Publicly Listed'
+    SKIP_STRIPE = 'Skip Stripe'
+    TEAM_SIZE = 'Team Size'
+    TOURNAMENT_TYPE = 'Tournament Type'
+    WEBSITE = 'Website URL'
+  end
+
+  private_constant :Labels
+  private_class_method :new
+
   belongs_to :tournament
   default_scope { order(key: :asc) }
+
+  def self.gimme(key_sym:, initial_value: 'true')
+    new(
+      key: Keys.const_get(key_sym),
+      value: initial_value,
+      label: Labels.const_get(key_sym),
+    )
+  end
 end

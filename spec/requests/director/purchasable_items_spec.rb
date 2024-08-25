@@ -741,7 +741,7 @@ describe Director::PurchasableItemsController, type: :request do
 
     context 'when skip_stripe is true' do
       before do
-        tournament.config_items << ConfigItem.new(key: 'skip_stripe', value: 'true')
+        tournament.config_items << ConfigItem.gimme(key_sym: :SKIP_STRIPE, initial_value: 'true')
       end
 
       it 'does not try to update the associated StripeProduct if skip_stripe is true' do

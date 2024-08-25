@@ -158,7 +158,7 @@ module DirectorUtilities
     }
 
     # Optional fields are: address1 address2 city state country postal_code date_of_birth usbc_id
-    included_fields = bowler.tournament.config['bowler_form_fields'].split(' ')
+    included_fields = bowler.tournament.config[ConfigItem::Keys::BOWLER_FORM_FIELDS].split(' ')
     included_fields.each do |field|
       field_sym = field.underscore.to_sym
       case field_sym
@@ -229,7 +229,7 @@ module DirectorUtilities
   end
 
   def self.csv_bowlers(tournament:)
-    included_fields = tournament.config['bowler_form_fields'].split(' ')
+    included_fields = tournament.config[ConfigItem::Keys::BOWLER_FORM_FIELDS].split(' ')
     include_payment_app = included_fields.include?('paymentApp')
 
     tournament.bowlers.collect do |bowler|
@@ -251,7 +251,7 @@ module DirectorUtilities
     team = bowler.team
     tournament = bowler.tournament
 
-    if tournament.config['tournament_type'] == Tournament::IGBO_MIX_AND_MATCH
+    if tournament.config[ConfigItem::Keys::TOURNAMENT_TYPE] == Tournament::IGBO_MIX_AND_MATCH
       tournament.shifts.collect(&:event_string).each do |event_string|
         data["shift preference: #{event_string}"] = 'n/a'
       end
@@ -265,7 +265,7 @@ module DirectorUtilities
           data["shift preference: #{shift.event_string}"] = shift.name
         end
       end
-    elsif tournament.config['tournament_type'] == Tournament::IGBO_MULTI_SHIFT
+    elsif tournament.config[ConfigItem::Keys::TOURNAMENT_TYPE] == Tournament::IGBO_MULTI_SHIFT
       if team.present?
         data['shift preference'] = team.shifts.first.name
       else

@@ -622,8 +622,8 @@ RSpec.describe TournamentRegistration do
 
       context 'with email_in_dev configured to be true' do
         before do
-          tournament.config_items.find_by(key: 'email_in_dev').destroy
-          create :config_item, :email_in_dev, tournament: tournament
+          tournament.config_items.find_by(key: ConfigItem::Keys::EMAIL_IN_DEV).destroy
+          tournament.config_items << ConfigItem.gimme(key_sym: :EMAIL_IN_DEV, initial_value: 'true')
         end
 
         it 'sends to the development address' do

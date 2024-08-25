@@ -44,7 +44,7 @@ module Director
           else
             Stripe::ProductCreator.perform_in(Rails.configuration.sidekiq_async_delay, i.id)
           end
-        end unless tournament.config['skip_stripe']
+        end unless tournament.config[ConfigItem::Keys::SKIP_STRIPE]
 
         render json: PurchasableItemBlueprint.render(items), status: :created
       end
@@ -89,9 +89,9 @@ module Director
           Stripe::CouponDestroyer.perform_async(item.stripe_coupon.coupon_id, tournament.tournament_org.stripe_account.identifier)
           item.stripe_coupon.destroy
         end
-        Stripe::CouponCreator.perform_async(item.id) unless tournament.config['skip_stripe']
+        Stripe::CouponCreator.perform_async(item.id) unless tournament.config[ConfigItem::Keys::SKIP_STRIPE]
       else
-        unless item.sized? || previous_amount == new_amount || tournament.config['skip_stripe']
+        unless item.sized? || previous_amount == new_amount || tournament.config[ConfigItem::Keys::SKIP_STRIPE]
           Stripe::ProductUpdater.perform_in(Rails.configuration.sidekiq_async_delay, item.id)
         end
       end
@@ -100,7 +100,7 @@ module Director
         handle_sized_apparel_item_update
 
         # Stripe creation for each child
-        unless tournament.config['skip_stripe']
+        unless tournament.config[ConfigItem::Keys::SKIP_STRIPE]
           item.reload.children.each do |i|
             Stripe::ProductCreator.perform_in(Rails.configuration.sidekiq_async_delay, i.id)
           end

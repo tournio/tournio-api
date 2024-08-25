@@ -12,17 +12,17 @@ describe TournamentBlueprint do
     let(:timezone) { 'America/Los_Angeles' }
     let(:abbreviation) { 'QUART' }
 
-    before do
-      tournament.config_items += [
-        ConfigItem.new(key: :abbreviation, value: abbreviation),
-        ConfigItem.new(key: :start_date, value: start_date),
-        ConfigItem.new(key: :end_date, value: end_date),
-        ConfigItem.new(key: :entry_deadline, value: entry_deadline),
-        ConfigItem.new(key: :location, value: location),
-        ConfigItem.new(key: :timezone, value: timezone),
-      ]
-    end
-
+    # before do
+    #   tournament.config_items += [
+    #     ConfigItem.new(key: :abbreviation, value: abbreviation),
+    #     ConfigItem.new(key: :start_date, value: start_date),
+    #     ConfigItem.new(key: :end_date, value: end_date),
+    #     ConfigItem.new(key: :entry_deadline, value: entry_deadline),
+    #     ConfigItem.new(key: :location, value: location),
+    #     ConfigItem.new(key: :timezone, value: timezone),
+    #   ]
+    # end
+    #
     subject { described_class.render_as_hash(tournament) }
 
     it 'includes all the expected keys' do
