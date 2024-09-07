@@ -32,6 +32,11 @@ module Director
         :_destroy,
         validation_rules: {}
       ],
+      config_items_attributes: [
+        :id,
+        :key,
+        :value,
+      ],
       scratch_divisions_attributes: [
         :id,
         :key,
@@ -178,8 +183,9 @@ module Director
         return
       end
 
-      # We want to permit changes to details.enabled_registration_types even when tournament is active
       updates = update_params
+
+      # We want to permit changes to details.enabled_registration_types even when tournament is active
       details_update = updates[:details]
       if details_update.present?
         tournament.update(details: details_update)
@@ -400,5 +406,16 @@ module Director
     def create_params
       params.require(:tournament).permit(TOURNAMENT_PARAMS << :identifier)
     end
+
+    # def handle_new_config_items(updates)
+    #   modified_updates = updates.dup
+    #   updates[:config_items_attributes].each_with_index do |ciu, i|
+    #     next unless ciu[:id].blank?
+    #     new_config_item = ConfigItem.gimme(key_sym: ciu[:key].upcase.to_sym, initial_value: ciu[:value])
+    #     ap "New config item: #{new_config_item.inspect}"
+    #     modified_updates[:config_items_attributes][i][:id] = new_config_item.id
+    #   end if updates[:config_items_attributes].present?
+    #   modified_updates
+    # end
   end
 end

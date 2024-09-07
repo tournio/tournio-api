@@ -57,6 +57,7 @@ class Tournament < ApplicationRecord
   # delegate :stripe_account, :users, to: :tournament_org
 
   accepts_nested_attributes_for :additional_questions, allow_destroy: true
+  accepts_nested_attributes_for :config_items, allow_destroy: true
   accepts_nested_attributes_for :scratch_divisions, allow_destroy: true
   accepts_nested_attributes_for :events, allow_destroy: true
   accepts_nested_attributes_for :shifts, allow_destroy: true
