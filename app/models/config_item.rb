@@ -47,7 +47,7 @@ class ConfigItem < ApplicationRecord
   end
 
   private_constant :Labels
-  private_class_method :new
+  # private_class_method :new
 
   belongs_to :tournament
   default_scope { order(key: :asc) }

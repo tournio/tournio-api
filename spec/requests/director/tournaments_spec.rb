@@ -433,6 +433,41 @@ describe Director::TournamentsController, type: :request do
       expect(json['additional_questions']).not_to be_empty
     end
 
+    context 'step 2 of the Tournament Builder' do
+      let(:tournament) { create :standard_tournament }
+      let(:config_item_id) { tournament.config_items.find_by_key('website').id }
+      let(:params) do
+        {
+          tournament: {
+            location: 'New Jack City',
+            timezone: 'America/Chicago',
+            config_items_attributes: [
+              {
+                key: 'website',
+                value: 'http://www.tourn.io',
+                id: config_item_id,
+              },
+              {
+                key: 'tournament_type',
+                value: 'igbo_standard',
+              },
+            ],
+            events_attributes: []
+          },
+        }
+      end
+
+      it 'responds with OK' do
+        subject
+        expect(response).to have_http_status(:ok)
+      end
+
+      it 'updates the website' do
+        subject
+        expect(tournament.reload.config[:website]).to eq('http://www.tourn.io')
+      end
+    end
+
     context 'changing the order of existing questions' do
       let!(:aq1) { create :additional_question, extended_form_field: eff, tournament: tournament }
       let!(:aq2) { create :additional_question, extended_form_field: create(:extended_form_field, :average), tournament: tournament }
