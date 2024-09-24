@@ -4,19 +4,19 @@ git_source(:github) { |repo| "https://github.com/#{repo}.git" }
 ruby "3.3.5"
 
 # Bundle edge Rails instead: gem "rails", github: "rails/rails", branch: "main"
-gem "rails", "~> 7.0", ">= 7.0"
+gem "rails", "~> 7.2"
 
 # Use postgresql as the database for Active Record
-gem "pg", "~> 1.1"
+gem "pg", "~> 1.5"
 
 # Use the Puma web server [https://github.com/puma/puma]
-gem "puma", "~> 6.3"
+gem "puma", "~> 6.4"
 
 # Build JSON APIs with ease [https://github.com/rails/jbuilder]
 # gem "jbuilder"
 
 # Use Redis adapter to run Action Cable in production
-gem "redis", "~> 5.0"
+gem "redis", "~> 5.3"
 
 # Use Active Model has_secure_password [https://guides.rubyonrails.org/active_model_basics.html#securepassword]
 # gem "bcrypt", "~> 3.1.7"
@@ -35,17 +35,17 @@ gem "rack-cors"
 gem 'aasm'                       # state machine behavior
 gem 'alba'                       # JSON serialization
 gem 'amazing_print'              # human-friendly printing of things on the console
-gem 'aws-sdk-s3', '~> 1.121'   # For using Backblaze's S3-compatible API for asset storage
+gem 'aws-sdk-s3', '~> 1.166'   # For using Backblaze's S3-compatible API for asset storage
 gem 'blueprinter'                # JSON serialization, but not JSON:API style
 gem 'bugsnag'                    # Error reporting
 gem 'data_migrate'               # Perform data migrations just like schema migrations
-gem 'devise', '~> 4.7'           # Authentication
+gem 'devise', '~> 4.9'           # Authentication
 # gem 'devise-async'               # Background delivery of password-reset emails
 gem 'devise-jwt'                 # for JWT-based login
 gem 'factory_bot_rails'           # factory objects for testing!
 # gem "image_processing", "~> 1.2" # image analysis and transformations
 # gem 'ruby-vips'                  # image analysis
-gem 'oj', '~> 3.15'            # Fast backend for Alba JSON serialization
+gem 'oj', '~> 3.16'            # Fast backend for Alba JSON serialization
 gem 'pundit'                     # Authorization
 gem 'sendgrid-ruby'              # For sending emails using SendGrid
 gem 'sidekiq'                    # The queueing system to use with ActiveJob
