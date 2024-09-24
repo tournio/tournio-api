@@ -38,6 +38,7 @@ gem 'amazing_print'              # human-friendly printing of things on the cons
 gem 'aws-sdk-s3', '~> 1.166'   # For using Backblaze's S3-compatible API for asset storage
 gem 'blueprinter'                # JSON serialization, but not JSON:API style
 gem 'bugsnag'                    # Error reporting
+gem 'csv'                        # CSV export for data
 gem 'data_migrate'               # Perform data migrations just like schema migrations
 gem 'devise', '~> 4.9'           # Authentication
 # gem 'devise-async'               # Background delivery of password-reset emails
