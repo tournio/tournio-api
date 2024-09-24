@@ -39,7 +39,7 @@ class PurchasableItem < ApplicationRecord
 
   # has_one_attached :image
 
-  enum category: {
+  enum :category, {
     bowling: 'bowling', # optional bowling events
     ledger: 'ledger', # mandatory items, e.g., registration, late fee, early discount
     banquet: 'banquet', # uh, banquet
@@ -49,7 +49,7 @@ class PurchasableItem < ApplicationRecord
     bracket: 'bracket', # Single-event and megabracket entries, individual or team
   }
 
-  enum determination: {
+  enum :determination, {
     entry_fee: 'entry_fee',
     late_fee: 'late_fee',
     early_discount: 'early_discount',
@@ -73,7 +73,7 @@ class PurchasableItem < ApplicationRecord
     scratch: 'scratch',
   }
 
-  enum refinement: {
+  enum :refinement, {
     input: 'input',
     division: 'division',
     event_linked: 'event_linked', # on a ledger late_fee item, linked with an event (when event selection is permitted)
