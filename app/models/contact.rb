@@ -46,7 +46,7 @@ class Contact < ApplicationRecord
     :'member-at-large',
     :operations,
   ]
-  enum notification_preference: [ :daily_summary, :individually ]
+  enum :notification_preference, [ :daily_summary, :individually ]
 
   private
 
