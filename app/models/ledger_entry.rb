@@ -25,7 +25,7 @@
 class LedgerEntry < ApplicationRecord
   belongs_to :bowler
 
-  enum source: %i[registration free_entry manual purchase stripe void automatic]
+  enum :source, %i[registration free_entry manual purchase stripe void automatic]
 
   accepts_nested_attributes_for :bowler
 end

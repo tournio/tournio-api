@@ -24,7 +24,7 @@ class Event < ApplicationRecord
 
   accepts_nested_attributes_for :scratch_divisions
 
-  enum roster_type: %i(single double trio team)
+  enum :roster_type, %i(single double trio team)
 
   scope :required, -> { where(required: true) }
   scope :optional, -> { where(required: false) }
