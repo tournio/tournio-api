@@ -35,7 +35,7 @@ class Tournament < ApplicationRecord
 
   has_many :additional_questions, -> {order(order: :asc)}, dependent: :destroy
   has_many :bowlers, dependent: :destroy
-  has_many :config_items, dependent: :destroy
+  has_many :config_items, -> {order(key: :asc)}, dependent: :destroy
   has_many :contacts, -> { order(role: :asc)}, dependent: :destroy
   has_many :data_points, dependent: :destroy
   has_many :events, dependent: :destroy
@@ -69,6 +69,7 @@ class Tournament < ApplicationRecord
   scope :available, -> { upcoming.where(aasm_state: %w[active closed]).where(config_items: { key: 'publicly_listed', value: ['true', 't'] }) }
 
   SUPPORTED_DETAILS = %w(registration_types).freeze
+  # @admin Does "standard" mean anything in this context? I'm pretty sure it doesn't...
   SUPPORTED_REGISTRATION_OPTIONS = %w(new_team solo new_pair standard).freeze
 
   aasm do

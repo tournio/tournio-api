@@ -69,4 +69,12 @@ class TournamentSerializer < JsonSerializer
   attribute :ending_date do |t|
     t.end_date.strftime '%B %e, %Y'
   end
+
+  attribute :registration_options do |t|
+    types = {}
+    Tournament::SUPPORTED_REGISTRATION_OPTIONS.each do |o|
+      types[o] = t.details['enabled_registration_options'].include?(o)
+    end
+    types
+  end
 end
