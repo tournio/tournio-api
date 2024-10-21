@@ -800,18 +800,14 @@ RSpec.describe DirectorUtilities do
     let(:b1) { create(:bowler, tournament: tournament, position: 1, person: create(:person, last_name: 'Zipper'), team: team) }
     let(:b2) { create(:bowler, tournament: tournament, position: 2, person: create(:person, last_name: 'Dipper'), team: team) }
     let(:partner) { b2 }
-    let(:doubles_keys) { [
-      'doubles combined name',
-      'doubles partner name',
-      'doubles partner id',
-    ] }
+    let(:doubles_keys) { %i[doubles_combined_name doubles_partner_name doubles_partner_id] }
 
     it 'has the expected keys' do
       expect(subject.keys).to match_array(doubles_keys)
     end
 
     it 'has the bowler surnames sorted alphabetically' do
-      expect(subject['doubles combined name']).to eq([b1.last_name, b2.last_name].sort.join('/'))
+      expect(subject[:doubles_combined_name]).to eq([b1.last_name, b2.last_name].sort.join('/'))
     end
   end
 

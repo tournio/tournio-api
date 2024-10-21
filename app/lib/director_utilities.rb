@@ -59,30 +59,30 @@ module DirectorUtilities
     }
   end
 
-  # <ID>SFGG2015-THATR109A1</ID>
+  # <ID>SFGG2015-THWACK109A1</ID>
   #
-  # <LAST_NAME>THATCHER</LAST_NAME>
-  # <FIRST_NAME>RUSS</FIRST_NAME>
+  # <LAST_NAME>THWACKER</LAST_NAME>
+  # <FIRST_NAME>GUS</FIRST_NAME>
   # <MIDDLE_INITIAL></MIDDLE_INITIAL>
   # <SUFFIX></SUFFIX>
-  # <NICKNAME>RUSS</NICKNAME>
+  # <NICKNAME>GUS</NICKNAME>
   #
-  # <BIRTH_DAY>15</BIRTH_DAY>
-  # <BIRTH_MONTH>04</BIRTH_MONTH>
+  # <BIRTH_DAY>25</BIRTH_DAY>
+  # <BIRTH_MONTH>07</BIRTH_MONTH>
   #
-  # <ADDRESS1>4510 GREGORY WAY</ADDRESS1>
+  # <ADDRESS1>210 MANDO WAY</ADDRESS1>
   # <ADDRESS2></ADDRESS2>
-  # <CITY>EL SOBRANTE</CITY>
+  # <CITY>STAR CITY</CITY>
   # <STATE>CA</STATE>
   # <PROVINCE></PROVINCE>
   # <COUNTRY>USA</COUNTRY>
-  # <POSTAL_CODE>94803</POSTAL_CODE>
-  # <PHONE1>5207800212</PHONE1>
-  # <PHONE2>5109647197</PHONE2>
-  # <EMAIL>azbearcub@msn.com</EMAIL>
+  # <POSTAL_CODE>94823</POSTAL_CODE>
+  # <PHONE1>5125550212</PHONE1>
+  # <PHONE2>5125557197</PHONE2>
+  # <EMAIL>gusthwack@example.com</EMAIL>
   #
-  # <USBC_NUMBER>9005-22099</USBC_NUMBER>
-  # <IGBOTSID>TR-6784</IGBOTSID>
+  # <USBC_NUMBER>123-45678</USBC_NUMBER>
+  # <IGBOTSID>GT-9999</IGBOTSID>
   # <DATE_REGISTERED>01/07/2015</DATE_REGISTERED>
   #
   # <BOOK_AVERAGE games="153" verified="">211</BOOK_AVERAGE>
@@ -91,13 +91,13 @@ module DirectorUtilities
   # <EXTRA_AVERAGE_1 games="0" verified="">0</EXTRA_AVERAGE_1>
   # <EXTRA_AVERAGE_2 games="0" verified="">0</EXTRA_AVERAGE_2>
   #
-  # <LEAGUE_NAME>Bay Alarm 805</LEAGUE_NAME>
+  # <LEAGUE_NAME>Bay City Bears</LEAGUE_NAME>
   # <LEAGUE_CITY_STATE></LEAGUE_CITY_STATE>
-  # <SECRETARY_NAME>Mike Richards</SECRETARY_NAME>
-  # <SECRETARY_PHONE>510-526-8818</SECRETARY_PHONE>
+  # <SECRETARY_NAME>Mike Secretary</SECRETARY_NAME>
+  # <SECRETARY_PHONE>510-555-6789</SECRETARY_PHONE>
   # <SECRETARY_EMAIL></SECRETARY_EMAIL>
   #
-  # <TEAM_ID>SFGG2015-THATR109</TEAM_ID>
+  # <TEAM_ID>SFGG2015-ABC109</TEAM_ID>
   # <TEAM_CAPTAIN>YES</TEAM_CAPTAIN>
   # <TEAM_NUMBER></TEAM_NUMBER>
   # <TEAM_NAME>THEY HATE US CAUSE THEY AINT US</TEAM_NAME>
@@ -188,15 +188,15 @@ module DirectorUtilities
     if partner.present?
       pair_name = [bowler.last_name, partner.last_name].sort
       {
-        'doubles partner name' => TournamentRegistration.bowler_full_name(partner),
-        'doubles partner id' => partner.identifier,
-        'doubles combined name' => pair_name.join('/'),
+        doubles_partner_name: TournamentRegistration.bowler_full_name(partner),
+        doubles_partner_id: partner.identifier,
+        doubles_combined_name: pair_name.join('/'),
       }
     else
       {
-        'doubles partner name' => 'n/a',
-        'doubles partner id' => 'n/a',
-        'doubles combined name' => 'n/a',
+        doubles_partner_name: 'n/a',
+        doubles_partner_id: 'n/a',
+        doubles_combined_name: 'n/a',
       }
     end
   end
