@@ -367,8 +367,9 @@ RSpec.describe DirectorUtilities do
 
       it 'includes doubles partners' do
         result = subject
-        doubles_last_names = result.map { |b| b[:doubles_last_name] }.compact
-        expect(doubles_last_names.count).to eq(4)
+        ap result
+        doubles_ids = result.map { |b| b[:doubles_external_id] }.compact
+        expect(doubles_ids.count).to eq(4)
       end
     end
 
@@ -389,9 +390,11 @@ RSpec.describe DirectorUtilities do
     require 'csv'
 
     let(:shift_headers) { [] }
+    let(:doubles_headers) { [] }
     let(:csv_headers) { [] }
 
     let(:tournament) { create :one_shift_standard_tournament, :with_entry_fee }
+    let(:shift) { tournament.shifts.first }
     let!(:entry_fee_item) { tournament.purchasable_items.entry_fee.first }
     let(:entry_fee_amount) { entry_fee_item.value }
 
@@ -404,14 +407,126 @@ RSpec.describe DirectorUtilities do
     end
 
     context 'when bowler data are present' do
-      let(:csv_headers) { %w[id last_name first_name nickname birth_day birth_month birth_year address1 city state country postal_code phone email usbc_number team_id team_name team_order entry_fee_paid registered_at doubles_last_name doubles_first_name average handicap igbo_member] + shift_headers + ['payment app'] }
+      let(:csv_headers) { %w[id last_name first_name nickname birth_day birth_month birth_year address1 city state country postal_code phone email usbc_number team_id team_name team_order entry_fee_paid registered_at average handicap igbo_member] + shift_headers + ['payment app'] + doubles_headers }
 
-      context 'a bowler on a team' do
-        let(:team) { create :team, tournament: tournament, shifts: tournament.shifts }
-        let!(:b1) { create(:bowler, tournament: tournament, position: 1, person: create(:person), team: team) }
-        let!(:b2) { create(:bowler, tournament: tournament, position: 2, person: create(:person), team: team) }
-        let!(:b3) { create(:bowler, tournament: tournament, position: 3, person: create(:person), team: team) }
-        let!(:b4) { create(:bowler, tournament: tournament, position: 4, person: create(:person), team: team) }
+      context 'a standard, single-shift tournament' do
+        let(:doubles_headers) { ['doubles partner name', 'doubles partner id', 'doubles combined name'] }
+        context 'a bowler on a team' do
+          let(:team) { create :team, tournament: tournament, shifts: [shift] }
+          let(:b1) { create(:bowler, tournament: tournament, position: 1, person: create(:person), team: team) }
+          let(:b2) { create(:bowler, tournament: tournament, position: 2, person: create(:person), team: team) }
+          let(:b3) { create(:bowler, tournament: tournament, position: 3, person: create(:person), team: team) }
+          let(:b4) { create(:bowler, tournament: tournament, position: 4, person: create(:person), team: team) }
+
+          before do
+            b1.purchases << Purchase.new(purchasable_item: entry_fee_item)
+            b2.purchases << Purchase.new(purchasable_item: entry_fee_item)
+            b3.purchases << Purchase.new(purchasable_item: entry_fee_item)
+            b4.purchases << Purchase.new(purchasable_item: entry_fee_item)
+
+            b1.update(doubles_partner: b2)
+            b2.update(doubles_partner: b1)
+            b3.update(doubles_partner: b4)
+            b4.update(doubles_partner: b3)
+          end
+
+          it 'is a string' do
+            expect(subject).to be_instance_of(String)
+          end
+
+          it 'is parsable as CSV' do
+            expect { CSV.parse(subject) }.not_to raise_error
+          end
+
+          it 'has each registered bowler' do
+            parsed = CSV.parse(subject)
+            expect(parsed.count).to eq(5) # one for header row, plus 4 bowlers
+          end
+
+          it 'has the right headers' do
+            headers = CSV.parse_line(subject)
+            expect(headers).to match_array(csv_headers)
+          end
+        end
+
+        context 'a solo bowler' do
+          let(:bowler_shifts) { [shift] }
+          before do
+            bowler = create(:bowler,
+              tournament: tournament,
+              person: create(:person),
+              shifts: bowler_shifts)
+            bowler.purchases << Purchase.new(purchasable_item: entry_fee_item)
+          end
+
+          it 'is a string' do
+            expect(subject).to be_instance_of(String)
+          end
+
+          it 'is parsable as CSV' do
+            expect { CSV.parse(subject) }.not_to raise_error
+          end
+
+          it 'has each registered bowler' do
+            parsed = CSV.parse(subject)
+            expect(parsed.count).to eq(2) # one for header row, plus 1 bowler
+          end
+
+          it 'has the right headers' do
+            headers = CSV.parse_line(subject)
+            expect(headers).to match_array(csv_headers)
+          end
+
+          context 'in a multi-shift tournament' do
+            let(:tournament) { create :two_shift_standard_tournament }
+            let(:bowler_shifts) { [tournament.shifts.first] }
+
+            let(:shift_headers) { ['shift preference'] }
+
+            it 'has the right headers' do
+              headers = CSV.parse_line(subject)
+              expect(headers).to match_array(csv_headers)
+            end
+
+            it 'has the right shift' do
+              parsed = CSV.parse(subject)
+              shift_name = parsed[1][-1]
+              expect(shift_name).to eq(tournament.shifts.first.name)
+            end
+          end
+
+          context 'in a mix-and-match tournament' do
+            let(:tournament) { create :mix_and_match_standard_tournament }
+            let(:sd_shift) { tournament.shifts.find_by(event_string: 'double_single') }
+            let(:t_shift) { tournament.shifts.find_by(event_string: 'team') }
+            let(:bowler_shifts) { [sd_shift, t_shift] }
+            let(:shift_headers) { ['shift preference: double_single', 'shift preference: team'] }
+
+            it 'has the right headers' do
+              headers = CSV.parse_line(subject)
+              expect(headers).to match_array(csv_headers)
+            end
+
+            it 'has the right shifts' do
+              parsed = CSV.parse(subject)
+              cells = parsed[1][-2..-1]
+              expect(cells).to eq([sd_shift.name, t_shift.name])
+            end
+          end
+        end
+      end
+
+      context 'in a standard, multi-shift tournament' do
+        let(:tournament) { create :two_shift_standard_tournament }
+        let(:shift) { tournament.shifts.second }
+        let(:shift_headers) { ['shift preference'] }
+        let(:doubles_headers) { ['doubles partner name', 'doubles partner id', 'doubles combined name'] }
+
+        let(:team) { create :team, tournament: tournament, shifts: [shift] }
+        let(:b1) { create(:bowler, tournament: tournament, position: 1, person: create(:person), team: team) }
+        let(:b2) { create(:bowler, tournament: tournament, position: 2, person: create(:person), team: team) }
+        let(:b3) { create(:bowler, tournament: tournament, position: 3, person: create(:person), team: team) }
+        let(:b4) { create(:bowler, tournament: tournament, position: 4, person: create(:person), team: team) }
 
         before do
           b1.purchases << Purchase.new(purchasable_item: entry_fee_item)
@@ -425,91 +540,42 @@ RSpec.describe DirectorUtilities do
           b4.update(doubles_partner: b3)
         end
 
-        it 'is a string' do
-          expect(subject).to be_instance_of(String)
-        end
-
-        it 'is parsable as CSV' do
-          expect { CSV.parse(subject) }.not_to raise_error
-        end
-
-        it 'has each registered bowler' do
-          parsed = CSV.parse(subject)
-          expect(parsed.count).to eq(5) # one for header row, plus 4 bowlers
-        end
-
         it 'has the right headers' do
           headers = CSV.parse_line(subject)
           expect(headers).to match_array(csv_headers)
         end
 
-        context 'in a multi-shift tournament' do
-          let(:tournament) { create :two_shift_standard_tournament }
-          let(:shift) { tournament.shifts.first }
-
-          let(:shift_headers) { ['shift preference'] }
-
-          before do
-            team.update(shifts: [shift]);
-          end
-
-          it 'has the right headers' do
-            headers = CSV.parse_line(subject)
-            expect(headers).to match_array(csv_headers)
-          end
-
-          it 'has the right shift' do
-            parsed = CSV.parse(subject)
-            shift_name = parsed[1][-1]
-            expect(shift_name).to eq(shift.name)
-          end
-        end
-
-        context 'in a mix-and-match tournament' do
-          let(:tournament) { create :mix_and_match_standard_tournament }
-          let(:sd_shift) { tournament.shifts.find_by(event_string: 'double_single') }
-          let(:t_shift) { tournament.shifts.find_by(event_string: 'team') }
-
-          let(:shift_headers) { ['shift preference: double_single', 'shift preference: team'] }
-
-          before do
-            team.update(shifts: [sd_shift, t_shift]);
-          end
-
-          it 'has the right headers' do
-            headers = CSV.parse_line(subject)
-            expect(headers).to match_array(csv_headers)
-          end
-
-          it 'has the right shifts' do
-            parsed = CSV.parse(subject)
-            cells = parsed[1][-2..-1]
-            expect(cells).to eq([sd_shift.name, t_shift.name])
-          end
+        it 'has the right shift' do
+          parsed = CSV.parse(subject)
+          shift_name = parsed[1][-1]
+          expect(shift_name).to eq(shift.name)
         end
       end
 
-      context 'a solo bowler' do
-        let(:bowler_shifts) { tournament.shifts }
+      context 'in a mix-and-match tournament' do
+        let(:tournament) { create :mix_and_match_standard_tournament }
+        let(:sd_shift) { tournament.shifts.find_by(event_string: 'double_single') }
+        let(:t_shift) { tournament.shifts.find_by(event_string: 'team') }
+
+        let(:shift_headers) { ['shift preference: double_single', 'shift preference: team'] }
+        let(:doubles_headers) { ['doubles partner name', 'doubles partner id', 'doubles combined name'] }
+
+        let(:team) { create :team, tournament: tournament, shifts: [sd_shift, t_shift] }
+        let(:b1) { create(:bowler, tournament: tournament, position: 1, person: create(:person), team: team) }
+        let(:b2) { create(:bowler, tournament: tournament, position: 2, person: create(:person), team: team) }
+        let(:b3) { create(:bowler, tournament: tournament, position: 3, person: create(:person), team: team) }
+        let(:b4) { create(:bowler, tournament: tournament, position: 4, person: create(:person), team: team) }
 
         before do
-          create(:bowler,
-            tournament: tournament,
-            person: create(:person),
-            shifts: bowler_shifts)
-        end
+          b1.purchases << Purchase.new(purchasable_item: entry_fee_item)
+          b2.purchases << Purchase.new(purchasable_item: entry_fee_item)
+          b3.purchases << Purchase.new(purchasable_item: entry_fee_item)
+          b4.purchases << Purchase.new(purchasable_item: entry_fee_item)
 
-        it 'is a string' do
-          expect(subject).to be_instance_of(String)
-        end
-
-        it 'is parsable as CSV' do
-          expect { CSV.parse(subject) }.not_to raise_error
-        end
-
-        it 'has each registered bowler' do
-          parsed = CSV.parse(subject)
-          expect(parsed.count).to eq(2) # one for header row, plus 1 bowler
+          b1.update(doubles_partner: b2)
+          b2.update(doubles_partner: b1)
+          b3.update(doubles_partner: b4)
+          b4.update(doubles_partner: b3)
         end
 
         it 'has the right headers' do
@@ -517,43 +583,32 @@ RSpec.describe DirectorUtilities do
           expect(headers).to match_array(csv_headers)
         end
 
-        context 'in a multi-shift tournament' do
-          let(:tournament) { create :two_shift_standard_tournament }
-          let(:bowler_shifts) { [tournament.shifts.first] }
+        it 'has the right shifts' do
+          parsed = CSV.parse(subject)
+          cells = parsed[1][-2..-1]
+          expect(cells).to eq([sd_shift.name, t_shift.name])
+        end
+      end
 
-          let(:shift_headers) { ['shift preference'] }
+      context 'a singles tournament' do
+        let(:tournament) { create :one_shift_singles_tournament, :with_entry_fee }
 
-          it 'has the right headers' do
+        context 'when bowler data are present' do
+
+          let(:bowler_shifts) { tournament.shifts }
+
+          before do
+            create(:bowler,
+              tournament: tournament,
+              person: create(:person),
+              shifts: bowler_shifts)
+          end
+
+          it 'lacks the doubles headers' do
             headers = CSV.parse_line(subject)
             expect(headers).to match_array(csv_headers)
           end
-
-          it 'has the right shift' do
-            parsed = CSV.parse(subject)
-            shift_name = parsed[1][-1]
-            expect(shift_name).to eq(tournament.shifts.first.name)
-          end
         end
-
-        context 'in a mix-and-match tournament' do
-          let(:tournament) { create :mix_and_match_standard_tournament }
-          let(:sd_shift) { tournament.shifts.find_by(event_string: 'double_single') }
-          let(:t_shift) { tournament.shifts.find_by(event_string: 'team') }
-          let(:bowler_shifts) { [sd_shift, t_shift] }
-          let(:shift_headers) { ['shift preference: double_single', 'shift preference: team'] }
-
-          it 'has the right headers' do
-            headers = CSV.parse_line(subject)
-            expect(headers).to match_array(csv_headers)
-          end
-
-          it 'has the right shifts' do
-            parsed = CSV.parse(subject)
-            cells = parsed[1][-2..-1]
-            expect(cells).to eq([sd_shift.name, t_shift.name])
-          end
-        end
-
       end
     end
   end
@@ -738,27 +793,25 @@ RSpec.describe DirectorUtilities do
   end
 
   describe '#doubles_partner_info' do
-    subject { described_class.doubles_partner_info(partner: partner, name_only: name_only?) }
+    subject { described_class.doubles_partner_info(bowler: b1, partner: partner) }
 
     let(:tournament) { create :one_shift_standard_tournament }
     let(:team) { create :team, tournament: tournament }
-    let(:b1) { create(:bowler, tournament: tournament, position: 1, person: create(:person), team: team) }
-    let(:b2) { create(:bowler, tournament: tournament, position: 2, person: create(:person), team: team) }
+    let(:b1) { create(:bowler, tournament: tournament, position: 1, person: create(:person, last_name: 'Zipper'), team: team) }
+    let(:b2) { create(:bowler, tournament: tournament, position: 2, person: create(:person, last_name: 'Dipper'), team: team) }
     let(:partner) { b2 }
-    let(:name_only?) { true }
-    let(:name_only_keys) { %i[doubles_last_name doubles_first_name] }
-    let(:additional_keys) { %i[doubles_external_id doubles_birth_month doubles_birth_day] }
+    let(:doubles_keys) { [
+      'doubles combined name',
+      'doubles partner name',
+      'doubles partner id',
+    ] }
 
-    it 'has only name keys' do
-      expect(subject.keys).to match_array(name_only_keys)
+    it 'has the expected keys' do
+      expect(subject.keys).to match_array(doubles_keys)
     end
 
-    context 'with extra details' do
-      let(:name_only?) { false }
-
-      it 'has the additional keys' do
-        expect(subject.keys).to match_array(name_only_keys + additional_keys)
-      end
+    it 'has the bowler surnames sorted alphabetically' do
+      expect(subject['doubles combined name']).to eq([b1.last_name, b2.last_name].sort.join('/'))
     end
   end
 

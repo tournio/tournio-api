@@ -121,7 +121,11 @@ module DirectorUtilities
                    end
       d = bowler.doubles_partner
       doubles_deets = if d.present?
-                        doubles_partner_info(partner: d)
+                        {
+                          doubles_external_id: d.identifier,
+                          doubles_last_name: d.last_name,
+                          doubles_first_name: d.first_name,
+                        }
                       else
                         {}
                       end
@@ -180,19 +184,21 @@ module DirectorUtilities
     deets
   end
 
-  def self.doubles_partner_info(partner:, name_only: false)
-    deets = {
-      doubles_last_name: partner&.last_name,
-      doubles_first_name: partner&.first_name,
-    }
-    unless name_only
-      deets.merge!(
-        doubles_external_id: partner.identifier,
-        doubles_birth_day: partner&.birth_day,
-        doubles_birth_month: partner&.birth_month,
-      )
+  def self.doubles_partner_info(bowler:, partner:)
+    if partner.present?
+      pair_name = [bowler.last_name, partner.last_name].sort
+      {
+        'doubles partner name' => TournamentRegistration.bowler_full_name(partner),
+        'doubles partner id' => partner.identifier,
+        'doubles combined name' => pair_name.join('/'),
+      }
+    else
+      {
+        'doubles partner name' => 'n/a',
+        'doubles partner id' => 'n/a',
+        'doubles combined name' => 'n/a',
+      }
     end
-    deets
   end
 
   def self.team_export(bowler:)
@@ -231,11 +237,13 @@ module DirectorUtilities
   def self.csv_bowlers(tournament:)
     included_fields = tournament.config[ConfigItem::Keys::BOWLER_FORM_FIELDS].split(' ')
     include_payment_app = included_fields.include?('paymentApp')
+    has_doubles_event = tournament.events.double.any?
 
     tournament.bowlers.collect do |bowler|
       team_deets = team_export(bowler: bowler)
       d = bowler.doubles_partner
-      doubles_deets = doubles_partner_info(partner: d, name_only: true)
+
+      doubles_deets = has_doubles_event ? doubles_partner_info(bowler: bowler, partner: d) : {}
       bowler_data = bowler_export(bowler: bowler)
       shift_data = shift_data(bowler: bowler)
 
