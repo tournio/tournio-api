@@ -59,30 +59,30 @@ module DirectorUtilities
     }
   end
 
-  # <ID>SFGG2015-THATR109A1</ID>
+  # <ID>SFGG2015-THWACK109A1</ID>
   #
-  # <LAST_NAME>THATCHER</LAST_NAME>
-  # <FIRST_NAME>RUSS</FIRST_NAME>
+  # <LAST_NAME>THWACKER</LAST_NAME>
+  # <FIRST_NAME>GUS</FIRST_NAME>
   # <MIDDLE_INITIAL></MIDDLE_INITIAL>
   # <SUFFIX></SUFFIX>
-  # <NICKNAME>RUSS</NICKNAME>
+  # <NICKNAME>GUS</NICKNAME>
   #
-  # <BIRTH_DAY>15</BIRTH_DAY>
-  # <BIRTH_MONTH>04</BIRTH_MONTH>
+  # <BIRTH_DAY>25</BIRTH_DAY>
+  # <BIRTH_MONTH>07</BIRTH_MONTH>
   #
-  # <ADDRESS1>4510 GREGORY WAY</ADDRESS1>
+  # <ADDRESS1>210 MANDO WAY</ADDRESS1>
   # <ADDRESS2></ADDRESS2>
-  # <CITY>EL SOBRANTE</CITY>
+  # <CITY>STAR CITY</CITY>
   # <STATE>CA</STATE>
   # <PROVINCE></PROVINCE>
   # <COUNTRY>USA</COUNTRY>
-  # <POSTAL_CODE>94803</POSTAL_CODE>
-  # <PHONE1>5207800212</PHONE1>
-  # <PHONE2>5109647197</PHONE2>
-  # <EMAIL>azbearcub@msn.com</EMAIL>
+  # <POSTAL_CODE>94823</POSTAL_CODE>
+  # <PHONE1>5125550212</PHONE1>
+  # <PHONE2>5125557197</PHONE2>
+  # <EMAIL>gusthwack@example.com</EMAIL>
   #
-  # <USBC_NUMBER>9005-22099</USBC_NUMBER>
-  # <IGBOTSID>TR-6784</IGBOTSID>
+  # <USBC_NUMBER>123-45678</USBC_NUMBER>
+  # <IGBOTSID>GT-9999</IGBOTSID>
   # <DATE_REGISTERED>01/07/2015</DATE_REGISTERED>
   #
   # <BOOK_AVERAGE games="153" verified="">211</BOOK_AVERAGE>
@@ -91,13 +91,13 @@ module DirectorUtilities
   # <EXTRA_AVERAGE_1 games="0" verified="">0</EXTRA_AVERAGE_1>
   # <EXTRA_AVERAGE_2 games="0" verified="">0</EXTRA_AVERAGE_2>
   #
-  # <LEAGUE_NAME>Bay Alarm 805</LEAGUE_NAME>
+  # <LEAGUE_NAME>Bay City Bears</LEAGUE_NAME>
   # <LEAGUE_CITY_STATE></LEAGUE_CITY_STATE>
-  # <SECRETARY_NAME>Mike Richards</SECRETARY_NAME>
-  # <SECRETARY_PHONE>510-526-8818</SECRETARY_PHONE>
+  # <SECRETARY_NAME>Mike Secretary</SECRETARY_NAME>
+  # <SECRETARY_PHONE>510-555-6789</SECRETARY_PHONE>
   # <SECRETARY_EMAIL></SECRETARY_EMAIL>
   #
-  # <TEAM_ID>SFGG2015-THATR109</TEAM_ID>
+  # <TEAM_ID>SFGG2015-ABC109</TEAM_ID>
   # <TEAM_CAPTAIN>YES</TEAM_CAPTAIN>
   # <TEAM_NUMBER></TEAM_NUMBER>
   # <TEAM_NAME>THEY HATE US CAUSE THEY AINT US</TEAM_NAME>
@@ -121,7 +121,11 @@ module DirectorUtilities
                    end
       d = bowler.doubles_partner
       doubles_deets = if d.present?
-                        doubles_partner_info(partner: d)
+                        {
+                          doubles_external_id: d.identifier,
+                          doubles_last_name: d.last_name,
+                          doubles_first_name: d.first_name,
+                        }
                       else
                         {}
                       end
@@ -180,19 +184,21 @@ module DirectorUtilities
     deets
   end
 
-  def self.doubles_partner_info(partner:, name_only: false)
-    deets = {
-      doubles_last_name: partner&.last_name,
-      doubles_first_name: partner&.first_name,
-    }
-    unless name_only
-      deets.merge!(
-        doubles_external_id: partner.identifier,
-        doubles_birth_day: partner&.birth_day,
-        doubles_birth_month: partner&.birth_month,
-      )
+  def self.doubles_partner_info(bowler:, partner:)
+    if partner.present?
+      pair_name = [bowler.last_name, partner.last_name].sort
+      {
+        doubles_partner_name: TournamentRegistration.bowler_full_name(partner),
+        doubles_partner_id: partner.identifier,
+        doubles_combined_name: pair_name.join('/'),
+      }
+    else
+      {
+        doubles_partner_name: 'n/a',
+        doubles_partner_id: 'n/a',
+        doubles_combined_name: 'n/a',
+      }
     end
-    deets
   end
 
   def self.team_export(bowler:)
@@ -219,7 +225,7 @@ module DirectorUtilities
 
     return '' unless csv_data.present?
 
-    headers = csv_data.first.keys
+    headers = csv_data.first.keys.map { |key| key.to_s.camelize }
     people = csv_data.map(&:values)
 
     CSV.generate do |csv|
@@ -231,18 +237,24 @@ module DirectorUtilities
   def self.csv_bowlers(tournament:)
     included_fields = tournament.config[ConfigItem::Keys::BOWLER_FORM_FIELDS].split(' ')
     include_payment_app = included_fields.include?('paymentApp')
+    has_doubles_event = tournament.events.double.any?
 
     tournament.bowlers.collect do |bowler|
       team_deets = team_export(bowler: bowler)
       d = bowler.doubles_partner
-      doubles_deets = doubles_partner_info(partner: d, name_only: true)
+
+      doubles_deets = has_doubles_event ? doubles_partner_info(bowler: bowler, partner: d) : {}
       bowler_data = bowler_export(bowler: bowler)
       shift_data = shift_data(bowler: bowler)
 
       # CSV wants phone, not phone1, which is what the IGBOTS export wants
       bowler_data[:phone] = bowler_data.delete(:phone1)
 
-      bowler_data.merge(team_deets).merge(doubles_deets).merge(csv_specific_data(bowler: bowler, include_payment_app: include_payment_app)).merge(shift_data)
+      bowler_data
+        .merge(team_deets)
+        .merge(doubles_deets)
+        .merge(shift_data)
+        .merge(csv_specific_data(bowler: bowler, include_payment_app: include_payment_app))
     end
   end
 
@@ -253,23 +265,23 @@ module DirectorUtilities
 
     if tournament.config[ConfigItem::Keys::TOURNAMENT_TYPE] == Tournament::IGBO_MIX_AND_MATCH
       tournament.shifts.collect(&:event_string).each do |event_string|
-        data["shift preference: #{event_string}"] = 'n/a'
+        data["ShiftPreference: #{event_string}"] = 'n/a'
       end
 
       if team.present?
         team.shifts.each do |shift|
-          data["shift preference: #{shift.event_string}"] = shift.name
+          data["ShiftPreference: #{shift.event_string}"] = shift.name
         end
       else
         bowler.shifts.each do |shift|
-          data["shift preference: #{shift.event_string}"] = shift.name
+          data["ShiftPreference: #{shift.event_string}"] = shift.name
         end
       end
     elsif tournament.config[ConfigItem::Keys::TOURNAMENT_TYPE] == Tournament::IGBO_MULTI_SHIFT
       if team.present?
-        data['shift preference'] = team.shifts.first.name
+        data['ShiftPreference'] = team.shifts.first.name
       else
-        data['shift preference'] = bowler.shifts.first.name
+        data['ShiftPreference'] = bowler.shifts.first.name
       end
     end
 
@@ -283,14 +295,13 @@ module DirectorUtilities
     result = {
       entry_fee_paid: bowler.purchases.entry_fee.first&.paid_at.present? ? 'Y' : 'N',
       registered_at: bowler.created_at.in_time_zone(timezone).strftime('%Y %b %-d %l:%M%P %Z'),
-    }.merge(csv_additional_questions(bowler: bowler))
-      .merge(csv_purchases(bowler: bowler))
-
+    }
     if include_payment_app
-      result['payment app'] = bowler.payment_app
+      result[:payment_app] = bowler.payment_app
     end
-
     result
+      .merge(csv_additional_questions(bowler: bowler))
+      .merge(csv_purchases(bowler: bowler))
   end
 
   def self.csv_purchases(bowler:)
@@ -309,8 +320,8 @@ module DirectorUtilities
 
     # put them in a hash, marking the purchased one with X
     output = division_items.each_with_object({}) do |item, result|
-      signed_up_key = "Signed up: #{item.name}: #{item.configuration['division']}"
-      paid_key = "Paid: #{item.name}: #{item.configuration['division']}"
+      signed_up_key = "signedUp: #{item.name}: #{item.configuration['division']}"
+      paid_key = "paid: #{item.name}: #{item.configuration['division']}"
 
       signup = bowler.signups.find_by_purchasable_item_id(item.id)
       result[signed_up_key] = signup.requested? || signup.paid? ? 'X' : ''
@@ -322,10 +333,10 @@ module DirectorUtilities
 
     # mark the purchased ones with an X in the result
     optional_items.each do |item|
-      signed_up_key = "Signed up: #{item.name}"
+      signed_up_key = "signedUp: #{item.name}"
       signup = bowler.signups.find_by_purchasable_item_id(item.id)
       output[signed_up_key] = signup.requested? || signup.paid? ? 'X' : ''
-      paid_key = "Paid: #{item.name}"
+      paid_key = "paid: #{item.name}"
       output[paid_key] = if purchased_item_identifiers.include?(item.identifier)
                            item.single_use? ? 'X' : purchased_item_identifiers.count(item.identifier)
                          else
