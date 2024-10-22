@@ -265,23 +265,23 @@ module DirectorUtilities
 
     if tournament.config[ConfigItem::Keys::TOURNAMENT_TYPE] == Tournament::IGBO_MIX_AND_MATCH
       tournament.shifts.collect(&:event_string).each do |event_string|
-        data["shiftPreference: #{event_string}"] = 'n/a'
+        data["ShiftPreference: #{event_string}"] = 'n/a'
       end
 
       if team.present?
         team.shifts.each do |shift|
-          data["shiftPreference: #{shift.event_string}"] = shift.name
+          data["ShiftPreference: #{shift.event_string}"] = shift.name
         end
       else
         bowler.shifts.each do |shift|
-          data["shiftPreference: #{shift.event_string}"] = shift.name
+          data["ShiftPreference: #{shift.event_string}"] = shift.name
         end
       end
     elsif tournament.config[ConfigItem::Keys::TOURNAMENT_TYPE] == Tournament::IGBO_MULTI_SHIFT
       if team.present?
-        data['shiftPreference'] = team.shifts.first.name
+        data['ShiftPreference'] = team.shifts.first.name
       else
-        data['shiftPreference'] = bowler.shifts.first.name
+        data['ShiftPreference'] = bowler.shifts.first.name
       end
     end
 

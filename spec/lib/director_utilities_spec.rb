@@ -367,7 +367,6 @@ RSpec.describe DirectorUtilities do
 
       it 'includes doubles partners' do
         result = subject
-        ap result
         doubles_ids = result.map { |b| b[:doubles_external_id] }.compact
         expect(doubles_ids.count).to eq(4)
       end
@@ -512,7 +511,8 @@ RSpec.describe DirectorUtilities do
 
           it 'has the right shift' do
             parsed = CSV.parse(subject)
-            shift_name = parsed[1][-1]
+            index = parsed[0].find_index('ShiftPreference')
+            shift_name = parsed[1][index]
             expect(shift_name).to eq(shift.name)
           end
         end
@@ -547,7 +547,8 @@ RSpec.describe DirectorUtilities do
 
           it 'has the right shift' do
             parsed = CSV.parse(subject)
-            shift_name = parsed[1][-1]
+            index = parsed[0].find_index('ShiftPreference')
+            shift_name = parsed[1][index]
             expect(shift_name).to eq(bowler_shifts.first.name)
           end
         end
@@ -587,7 +588,8 @@ RSpec.describe DirectorUtilities do
 
           it 'has the right shifts' do
             parsed = CSV.parse(subject)
-            cells = parsed[1][-2..-1]
+            index = parsed[0].find_index { |header| header.start_with?('ShiftPreference')}
+            cells = parsed[1][index..index+1]
             expect(cells).to eq([sd_shift.name, t_shift.name])
           end
         end
@@ -609,7 +611,8 @@ RSpec.describe DirectorUtilities do
 
           it 'has the right shifts' do
             parsed = CSV.parse(subject)
-            cells = parsed[1][-2..-1]
+            index = parsed[0].find_index { |header| header.start_with?('ShiftPreference')}
+            cells = parsed[1][index..index+1]
             expect(cells).to eq([sd_shift.name, t_shift.name])
           end
         end
@@ -812,7 +815,7 @@ RSpec.describe DirectorUtilities do
       before { create :purchase, :paid, amount: item.value, bowler: bowler, purchasable_item: item }
 
       it 'has a column for the sanction item' do
-        expect(subject).to include("sanction: #{item.name}" => 'X')
+        expect(subject).to include(item.name => 'X')
       end
     end
   end
