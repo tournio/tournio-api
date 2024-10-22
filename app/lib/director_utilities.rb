@@ -225,7 +225,7 @@ module DirectorUtilities
 
     return '' unless csv_data.present?
 
-    headers = csv_data.first.keys
+    headers = csv_data.first.keys.map { |key| key.to_s.camelize }
     people = csv_data.map(&:values)
 
     CSV.generate do |csv|
@@ -250,7 +250,11 @@ module DirectorUtilities
       # CSV wants phone, not phone1, which is what the IGBOTS export wants
       bowler_data[:phone] = bowler_data.delete(:phone1)
 
-      bowler_data.merge(team_deets).merge(doubles_deets).merge(csv_specific_data(bowler: bowler, include_payment_app: include_payment_app)).merge(shift_data)
+      bowler_data
+        .merge(team_deets)
+        .merge(doubles_deets)
+        .merge(shift_data)
+        .merge(csv_specific_data(bowler: bowler, include_payment_app: include_payment_app))
     end
   end
 
@@ -261,23 +265,23 @@ module DirectorUtilities
 
     if tournament.config[ConfigItem::Keys::TOURNAMENT_TYPE] == Tournament::IGBO_MIX_AND_MATCH
       tournament.shifts.collect(&:event_string).each do |event_string|
-        data["shift preference: #{event_string}"] = 'n/a'
+        data["shiftPreference: #{event_string}"] = 'n/a'
       end
 
       if team.present?
         team.shifts.each do |shift|
-          data["shift preference: #{shift.event_string}"] = shift.name
+          data["shiftPreference: #{shift.event_string}"] = shift.name
         end
       else
         bowler.shifts.each do |shift|
-          data["shift preference: #{shift.event_string}"] = shift.name
+          data["shiftPreference: #{shift.event_string}"] = shift.name
         end
       end
     elsif tournament.config[ConfigItem::Keys::TOURNAMENT_TYPE] == Tournament::IGBO_MULTI_SHIFT
       if team.present?
-        data['shift preference'] = team.shifts.first.name
+        data['shiftPreference'] = team.shifts.first.name
       else
-        data['shift preference'] = bowler.shifts.first.name
+        data['shiftPreference'] = bowler.shifts.first.name
       end
     end
 
@@ -291,14 +295,13 @@ module DirectorUtilities
     result = {
       entry_fee_paid: bowler.purchases.entry_fee.first&.paid_at.present? ? 'Y' : 'N',
       registered_at: bowler.created_at.in_time_zone(timezone).strftime('%Y %b %-d %l:%M%P %Z'),
-    }.merge(csv_additional_questions(bowler: bowler))
-      .merge(csv_purchases(bowler: bowler))
-
+    }
     if include_payment_app
-      result['payment app'] = bowler.payment_app
+      result[:payment_app] = bowler.payment_app
     end
-
     result
+      .merge(csv_additional_questions(bowler: bowler))
+      .merge(csv_purchases(bowler: bowler))
   end
 
   def self.csv_purchases(bowler:)
@@ -317,8 +320,8 @@ module DirectorUtilities
 
     # put them in a hash, marking the purchased one with X
     output = division_items.each_with_object({}) do |item, result|
-      signed_up_key = "Signed up: #{item.name}: #{item.configuration['division']}"
-      paid_key = "Paid: #{item.name}: #{item.configuration['division']}"
+      signed_up_key = "signedUp: #{item.name}: #{item.configuration['division']}"
+      paid_key = "paid: #{item.name}: #{item.configuration['division']}"
 
       signup = bowler.signups.find_by_purchasable_item_id(item.id)
       result[signed_up_key] = signup.requested? || signup.paid? ? 'X' : ''
@@ -330,10 +333,10 @@ module DirectorUtilities
 
     # mark the purchased ones with an X in the result
     optional_items.each do |item|
-      signed_up_key = "Signed up: #{item.name}"
+      signed_up_key = "signedUp: #{item.name}"
       signup = bowler.signups.find_by_purchasable_item_id(item.id)
       output[signed_up_key] = signup.requested? || signup.paid? ? 'X' : ''
-      paid_key = "Paid: #{item.name}"
+      paid_key = "paid: #{item.name}"
       output[paid_key] = if purchased_item_identifiers.include?(item.identifier)
                            item.single_use? ? 'X' : purchased_item_identifiers.count(item.identifier)
                          else
