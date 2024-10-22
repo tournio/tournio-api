@@ -47,7 +47,7 @@ class Shift < ApplicationRecord
   end
 
   def generate_event_string
-    self.event_string = events.collect(&:roster_type).sort.join('_')
+    self.event_string = events.collect(&:roster_type).sort.join('-')
   end
 
   def generate_group_title
