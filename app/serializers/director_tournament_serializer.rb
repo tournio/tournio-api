@@ -54,4 +54,13 @@ class DirectorTournamentSerializer < TournamentSerializer
   attribute :free_entry_count do |t|
     t.free_entries.count
   end
+
+  attribute :chart_data do |t|
+    {
+      lastWeekRegistrations: ChartDataQueries.last_week_registrations_by_day(t),
+      lastWeekPayments: ChartDataQueries.last_week_payments_by_day(t),
+      lastWeekRegistrationTypes: ChartDataQueries.last_week_registration_types_by_day(t),
+      lastWeekPurchasesByDay: ChartDataQueries.last_week_item_purchases_by_day(t),
+    }
+  end
 end
