@@ -4,6 +4,7 @@ class DirectorTournamentSerializer < TournamentSerializer
   attributes :id
 
   many :config_items, resource: ConfigItemSerializer
+  many :contacts, resource: DirectorContactSerializer
   many :shifts, resource: ShiftSerializer
   many :purchasable_items, proc { |purchasable_items, params, tournament|
     ledger_items = tournament.purchasable_items.ledger
