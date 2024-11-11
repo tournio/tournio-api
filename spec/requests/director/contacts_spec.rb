@@ -183,4 +183,70 @@ describe Director::ContactsController, type: :request do
     end
   end
 
+  describe '#destroy' do
+    subject { delete uri, headers: auth_headers, params: {}, as: :json }
+
+    let(:uri) { "/director/contacts/#{contact_id}" }
+
+    let(:tournament) { create :tournament }
+    let(:contact) { create :contact, tournament: tournament, name: 'JoJo Rabbit', email: 'jojo@rabbit.org', role: :director }
+    let(:contact_id) { contact.identifier }
+
+    ###############
+
+    include_examples 'an authorized action'
+
+    it 'succeeds with a 204 No Content' do
+      subject
+      expect(response).to have_http_status(:no_content)
+    end
+
+    it 'returns no body' do
+      subject
+      expect(response.body).to be_empty
+    end
+
+    it 'deletes the contact' do
+      subject
+      expect(Contact.find_by(identifier: contact_id)).to be_nil
+    end
+
+    context 'as an unpermitted user' do
+      let(:requesting_user) { create(:user, :unpermitted) }
+
+      it 'shall not pass' do
+        subject
+        expect(response).to have_http_status(:unauthorized)
+      end
+    end
+
+    context 'as a director' do
+      let(:requesting_user) { create(:user, :director) }
+
+      it 'shall not pass' do
+        subject
+        expect(response).to have_http_status(:unauthorized)
+      end
+
+      context 'associated with this tournament' do
+        let(:requesting_user) { create :user, :director, tournament_orgs: [tournament.tournament_org] }
+
+        it 'shall pass' do
+          subject
+          expect(response).to have_http_status(:no_content)
+        end
+      end
+    end
+
+    context 'error scenarios' do
+      context 'an unrecognized contact identifier' do
+        let(:contact_id) { 'say-what-now' }
+
+        it 'yields a 404 Not Found' do
+          subject
+          expect(response).to have_http_status(:not_found)
+        end
+      end
+    end
+  end
 end

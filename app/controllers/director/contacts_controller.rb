@@ -32,7 +32,16 @@ module Director
     end
 
     def destroy
+      contact = Contact.includes(:tournament).find_by_identifier!(params[:identifier])
+      self.tournament = contact.tournament
 
+      authorize tournament, :update?
+
+      contact.destroy
+      render json: nil, status: :no_content
+    rescue ActiveRecord::RecordNotFound
+      skip_authorization
+      render json: {}, status: :not_found
     end
 
     private
