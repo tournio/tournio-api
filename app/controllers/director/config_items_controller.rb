@@ -4,7 +4,7 @@ module Director
   class ConfigItemsController < BaseController
     rescue_from Pundit::NotAuthorizedError, with: :unauthorized
 
-    PERMITTED_WHILE_ACTIVE = %w(display_capacity email_in_dev skip_stripe publicly_listed accept_payments automatic_discount_voids automatic_late_fees website enable_unpaid_signups enable_free_entries)
+    PERMITTED_WHILE_ACTIVE = %w(display_capacity email_in_dev skip_stripe publicly_listed accept_payments website enable_unpaid_signups enable_free_entries)
 
     def update
       ci = ConfigItem.includes(:tournament).find(params[:id])
@@ -19,7 +19,7 @@ module Director
 
       ci.update(config_item_params)
 
-      render json: ConfigItemBlueprint.render(ci.reload), status: :ok
+      render json: ConfigItemSerializer.new(ci.reload).serialize, status: :ok
     rescue ActiveRecord::RecordNotFound
       skip_authorization
       render json: nil, status: :not_found
