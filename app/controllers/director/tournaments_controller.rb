@@ -152,7 +152,7 @@ module Director
       action_sym = "#{action}!".to_sym
       tournament.send(action_sym)
 
-      render json: TournamentBlueprint.render(tournament, view: :director_detail, director?: true, **url_options)
+      render json: DirectorTournamentSerializer.new(tournament, params: url_options).serialize
     end
 
     def create
