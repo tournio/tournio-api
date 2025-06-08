@@ -51,6 +51,7 @@ module TournamentBusiness
       ConfigItem.gimme(key_sym: :BOWLER_FORM_FIELDS, initial_value: 'usbcId'),
       ConfigItem.gimme(key_sym: :ENABLE_UNPAID_SIGNUPS),
       ConfigItem.gimme(key_sym: :ENABLE_FREE_ENTRIES),
+      ConfigItem.gimme(key_sym: :REGISTRATION_WITHOUT_PAYMENTS, initial_value: 'false'),
     ]
 
     if Rails.env.development?
