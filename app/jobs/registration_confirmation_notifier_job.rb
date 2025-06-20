@@ -58,6 +58,9 @@ class RegistrationConfirmationNotifierJob < TemplateMailerJob
     if bowler.additional_question_responses.any?
       data[:additional_questions] = bowler.additional_question_responses.collect { |r| { question: r.label, response: r.response } }
     end
+    if tournament.config['registration_without_payments']
+      data[:registration_without_payments] = true
+    end
     data
   end
 

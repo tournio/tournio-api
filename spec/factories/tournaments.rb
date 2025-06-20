@@ -274,7 +274,12 @@ FactoryBot.define do
         create(:additional_question, extended_form_field: comment, tournament: t)
         create(:additional_question, extended_form_field: pronouns, tournament: t)
         create(:additional_question, extended_form_field: standings, tournament: t)
+      end
+    end
 
+    trait :without_payments do
+      after(:create) do |t, _|
+       t.config_items << ConfigItem.gimme(key_sym: :REGISTRATION_WITHOUT_PAYMENTS, initial_value: true)
       end
     end
   end

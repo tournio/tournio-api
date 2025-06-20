@@ -32,6 +32,23 @@ require 'rails_helper'
 RSpec.describe Tournament, type: :model do
   let(:tournament) { create(:tournament) }
 
+  describe 'a tournament that cannot accept payments because Stripe is dumb' do
+    let(:org) { create(:tournament_org, stripe_account: nil) }
+    let(:tournament) { create(:tournament, :without_payments, tournament_org: org) }
+
+    it 'generates an org with no stripe account associated' do
+      expect(tournament.tournament_org.stripe_account).to be_nil
+    end
+
+    it 'generates the correct config item' do
+      expect(tournament.config_items.find_by_key(ConfigItem::Keys::REGISTRATION_WITHOUT_PAYMENTS)).not_to be_nil
+    end
+
+    it 'gives the config item the correct value' do
+      expect(tournament.config_items.find_by_key(ConfigItem::Keys::REGISTRATION_WITHOUT_PAYMENTS).value).to be_truthy
+    end
+  end
+
   describe 'creation callbacks' do
     subject { tournament.save }
 
