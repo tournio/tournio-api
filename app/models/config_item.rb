@@ -31,6 +31,7 @@ class ConfigItem < ApplicationRecord
     TEAM_SIZE = 'team_size'
     TOURNAMENT_TYPE = 'tournament_type'
     WEBSITE = 'website'
+    PAYMENT_PAGE = 'payment_page'
   end
 
   module Labels
@@ -46,6 +47,7 @@ class ConfigItem < ApplicationRecord
     TEAM_SIZE = 'Team Size'
     TOURNAMENT_TYPE = 'Tournament Type'
     WEBSITE = 'Website URL'
+    PAYMENT_PAGE = 'Payment Page'
   end
 
   private_constant :Labels
