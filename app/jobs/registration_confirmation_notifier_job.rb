@@ -60,7 +60,7 @@ class RegistrationConfirmationNotifierJob < TemplateMailerJob
     end
     if tournament.config['registration_without_payments']
       data[:registration_without_payments] = true
-      data[:payment_page] = tournament.config['payment_page'] ? tournament.config['payment_page'] : nil
+      data[:payment_page] = tournament.config['payment_page'].present? ? tournament.config['payment_page'] : nil
     end
     data
   end
